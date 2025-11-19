@@ -1,0 +1,287 @@
+// This is your Prisma schema file for The Alchemy Table
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// User & Authentication
+// ============================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  username  String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile      UserProfile?
+  playerState  PlayerState?
+  orders       Order[]
+  playerQuests PlayerQuest[]
+  inventory    PlayerInventory[]
+  cosmetics    PlayerCosmetics?
+
+  @@map("users")
+}
+
+model UserProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName String?
+  lastName  String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_profiles")
+}
+
+// ============================================
+// Player Progression
+// ============================================
+
+model PlayerState {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  level              Int      @default(1)
+  xp                 Int      @default(0)
+  totalXp            Int      @default(0)
+  currentStreak      Int      @default(0)
+  longestStreak      Int      @default(0)
+  lastLoginAt        DateTime @default(now())
+  lastDailyRewardAt  DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("player_states")
+}
+
+// ============================================
+// Quests
+// ============================================
+
+model Quest {
+  id               String   @id @default(cuid())
+  name             String
+  description      String
+  questType        String   // daily, weekly, achievement, story
+  requiredLevel    Int      @default(1)
+  xpReward         Int      @default(0)
+  ingredientRewards Json?   // Array of {ingredientId, quantity}
+  cosmeticRewards  Json?    // Array of cosmetic IDs
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  playerQuests PlayerQuest[]
+
+  @@map("quests")
+}
+
+model PlayerQuest {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questId     String
+  quest       Quest    @relation(fields: [questId], references: [id], onDelete: Cascade)
+  status      String   @default("active") // active, completed, claimed
+  progress    Int      @default(0)
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  claimedAt   DateTime?
+
+  @@unique([userId, questId])
+  @@map("player_quests")
+}
+
+// ============================================
+// Inventory & Items
+// ============================================
+
+model PlayerInventory {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId    String
+  itemType  String   // ingredient, blend, consumable
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, itemId])
+  @@map("player_inventory")
+}
+
+// ============================================
+// Recipes & Crafting
+// ============================================
+
+model Recipe {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  requiredLevel Int      @default(1)
+  ingredients   Json     // Array of {ingredientId, quantity}
+  resultItemId  String
+  xpGained      Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("recipes")
+}
+
+// ============================================
+// Products & Orders
+// ============================================
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  price       Decimal  @db.Decimal(10, 2)
+  imageUrl    String?
+  category    String?
+  isActive    Boolean  @default(true)
+  stock       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orderItems OrderItem[]
+
+  @@map("products")
+}
+
+model Order {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status          String   @default("pending") // pending, paid, shipped, delivered, cancelled
+  totalAmount     Decimal  @db.Decimal(10, 2)
+  stripePaymentId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  items  OrderItem[]
+  labels LabelDesign[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int      @default(1)
+  price     Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+
+  @@map("order_items")
+}
+
+// ============================================
+// Cosmetics (Themes & Skins)
+// ============================================
+
+model Theme {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  description     String?
+  backgroundUrl   String?
+  colorPalette    Json?    // Color scheme JSON
+  requiredLevel   Int      @default(1)
+  requiredQuestId String?
+  isPremium       Boolean  @default(false)
+  price           Decimal? @db.Decimal(10, 2)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tableSkins TableSkin[]
+
+  @@map("themes")
+}
+
+model TableSkin {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  description     String?
+  themeId         String
+  theme           Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  imageUrl        String?
+  requiredLevel   Int      @default(1)
+  requiredQuestId String?
+  isPremium       Boolean  @default(false)
+  price           Decimal? @db.Decimal(10, 2)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("table_skins")
+}
+
+model PlayerCosmetics {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  unlockedThemes  String[] // Array of theme IDs
+  unlockedSkins   String[] // Array of table skin IDs
+  activeThemeId   String?
+  activeTableSkinId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("player_cosmetics")
+}
+
+// ============================================
+// AI-Generated Labels
+// ============================================
+
+model LabelDesign {
+  id            String   @id @default(cuid())
+  orderId       String
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  name          String
+  tagline       String
+  description   String
+  stylePreset   String?
+  tonePreset    String?
+  artworkPrompt String?
+  artworkUrl    String?
+  status        String   @default("draft") // draft, approved
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("label_designs")
+}
+
+// ============================================
+// Events & Analytics
+// ============================================
+
+model Event {
+  id         String   @id @default(cuid())
+  eventType  String   // USER_REGISTERED, LEVEL_UP, ORDER_PAID, etc.
+  userId     String?
+  payload    Json
+  processedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  @@index([eventType])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("events")
+}
