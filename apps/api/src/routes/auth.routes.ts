@@ -41,7 +41,14 @@ export async function authRoutes(fastify: FastifyInstance) {
   });
 
   // POST /auth/login
-  fastify.post('/auth/login', async (request, reply) => {
+  fastify.post('/auth/login', {
+    config: {
+      rateLimit: {
+        max: 5, // Only 5 login attempts
+        timeWindow: '15 minutes',
+      },
+    },
+  }, async (request, reply) => {
     try {
       const body = loginSchema.parse(request.body);
       const result = await authService.login(body);
@@ -55,7 +62,14 @@ export async function authRoutes(fastify: FastifyInstance) {
   });
 
   // POST /auth/refresh
-  fastify.post('/auth/refresh', async (request, reply) => {
+  fastify.post('/auth/refresh', {
+    config: {
+      rateLimit: {
+        max: 10, // 10 token refreshes
+        timeWindow: '15 minutes',
+      },
+    },
+  }, async (request, reply) => {
     try {
       const body = refreshSchema.parse(request.body);
       const payload = verifyRefreshToken(body.refreshToken);

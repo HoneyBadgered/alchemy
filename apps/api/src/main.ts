@@ -3,11 +3,20 @@
  */
 
 import Fastify from 'fastify';
+import rateLimit from '@fastify/rate-limit';
 import { config } from './config';
 import { authRoutes } from './routes/auth.routes';
 
 const fastify = Fastify({
   logger: config.isDevelopment,
+});
+
+// Register rate limiting
+fastify.register(rateLimit, {
+  max: 100, // 100 requests
+  timeWindow: '15 minutes',
+  cache: 10000,
+  allowList: ['127.0.0.1'], // Whitelist localhost in development
 });
 
 // Register routes
