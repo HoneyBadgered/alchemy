@@ -5,7 +5,7 @@ export default [
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ['.next/**', 'out/**', 'build/**', 'next-env.d.ts', 'node_modules/**'],
+    ignores: ['node_modules/**', '.expo/**', 'dist/**'],
   },
   {
     rules: {
@@ -14,4 +14,3 @@ export default [
     },
   },
 ];
-

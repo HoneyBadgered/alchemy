@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# The Alchemy Table - Web App
+
+A Next.js-based web application providing a gamified e-commerce experience with cozy fantasy/alchemy aesthetics.
+
+## Features
+
+- 🧪 **Alchemy Table**: Interactive crafting interface for selecting ingredients and creating blends
+- 📦 **Inventory**: View and manage collected ingredients and crafted items
+- 🛒 **Shop**: Browse and purchase magical blends and potions
+- ✨ **Appearance**: Customize your experience with themes and table skins
+- 🏷️ **Label Studio**: Create AI-powered custom labels for your blends
+
+## Tech Stack
+
+- **Framework**: Next.js 16 with App Router and Turbopack
+- **Language**: TypeScript
+- **Styling**: TailwindCSS v4
+- **State Management**: Zustand
+- **Data Fetching**: TanStack Query
+- **Animations**: Framer Motion
+- **PWA Support**: Manifest-based progressive web app
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js >= 18.0.0
+- npm >= 9.0.0
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Install dependencies from the monorepo root
+cd ../..
+npm install
+
+# Or install from this directory
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Start the development server
+npm run dev
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Open http://localhost:3000 in your browser
+```
 
-## Learn More
+### Build
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# Build for production
+npm run build
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Start production server
+npm start
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Linting & Type Checking
 
-## Deploy on Vercel
+```bash
+# Run ESLint
+npm run lint
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Run TypeScript type checking
+npm run type-check
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project Structure
+
+```
+apps/web/
+├── src/
+│   ├── app/                 # Next.js App Router pages
+│   │   ├── table/          # Alchemy table page
+│   │   ├── inventory/      # Inventory grid page
+│   │   ├── shop/           # Shop/catalog page
+│   │   ├── appearance/     # Theme customization page
+│   │   ├── labels/         # Label studio page
+│   │   ├── layout.tsx      # Root layout with PWA metadata
+│   │   └── page.tsx        # Home page (redirects to table)
+│   ├── components/         # Reusable React components
+│   │   └── BottomNavigation.tsx
+│   ├── lib/               # Utility functions
+│   └── store/             # Zustand state management
+├── public/                # Static assets
+│   └── manifest.json      # PWA manifest
+└── package.json
+
+```
+
+## Integration with Shared Packages
+
+This app uses the following shared packages from the monorepo:
+
+- `@alchemy/core`: Game logic (XP, quests, crafting, cosmetics)
+- `@alchemy/sdk`: Typed API client
+- `@alchemy/ui`: Design system and components
+
+## Mobile-First Design
+
+The app is built with a mobile-first approach:
+
+- Responsive layouts that work on all screen sizes
+- Bottom navigation optimized for thumb-friendly interaction
+- Touch-optimized UI components
+- PWA support for installation on mobile devices
+
+## PWA Features
+
+The app includes Progressive Web App capabilities:
+
+- Installable on mobile and desktop
+- Offline-ready manifest
+- Mobile-optimized viewport settings
+- Custom theme color (#9333ea - purple)
+
+## Contributing
+
+This is part of a monorepo. Please refer to the root README for contribution guidelines.
+
+## License
+
+See the root LICENSE file.
