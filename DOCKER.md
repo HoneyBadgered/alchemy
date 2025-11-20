@@ -28,8 +28,11 @@ docker compose up -d postgres
 # Check if database is ready
 docker compose ps
 
-# Run migrations (first time setup)
-docker compose --profile migrate up prisma-migrate
+# Run migrations from your local machine (requires Node.js and dependencies installed)
+cd apps/api
+DATABASE_URL="postgresql://alchemy:alchemy_password@localhost:5432/alchemy?schema=public" npm run prisma:migrate
+DATABASE_URL="postgresql://alchemy:alchemy_password@localhost:5432/alchemy?schema=public" npm run prisma:generate
+cd ../..
 
 # Now run your API and Web locally
 npm install
@@ -130,8 +133,9 @@ docker compose down -v
 # Connect to PostgreSQL
 docker exec -it alchemy-postgres psql -U alchemy -d alchemy
 
-# Run Prisma migrations
-docker compose --profile migrate up prisma-migrate
+# Run Prisma migrations from host machine
+cd apps/api
+DATABASE_URL="postgresql://alchemy:alchemy_password@localhost:5432/alchemy?schema=public" npm run prisma:migrate
 
 # Backup database
 docker exec alchemy-postgres pg_dump -U alchemy alchemy > backup.sql
@@ -184,9 +188,11 @@ Available variables:
    docker compose up -d postgres
    ```
 
-2. Run migrations:
+2. Run migrations from your local machine:
    ```bash
-   docker compose --profile migrate up prisma-migrate
+   cd apps/api
+   DATABASE_URL="postgresql://alchemy:alchemy_password@localhost:5432/alchemy?schema=public" npm run prisma:migrate
+   cd ../..
    ```
 
 3. Start development services with hot reload:
@@ -214,7 +220,6 @@ curl http://localhost:3001
 Docker Compose profiles allow running different service configurations:
 
 - **Default** (no profile): Only postgres
-- **migrate**: Includes postgres + prisma-migrate
 - **full**: Includes postgres + api + web (production builds)
 
 Usage:

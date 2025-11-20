@@ -41,13 +41,14 @@ The easiest way to set up the PostgreSQL database is using Docker:
 # Start PostgreSQL database
 docker compose up -d postgres
 
-# Run Prisma migrations (first time setup)
-docker compose --profile migrate up prisma-migrate
+# Check database status
+docker compose ps
 
-# Or run migrations manually if you have the API dependencies installed
+# Run Prisma migrations from your local machine
 cd apps/api
 npm run prisma:migrate
 npm run prisma:generate
+cd ../..
 ```
 
 The database will be available at `postgresql://alchemy:alchemy_password@localhost:5432/alchemy`
