@@ -2,6 +2,7 @@
   "name": "@alchemy/sdk",
   "version": "1.0.0",
   "description": "Typed API client for The Alchemy Table",
+  "private": true,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
