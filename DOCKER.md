@@ -239,7 +239,7 @@ docker compose --profile <profile-name> up
 
 ### docker-compose.dev.yml (Development)
 
-- Uses node:18-alpine base image
+- Uses node:20-alpine base image
 - Mounts source code as volumes
 - Hot reload enabled
 - Faster startup (no build step)
