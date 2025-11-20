@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: alchemy-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: alchemy
+      POSTGRES_PASSWORD: alchemy_password
+      POSTGRES_DB: alchemy
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alchemy -d alchemy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  prisma-migrate:
+    image: node:18-alpine
+    container_name: alchemy-prisma-migrate
+    working_dir: /app/apps/api
+    command: sh -c "npm install && npx prisma migrate deploy && npx prisma generate"
+    environment:
+      DATABASE_URL: postgresql://alchemy:alchemy_password@postgres:5432/alchemy?schema=public
+    volumes:
+      - ./apps/api:/app/apps/api
+      - ./packages:/app/packages
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - node_modules:/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - migrate
+
+volumes:
+  postgres_data:
+  node_modules:
