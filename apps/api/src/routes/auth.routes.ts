@@ -155,7 +155,15 @@ export async function authRoutes(fastify: FastifyInstance) {
   });
 
   // GET /auth/me (protected)
-  fastify.get('/auth/me', { preHandler: authMiddleware }, async (request, reply) => {
+  fastify.get('/auth/me', {
+    preHandler: authMiddleware,
+    config: {
+      rateLimit: {
+        max: 30,
+        timeWindow: '1 minute',
+      },
+    },
+  }, async (request, reply) => {
     try {
       const user = await authService.getMe(request.user!.userId);
       return reply.send(user);
@@ -193,7 +201,14 @@ export async function authRoutes(fastify: FastifyInstance) {
   });
 
   // POST /auth/verify-email
-  fastify.post('/auth/verify-email', async (request, reply) => {
+  fastify.post('/auth/verify-email', {
+    config: {
+      rateLimit: {
+        max: 10,
+        timeWindow: '15 minutes',
+      },
+    },
+  }, async (request, reply) => {
     try {
       const body = verifyEmailSchema.parse(request.body);
       const result = await authService.verifyEmail(body.token);
@@ -207,7 +222,14 @@ export async function authRoutes(fastify: FastifyInstance) {
   });
 
   // POST /auth/resend-verification
-  fastify.post('/auth/resend-verification', async (request, reply) => {
+  fastify.post('/auth/resend-verification', {
+    config: {
+      rateLimit: {
+        max: 3,
+        timeWindow: '1 hour',
+      },
+    },
+  }, async (request, reply) => {
     try {
       const body = resendVerificationSchema.parse(request.body);
       const result = await authService.resendVerificationEmail(body.email);
