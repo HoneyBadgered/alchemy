@@ -6,6 +6,11 @@ import Fastify from 'fastify';
 import rateLimit from '@fastify/rate-limit';
 import { config } from './config';
 import { authRoutes } from './routes/auth.routes';
+import { catalogRoutes } from './routes/catalog.routes';
+import { craftingRoutes } from './routes/crafting.routes';
+import { gamificationRoutes } from './routes/gamification.routes';
+import { cosmeticsRoutes } from './routes/cosmetics.routes';
+import { labelsRoutes } from './routes/labels.routes';
 
 const fastify = Fastify({
   logger: config.isDevelopment,
@@ -21,6 +26,11 @@ fastify.register(rateLimit, {
 
 // Register routes
 fastify.register(authRoutes);
+fastify.register(catalogRoutes);
+fastify.register(craftingRoutes);
+fastify.register(gamificationRoutes);
+fastify.register(cosmeticsRoutes);
+fastify.register(labelsRoutes);
 
 // Health check
 fastify.get('/health', async () => {
