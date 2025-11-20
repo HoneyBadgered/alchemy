@@ -174,7 +174,7 @@ export default function AdminDashboardPage() {
                   >
                     <div>
                       <div className="text-sm font-medium text-gray-900">{item.product.name}</div>
-                      <div className="text-xs text-gray-600">${item.product.price.toString()}</div>
+                      <div className="text-xs text-gray-600">${Number(item.product.price).toFixed(2)}</div>
                     </div>
                     <span className="text-sm font-bold text-purple-600">{item.totalSold} sold</span>
                   </div>
@@ -203,7 +203,7 @@ export default function AdminDashboardPage() {
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-bold text-gray-900">
-                      ${order.totalAmount.toString()}
+                      ${Number(order.totalAmount).toFixed(2)}
                     </div>
                     <span className={`text-xs px-2 py-1 rounded ${
                       order.status === 'completed' ? 'bg-green-100 text-green-800' :

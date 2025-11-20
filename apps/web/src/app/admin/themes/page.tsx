@@ -16,7 +16,7 @@ export default function AdminThemesPage() {
         <div className="text-6xl mb-4">🎨</div>
         <h2 className="text-xl font-semibold text-gray-900 mb-2">Theme Management</h2>
         <p className="text-gray-600 mb-4">
-          Create and manage visual themes for The Alchemy Table
+          Create and manage visual themes for The Alchemist Table
         </p>
         <p className="text-sm text-gray-500">
           Coming soon: Grid display, add/edit forms, and image upload

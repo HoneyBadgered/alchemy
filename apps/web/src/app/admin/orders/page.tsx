@@ -174,7 +174,7 @@ export default function AdminOrdersPage() {
                       {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      ${order.totalAmount.toString()}
+                      ${Number(order.totalAmount).toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {new Date(order.createdAt).toLocaleDateString()}
