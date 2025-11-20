@@ -19,6 +19,8 @@ This project uses **npm workspaces** to manage multiple packages in a monorepo. 
 
 ## 🚀 Getting Started
 
+📘 **For detailed Docker setup instructions, see [DOCKER.md](DOCKER.md)**
+
 ### Prerequisites
 - Node.js >= 18.0.0
 - npm >= 9.0.0
@@ -37,10 +39,10 @@ The easiest way to set up the PostgreSQL database is using Docker:
 
 ```bash
 # Start PostgreSQL database
-docker-compose up -d postgres
+docker compose up -d postgres
 
 # Run Prisma migrations (first time setup)
-docker-compose --profile migrate up prisma-migrate
+docker compose --profile migrate up prisma-migrate
 
 # Or run migrations manually if you have the API dependencies installed
 cd apps/api
@@ -52,10 +54,48 @@ The database will be available at `postgresql://alchemy:alchemy_password@localho
 
 ```bash
 # Stop the database
-docker-compose down
+docker compose down
 
 # Stop and remove all data
-docker-compose down -v
+docker compose down -v
+```
+
+### Running Full Application with Docker
+
+You can run the entire application stack (database, API, and web) using Docker:
+
+```bash
+# Build and start all services (database, API, web)
+docker compose --profile full up --build
+
+# Or run in detached mode
+docker compose --profile full up -d --build
+
+# View logs
+docker compose logs -f
+
+# Stop all services
+docker compose --profile full down
+```
+
+Services will be available at:
+- **Web App**: http://localhost:3001
+- **API**: http://localhost:3000
+- **Database**: localhost:5432
+
+### Development Mode with Docker (Hot Reload)
+
+For development with hot-reload enabled:
+
+```bash
+# Start all services in development mode with hot reload
+docker compose -f docker-compose.dev.yml up
+
+# Or run in detached mode
+docker compose -f docker-compose.dev.yml up -d
+
+# Stop development services
+docker compose -f docker-compose.dev.yml down
 ```
 
 ### Database Setup without Docker
@@ -66,6 +106,29 @@ If you prefer to run PostgreSQL locally without Docker:
 2. Create a database named `alchemy`
 3. Update `apps/api/.env` with your database credentials
 4. Run migrations: `npm run prisma:migrate --workspace=@alchemy/api`
+
+### Local Development (without Docker)
+
+If you prefer to run services locally without Docker:
+
+```bash
+# 1. Make sure PostgreSQL is running and migrations are complete
+# 2. Install dependencies
+npm install
+
+# 3. Set up environment variables
+cd apps/api
+cp .env.example .env
+# Edit .env with your database credentials
+cd ../..
+
+# 4. Run all apps in development mode
+npm run dev
+
+# Or run specific apps
+npm run dev --workspace=@alchemy/api    # API on port 3000
+npm run dev --workspace=@alchemy/web    # Web on port 3000 (Next.js default)
+```
 
 ### Development
 

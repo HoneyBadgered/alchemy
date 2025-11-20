@@ -1,7 +1,9 @@
+# Development docker-compose configuration
+# Use this for local development with hot-reload
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: alchemy-postgres
+    container_name: alchemy-postgres-dev
     restart: unless-stopped
     environment:
       POSTGRES_USER: alchemy
@@ -11,7 +13,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_dev_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U alchemy -d alchemy"]
       interval: 10s
@@ -20,35 +22,13 @@ services:
     networks:
       - alchemy-network
 
-  prisma-migrate:
-    image: node:18-alpine
-    container_name: alchemy-prisma-migrate
-    working_dir: /app/apps/api
-    command: sh -c "npm install && npx prisma migrate deploy && npx prisma generate"
-    environment:
-      DATABASE_URL: postgresql://alchemy:alchemy_password@postgres:5432/alchemy?schema=public
-    volumes:
-      - ./apps/api:/app/apps/api
-      - ./packages:/app/packages
-      - ./package.json:/app/package.json
-      - ./package-lock.json:/app/package-lock.json
-      - node_modules:/app/node_modules
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - alchemy-network
-    profiles:
-      - migrate
-
   api:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-    container_name: alchemy-api
-    restart: unless-stopped
+    image: node:18-alpine
+    container_name: alchemy-api-dev
+    working_dir: /app
+    command: sh -c "npm install && npm run dev --workspace=@alchemy/api"
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       PORT: 3000
       DATABASE_URL: postgresql://alchemy:alchemy_password@postgres:5432/alchemy?schema=public
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-here-change-in-production}
@@ -57,36 +37,48 @@ services:
       EMAIL_FROM: ${EMAIL_FROM:-noreply@alchemytable.com}
     ports:
       - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/api/node_modules
+      - /app/apps/web/node_modules
+      - /app/apps/mobile/node_modules
+      - /app/packages/core/node_modules
+      - /app/packages/ui/node_modules
+      - /app/packages/sdk/node_modules
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - alchemy-network
-    profiles:
-      - full
 
   web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-    container_name: alchemy-web
-    restart: unless-stopped
+    image: node:18-alpine
+    container_name: alchemy-web-dev
+    working_dir: /app
+    command: sh -c "npm install && npm run dev --workspace=@alchemy/web"
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
     ports:
       - "3001:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/api/node_modules
+      - /app/apps/web/node_modules
+      - /app/apps/mobile/node_modules
+      - /app/packages/core/node_modules
+      - /app/packages/ui/node_modules
+      - /app/packages/sdk/node_modules
     depends_on:
       - api
     networks:
       - alchemy-network
-    profiles:
-      - full
 
 networks:
   alchemy-network:
     driver: bridge
 
 volumes:
-  postgres_data:
-  node_modules:
+  postgres_dev_data:
