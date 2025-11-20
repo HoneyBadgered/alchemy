@@ -33,6 +33,9 @@ npm run prisma:generate
 
 # Run migrations
 npm run prisma:migrate
+
+# Seed the database with sample products
+npm run prisma:seed
 ```
 
 ### Development
@@ -115,10 +118,44 @@ See `prisma/schema.prisma` for the complete database schema including:
 - Quests & Achievements
 - Inventory & Items
 - Recipes & Crafting
-- Products & Orders
+- Products & Orders (with tags and multiple images support)
 - Cosmetics (Themes & Table Skins)
 - AI-Generated Labels
 - Events & Analytics
+
+### Product Model
+
+The Product model includes all key attributes for blends and items available for purchase:
+
+- **id**: Unique identifier (CUID)
+- **name**: Product name
+- **description**: Detailed product description
+- **price**: Decimal price (10,2 precision)
+- **imageUrl**: Primary image URL (legacy, for backward compatibility)
+- **images**: Array of image URLs for multiple product images
+- **category**: Product category (e.g., "Coffee Blends", "Tea Blends", "Brewing Equipment")
+- **tags**: Array of tags for filtering and search (e.g., ["coffee", "blend", "morning"])
+- **isActive**: Boolean flag for product visibility
+- **stock**: Available inventory quantity
+- **createdAt/updatedAt**: Timestamps
+
+### Seeding the Database
+
+The seed script (`prisma/seed.ts`) populates the database with 15 sample products across 5 categories:
+
+- **Coffee Blends** (4 products): Various coffee blends with different roast profiles
+- **Tea Blends** (3 products): Earl Grey, herbal, and green tea blends
+- **Brewing Equipment** (3 products): Pour over kit, grinder, kettle
+- **Accessories** (3 products): Mugs, storage, scale
+- **Specialty Items** (2 products): Cold brew kit, matcha set
+
+Run the seed script with:
+
+```bash
+npm run prisma:seed
+```
+
+The seed script is idempotent - it won't create duplicate products if run multiple times.
 
 ## Project Structure
 
