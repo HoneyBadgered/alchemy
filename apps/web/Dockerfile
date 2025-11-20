@@ -3,6 +3,7 @@ FROM node:20-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
+RUN apk add --no-cache python3 make g++
 WORKDIR /app
 
 # Copy package files from monorepo root and web workspace
@@ -22,9 +23,6 @@ WORKDIR /app
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
-COPY --from=deps /app/packages/core/node_modules ./packages/core/node_modules
-COPY --from=deps /app/packages/ui/node_modules ./packages/ui/node_modules
-COPY --from=deps /app/packages/sdk/node_modules ./packages/sdk/node_modules
 
 # Copy source code
 COPY . .
