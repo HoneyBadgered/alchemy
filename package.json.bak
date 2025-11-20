@@ -1,0 +1,28 @@
+{
+  "name": "alchemy",
+  "version": "1.0.0",
+  "description": "A gamified e-commerce platform for building blends at an alchemy table",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "turbo": "^2.6.1",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20.19.4",
+    "npm": ">=9.0.0"
+  },
+  "packageManager": "npm@10.2.4"
+}
