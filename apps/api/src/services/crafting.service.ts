@@ -65,14 +65,14 @@ export class CraftingService {
     }));
 
     // Check if can craft
-    const canCraft = canCraftRecipe(
+    const craftCheck = canCraftRecipe(
       recipe,
       playerState.level,
       inventoryArray
     );
 
-    if (!canCraft) {
-      throw new Error('Cannot craft this recipe. Check level and ingredients.');
+    if (!craftCheck.canCraft) {
+      throw new Error(craftCheck.reason || 'Cannot craft this recipe. Check level and ingredients.');
     }
 
     // Perform crafting logic
