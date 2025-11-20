@@ -1,0 +1,84 @@
+# Development docker-compose configuration
+# Use this for local development with hot-reload
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: alchemy-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: alchemy
+      POSTGRES_PASSWORD: alchemy_password
+      POSTGRES_DB: alchemy
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alchemy -d alchemy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - alchemy-network
+
+  api:
+    image: node:18-alpine
+    container_name: alchemy-api-dev
+    working_dir: /app
+    command: sh -c "npm install && npm run dev --workspace=@alchemy/api"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://alchemy:alchemy_password@postgres:5432/alchemy?schema=public
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-here-change-in-production}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-your-refresh-secret-key-here-change-in-production}
+      APP_URL: ${APP_URL:-http://localhost:3001}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@alchemytable.com}
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/api/node_modules
+      - /app/apps/web/node_modules
+      - /app/apps/mobile/node_modules
+      - /app/packages/core/node_modules
+      - /app/packages/ui/node_modules
+      - /app/packages/sdk/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - alchemy-network
+
+  web:
+    image: node:18-alpine
+    container_name: alchemy-web-dev
+    working_dir: /app
+    command: sh -c "npm install && npm run dev --workspace=@alchemy/web"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+    ports:
+      - "3001:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/api/node_modules
+      - /app/apps/web/node_modules
+      - /app/apps/mobile/node_modules
+      - /app/packages/core/node_modules
+      - /app/packages/ui/node_modules
+      - /app/packages/sdk/node_modules
+    depends_on:
+      - api
+    networks:
+      - alchemy-network
+
+networks:
+  alchemy-network:
+    driver: bridge
+
+volumes:
+  postgres_dev_data:
