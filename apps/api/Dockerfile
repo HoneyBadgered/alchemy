@@ -3,6 +3,7 @@ FROM node:20-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
+# Install build tools for native modules like bcrypt
 RUN apk add --no-cache python3 make g++
 WORKDIR /app
 
