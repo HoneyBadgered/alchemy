@@ -19,15 +19,21 @@ model User {
   email     String   @unique
   password  String
   username  String   @unique
+  emailVerified Boolean @default(false)
+  emailVerificationToken String?
+  emailVerificationExpires DateTime?
+  passwordResetToken String?
+  passwordResetExpires DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  profile      UserProfile?
-  playerState  PlayerState?
-  orders       Order[]
-  playerQuests PlayerQuest[]
-  inventory    PlayerInventory[]
-  cosmetics    PlayerCosmetics?
+  profile       UserProfile?
+  playerState   PlayerState?
+  orders        Order[]
+  playerQuests  PlayerQuest[]
+  inventory     PlayerInventory[]
+  cosmetics     PlayerCosmetics?
+  refreshTokens RefreshToken[]
 
   @@map("users")
 }
@@ -43,6 +49,18 @@ model UserProfile {
   updatedAt DateTime @updatedAt
 
   @@map("user_profiles")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
 }
 
 // ============================================

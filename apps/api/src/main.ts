@@ -4,6 +4,7 @@
 
 import Fastify from 'fastify';
 import rateLimit from '@fastify/rate-limit';
+import cookie from '@fastify/cookie';
 import { config } from './config';
 import { authRoutes } from './routes/auth.routes';
 import { catalogRoutes } from './routes/catalog.routes';
@@ -15,6 +16,9 @@ import { labelsRoutes } from './routes/labels.routes';
 const fastify = Fastify({
   logger: config.isDevelopment,
 });
+
+// Register cookie support
+fastify.register(cookie);
 
 // Register rate limiting
 fastify.register(rateLimit, {
