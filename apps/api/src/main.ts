@@ -12,6 +12,11 @@ import { craftingRoutes } from './routes/crafting.routes';
 import { gamificationRoutes } from './routes/gamification.routes';
 import { cosmeticsRoutes } from './routes/cosmetics.routes';
 import { labelsRoutes } from './routes/labels.routes';
+import { adminProductRoutes } from './routes/admin-product.routes';
+import { adminOrderRoutes } from './routes/admin-order.routes';
+import { adminThemeRoutes } from './routes/admin-theme.routes';
+import { adminSettingsRoutes } from './routes/admin-settings.routes';
+import { adminDashboardRoutes } from './routes/admin-dashboard.routes';
 
 const fastify = Fastify({
   logger: config.isDevelopment,
@@ -35,6 +40,11 @@ fastify.register(craftingRoutes);
 fastify.register(gamificationRoutes);
 fastify.register(cosmeticsRoutes);
 fastify.register(labelsRoutes);
+fastify.register(adminProductRoutes);
+fastify.register(adminOrderRoutes);
+fastify.register(adminThemeRoutes);
+fastify.register(adminSettingsRoutes);
+fastify.register(adminDashboardRoutes);
 
 // Health check
 fastify.get('/health', async () => {

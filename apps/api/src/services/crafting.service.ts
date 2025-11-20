@@ -65,8 +65,12 @@ export class CraftingService {
     }));
 
     // Check if can craft
+    const recipeWithTypedIngredients = {
+      ...recipe,
+      ingredients: recipe.ingredients as Array<{ ingredientId: string; quantity: number }>,
+    };
     const craftCheck = canCraftRecipe(
-      recipe,
+      recipeWithTypedIngredients,
       playerState.level,
       inventoryArray
     );
