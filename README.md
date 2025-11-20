@@ -22,7 +22,7 @@ This project uses **npm workspaces** to manage multiple packages in a monorepo. 
 📘 **For detailed Docker setup instructions, see [DOCKER.md](DOCKER.md)**
 
 ### Prerequisites
-- Node.js >= 18.0.0
+- Node.js >= 20.19.4 (required for Fastify v5)
 - npm >= 9.0.0
 - Docker and Docker Compose (recommended for database)
 
@@ -168,3 +168,30 @@ npm install <package> --workspace=@alchemy/web
 - **Cross-package references**: Packages can reference each other using workspace protocol
 - **Efficient builds**: Turborepo caches and parallelizes builds
 - **Consistent versions**: Ensures dependency version consistency across packages
+
+## 📝 Migration Notes
+
+### Fastify v5 Upgrade (November 2025)
+
+The API backend has been upgraded from Fastify v4 to Fastify v5. This upgrade brings performance improvements and better maintainability.
+
+#### What Changed
+
+- **Fastify**: v4.25.2 → v5.6.2
+- **@fastify/cookie**: v11.0.2 (already compatible)
+- **@fastify/rate-limit**: v10.3.0 (already compatible)
+
+#### Breaking Changes from Fastify v4 to v5
+
+While this project wasn't affected by breaking changes, developers should be aware of the following if extending the API:
+
+1. **Node.js v20+ Required**: Fastify v5 requires Node.js v20 or higher (already met by this project)
+2. **Full JSON Schema**: Route validation schemas must use complete JSON Schema format with `type` and `properties` (already in use)
+3. **Logger Instance**: Custom loggers must use `loggerInstance` option instead of `logger` (not applicable - using boolean logger)
+4. **Semicolon Delimiters**: Query string semicolon delimiters disabled by default (not in use)
+
+#### Testing
+
+All existing tests continue to pass without modification. The application starts successfully and all endpoints remain functional.
+
+For more details on Fastify v5, see the [official migration guide](https://fastify.dev/docs/latest/Guides/Migration-Guide-V5/).
