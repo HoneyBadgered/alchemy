@@ -14,8 +14,10 @@ interface Product {
   price: number;
   stock: number;
   category: string | null;
+  tags: string[];
   isActive: boolean;
   imageUrl: string | null;
+  images: string[];
   createdAt: string;
 }
 
@@ -230,6 +232,23 @@ export default function AdminProductsPage() {
                           <div className="text-sm text-gray-500 truncate max-w-xs">
                             {product.description}
                           </div>
+                          {product.tags && product.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {product.tags.slice(0, 3).map((tag) => (
+                                <span
+                                  key={tag}
+                                  className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded"
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                              {product.tags.length > 3 && (
+                                <span className="text-xs text-gray-500">
+                                  +{product.tags.length - 3}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>
