@@ -31,6 +31,22 @@ export interface OrderListFilters {
   status?: string;
 }
 
+interface CartItemWithProduct {
+  id: string;
+  cartId: string;
+  productId: string;
+  quantity: number;
+  createdAt: Date;
+  updatedAt: Date;
+  product: {
+    id: string;
+    name: string;
+    price: number | Prisma.Decimal;
+    stock: number;
+    isActive: boolean;
+  };
+}
+
 export class OrderService {
   /**
    * Place an order from the user's cart
@@ -65,7 +81,7 @@ export class OrderService {
     }
 
     // Calculate order totals
-    const subtotal = cart.items.reduce((sum: number, item: any) => {
+    const subtotal = cart.items.reduce((sum: number, item: CartItemWithProduct) => {
       return sum + Number(item.product.price) * item.quantity;
     }, 0);
 
@@ -135,7 +151,7 @@ export class OrderService {
           discountAmount,
           customerNotes,
           items: {
-            create: cart.items.map((item: any) => ({
+            create: cart.items.map((item: CartItemWithProduct) => ({
               productId: item.productId,
               quantity: item.quantity,
               price: item.product.price,

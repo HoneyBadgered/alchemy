@@ -54,6 +54,13 @@ export default function OrderDetailPage() {
     }
   };
 
+  const calculateSubtotal = (order: Order) => {
+    return Number(order.totalAmount) - 
+           (Number(order.shippingCost || 0)) - 
+           (Number(order.taxAmount || 0)) + 
+           (Number(order.discountAmount || 0));
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-green-100 to-blue-100 pb-20">
@@ -170,7 +177,7 @@ export default function OrderDetailPage() {
             <div className="flex justify-between text-gray-600">
               <span>Subtotal</span>
               <span className="font-semibold">
-                ${(Number(order.totalAmount) - (Number(order.shippingCost || 0)) - (Number(order.taxAmount || 0)) + (Number(order.discountAmount || 0))).toFixed(2)}
+                ${calculateSubtotal(order).toFixed(2)}
               </span>
             </div>
             {order.shippingCost && (

@@ -1,11 +1,13 @@
 'use client';
 
 import { useCart } from '@/contexts/CartContext';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import BottomNavigation from '@/components/BottomNavigation';
 import { useState } from 'react';
 
 export default function CartPage() {
+  const router = useRouter();
   const { cart, isLoading, itemCount, subtotal, updateCartItem, removeFromCart, clearCart } = useCart();
   const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
 
@@ -210,7 +212,7 @@ export default function CartPage() {
 
                 <button
                   className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-full font-semibold transition-colors mb-3"
-                  onClick={() => window.location.href = '/checkout'}
+                  onClick={() => router.push('/checkout')}
                 >
                   Proceed to Checkout
                 </button>
