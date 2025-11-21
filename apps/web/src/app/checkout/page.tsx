@@ -5,14 +5,21 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
 import { useAuthStore } from '@/store/authStore';
 import { orderApi, type ShippingAddress } from '@/lib/order-api';
+import { paymentApi } from '@/lib/payment-api';
 import BottomNavigation from '@/components/BottomNavigation';
+import StripePayment from '@/components/StripePayment';
+
+type CheckoutStep = 'shipping' | 'payment' | 'processing';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, itemCount, subtotal, isLoading: cartLoading } = useCart();
+  const { cart, itemCount, subtotal, isLoading: cartLoading, clearCart } = useCart();
   const { isAuthenticated, accessToken } = useAuthStore();
+  const [currentStep, setCurrentStep] = useState<CheckoutStep>('shipping');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [paymentClientSecret, setPaymentClientSecret] = useState<string | null>(null);
 
   const [shippingInfo, setShippingInfo] = useState<ShippingAddress>({
     firstName: '',
@@ -40,7 +47,7 @@ export default function CheckoutPage() {
     return null;
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleShippingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
@@ -50,6 +57,7 @@ export default function CheckoutPage() {
         throw new Error('Not authenticated');
       }
 
+      // Step 1: Create the order
       const order = await orderApi.placeOrder(
         {
           shippingAddress: shippingInfo,
@@ -58,12 +66,37 @@ export default function CheckoutPage() {
         accessToken
       );
 
-      // Redirect to order confirmation page
-      router.push(`/orders/${order.id}`);
+      setOrderId(order.id);
+
+      // Step 2: Create payment intent
+      const paymentIntent = await paymentApi.createPaymentIntent(
+        { orderId: order.id },
+        accessToken
+      );
+
+      setPaymentClientSecret(paymentIntent.clientSecret);
+      setCurrentStep('payment');
     } catch (err) {
       setError((err as Error).message);
+    } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handlePaymentSuccess = async () => {
+    setCurrentStep('processing');
+    
+    // Clear the cart
+    await clearCart();
+    
+    // Redirect to order confirmation
+    if (orderId) {
+      router.push(`/orders/${orderId}`);
+    }
+  };
+
+  const handlePaymentError = (errorMessage: string) => {
+    setError(errorMessage);
   };
 
   const handleInputChange = (field: keyof ShippingAddress, value: string) => {
@@ -103,13 +136,34 @@ export default function CheckoutPage() {
         )}
 
         {!cartLoading && cart && (
-          <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Shipping Information */}
-              <div className="lg:col-span-2 space-y-6">
-                {/* Shipping Address */}
-                <div className="bg-white rounded-xl shadow-md p-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Shipping Address</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main Content Area */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Step Indicator */}
+              <div className="bg-white rounded-xl shadow-md p-4">
+                <div className="flex items-center justify-center space-x-4">
+                  <div className={`flex items-center ${currentStep === 'shipping' ? 'text-purple-600' : currentStep === 'payment' ? 'text-green-600' : 'text-gray-400'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'shipping' ? 'bg-purple-600 text-white' : currentStep === 'payment' || currentStep === 'processing' ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                      1
+                    </div>
+                    <span className="ml-2 font-semibold">Shipping</span>
+                  </div>
+                  <div className="w-16 h-0.5 bg-gray-300"></div>
+                  <div className={`flex items-center ${currentStep === 'payment' ? 'text-purple-600' : currentStep === 'processing' ? 'text-green-600' : 'text-gray-400'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'payment' ? 'bg-purple-600 text-white' : currentStep === 'processing' ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                      2
+                    </div>
+                    <span className="ml-2 font-semibold">Payment</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Shipping Form */}
+              {currentStep === 'shipping' && (
+                <form onSubmit={handleShippingSubmit}>
+                  {/* Shipping Address */}
+                  <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+                    <h2 className="text-xl font-bold text-gray-900 mb-4">Shipping Address</h2>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -228,91 +282,23 @@ export default function CheckoutPage() {
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                       />
                     </div>
-                  </div>
-                </div>
-
-                {/* Order Notes */}
-                <div className="bg-white rounded-xl shadow-md p-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Order Notes (Optional)</h2>
-                  <textarea
-                    value={customerNotes}
-                    onChange={(e) => setCustomerNotes(e.target.value)}
-                    placeholder="Any special instructions for your order?"
-                    rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                  />
-                </div>
-
-                {/* Payment Info */}
-                <div className="bg-white rounded-xl shadow-md p-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Payment Information</h2>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-blue-800">
-                      💳 Payment processing will be implemented in a future update. 
-                      For now, orders will be placed as pending.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Order Summary */}
-              <div className="lg:col-span-1">
-                <div className="bg-white rounded-xl shadow-md p-6 sticky top-4">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
-
-                  {/* Cart Items */}
-                  <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
-                    {cart.cart.items.map((item) => (
-                      <div key={item.id} className="flex gap-3">
-                        <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-                          {item.product.imageUrl ? (
-                            <img
-                              src={item.product.imageUrl}
-                              alt={item.product.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-2xl">
-                              🧪
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm line-clamp-1">
-                            {item.product.name}
-                          </p>
-                          <p className="text-xs text-gray-600">
-                            Qty: {item.quantity} × ${Number(item.product.price).toFixed(2)}
-                          </p>
-                        </div>
-                        <div className="text-sm font-semibold">
-                          ${(Number(item.product.price) * item.quantity).toFixed(2)}
-                        </div>
-                      </div>
-                    ))}
+                    </div>
                   </div>
 
-                  <div className="border-t pt-4 space-y-2">
-                    <div className="flex justify-between text-gray-600">
-                      <span>Subtotal ({itemCount} items)</span>
-                      <span className="font-semibold">${subtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-gray-600">
-                      <span>Shipping</span>
-                      <span className="font-semibold">TBD</span>
-                    </div>
-                    <div className="flex justify-between text-gray-600">
-                      <span>Tax</span>
-                      <span className="font-semibold">TBD</span>
-                    </div>
-                    <div className="border-t pt-2 flex justify-between text-lg font-bold text-gray-900">
-                      <span>Total</span>
-                      <span className="text-purple-600">${subtotal.toFixed(2)}</span>
-                    </div>
+                  {/* Order Notes */}
+                  <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+                    <h2 className="text-xl font-bold text-gray-900 mb-4">Order Notes (Optional)</h2>
+                    <textarea
+                      value={customerNotes}
+                      onChange={(e) => setCustomerNotes(e.target.value)}
+                      placeholder="Any special instructions for your order?"
+                      rows={4}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    />
                   </div>
 
                   {error && (
-                    <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
                       <p className="text-red-800 text-sm">{error}</p>
                     </div>
                   )}
@@ -320,22 +306,121 @@ export default function CheckoutPage() {
                   <button
                     type="submit"
                     disabled={!isFormValid() || isSubmitting}
-                    className="w-full mt-6 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white py-3 rounded-full font-semibold transition-colors"
+                    className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white py-3 rounded-full font-semibold transition-colors"
                   >
-                    {isSubmitting ? 'Placing Order...' : 'Place Order'}
+                    {isSubmitting ? 'Creating Order...' : 'Continue to Payment'}
                   </button>
+                </form>
+              )}
+
+              {/* Payment Form */}
+              {currentStep === 'payment' && paymentClientSecret && (
+                <div className="bg-white rounded-xl shadow-md p-6">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">Payment Information</h2>
+                  <p className="text-sm text-gray-600 mb-6">
+                    Complete your purchase securely with Stripe
+                  </p>
+
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                      <p className="text-red-800 text-sm">{error}</p>
+                    </div>
+                  )}
+
+                  <StripePayment
+                    clientSecret={paymentClientSecret}
+                    onSuccess={handlePaymentSuccess}
+                    onError={handlePaymentError}
+                  />
 
                   <button
                     type="button"
-                    onClick={() => router.push('/cart')}
-                    className="w-full mt-3 text-purple-600 hover:text-purple-700 font-semibold"
+                    onClick={() => setCurrentStep('shipping')}
+                    className="w-full mt-4 text-purple-600 hover:text-purple-700 font-semibold"
                   >
-                    Back to Cart
+                    Back to Shipping
                   </button>
                 </div>
+              )}
+
+              {/* Processing State */}
+              {currentStep === 'processing' && (
+                <div className="bg-white rounded-xl shadow-md p-12">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                    <h2 className="text-xl font-bold text-gray-900 mb-2">Processing Payment...</h2>
+                    <p className="text-gray-600">Please wait while we confirm your payment</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Order Summary */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-xl shadow-md p-6 sticky top-4">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
+
+                {/* Cart Items */}
+                <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
+                  {cart.cart.items.map((item) => (
+                    <div key={item.id} className="flex gap-3">
+                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
+                        {item.product.imageUrl ? (
+                          <img
+                            src={item.product.imageUrl}
+                            alt={item.product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-2xl">
+                            🧪
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm line-clamp-1">
+                          {item.product.name}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          Qty: {item.quantity} × ${Number(item.product.price).toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="text-sm font-semibold">
+                        ${(Number(item.product.price) * item.quantity).toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="border-t pt-4 space-y-2">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal ({itemCount} items)</span>
+                    <span className="font-semibold">${subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Shipping</span>
+                    <span className="font-semibold">TBD</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Tax</span>
+                    <span className="font-semibold">TBD</span>
+                  </div>
+                  <div className="border-t pt-2 flex justify-between text-lg font-bold text-gray-900">
+                    <span>Total</span>
+                    <span className="text-purple-600">${subtotal.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => router.push('/cart')}
+                  className="w-full mt-6 text-purple-600 hover:text-purple-700 font-semibold"
+                >
+                  Back to Cart
+                </button>
               </div>
             </div>
-          </form>
+          </div>
         )}
       </div>
 
