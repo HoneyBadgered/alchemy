@@ -9,6 +9,7 @@ import cors from '@fastify/cors';
 import { config } from './config';
 import { authRoutes } from './routes/auth.routes';
 import { catalogRoutes } from './routes/catalog.routes';
+import { cartRoutes } from './routes/cart.routes';
 import { craftingRoutes } from './routes/crafting.routes';
 import { gamificationRoutes } from './routes/gamification.routes';
 import { cosmeticsRoutes } from './routes/cosmetics.routes';
@@ -43,6 +44,7 @@ fastify.register(rateLimit, {
 // Register routes
 fastify.register(authRoutes);
 fastify.register(catalogRoutes);
+fastify.register(cartRoutes);
 fastify.register(craftingRoutes);
 fastify.register(gamificationRoutes);
 fastify.register(cosmeticsRoutes);
