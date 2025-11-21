@@ -46,8 +46,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV NODE_ENV=production
 
 # Create a non-root user
-RUN groupadd --system --gid 1001 nodejs
-RUN useradd --system --uid 1001 fastify
+RUN groupadd --system --gid 1001 nodejs && \
+    useradd --system --uid 1001 fastify
 
 # Copy built application
 COPY --from=builder --chown=fastify:nodejs /app/apps/api/dist ./apps/api/dist
