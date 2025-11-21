@@ -22,6 +22,8 @@ const envSchema = z.object({
   EMAIL_FROM: z.string().default('noreply@alchemytable.com'),
   AWS_REGION: z.string().optional(),
   AWS_SQS_QUEUE_URL: z.string().optional(),
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);
@@ -54,4 +56,6 @@ export const config = {
     region: env.AWS_REGION || 'us-east-1',
     sqsQueueUrl: env.AWS_SQS_QUEUE_URL,
   },
+  stripeSecretKey: env.STRIPE_SECRET_KEY,
+  stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET,
 };

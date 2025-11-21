@@ -6,11 +6,13 @@ import Fastify from 'fastify';
 import rateLimit from '@fastify/rate-limit';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
+import rawBody from 'fastify-raw-body';
 import { config } from './config';
 import { authRoutes } from './routes/auth.routes';
 import { catalogRoutes } from './routes/catalog.routes';
 import { cartRoutes } from './routes/cart.routes';
 import { orderRoutes } from './routes/order.routes';
+import { paymentRoutes } from './routes/payment.routes';
 import { craftingRoutes } from './routes/crafting.routes';
 import { gamificationRoutes } from './routes/gamification.routes';
 import { cosmeticsRoutes } from './routes/cosmetics.routes';
@@ -31,6 +33,15 @@ fastify.register(cors, {
   credentials: true,
 });
 
+// Register raw body support (needed for Stripe webhooks)
+fastify.register(rawBody, {
+  field: 'rawBody',
+  global: false,
+  encoding: 'utf8',
+  runFirst: true,
+  routes: ['/payments/webhook'],
+});
+
 // Register cookie support
 fastify.register(cookie);
 
@@ -47,6 +58,7 @@ fastify.register(authRoutes);
 fastify.register(catalogRoutes);
 fastify.register(cartRoutes);
 fastify.register(orderRoutes);
+fastify.register(paymentRoutes);
 fastify.register(craftingRoutes);
 fastify.register(gamificationRoutes);
 fastify.register(cosmeticsRoutes);
