@@ -6,6 +6,7 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { CartService } from '../services/cart.service';
 import { authMiddleware } from '../middleware/auth';
+import { isValidSessionId, sanitizeSessionId } from '../utils/session';
 
 const addToCartSchema = z.object({
   productId: z.string(),
@@ -36,12 +37,22 @@ export async function cartRoutes(fastify: FastifyInstance) {
   fastify.get('/cart', async (request, reply) => {
     try {
       const userId = request.user?.userId;
-      const sessionId = request.headers['x-session-id'] as string | undefined;
+      let sessionId = request.headers['x-session-id'] as string | undefined;
 
       if (!userId && !sessionId) {
         return reply.status(400).send({ 
           message: 'Either authentication or x-session-id header required' 
         });
+      }
+
+      // Validate and sanitize session ID if provided
+      if (sessionId) {
+        sessionId = sanitizeSessionId(sessionId);
+        if (!isValidSessionId(sessionId)) {
+          return reply.status(400).send({ 
+            message: 'Invalid session ID format' 
+          });
+        }
       }
 
       const result = await cartService.getCart({ userId, sessionId });
@@ -59,12 +70,22 @@ export async function cartRoutes(fastify: FastifyInstance) {
   fastify.post('/cart/items', async (request, reply) => {
     try {
       const userId = request.user?.userId;
-      const sessionId = request.headers['x-session-id'] as string | undefined;
+      let sessionId = request.headers['x-session-id'] as string | undefined;
 
       if (!userId && !sessionId) {
         return reply.status(400).send({ 
           message: 'Either authentication or x-session-id header required' 
         });
+      }
+
+      // Validate and sanitize session ID if provided
+      if (sessionId) {
+        sessionId = sanitizeSessionId(sessionId);
+        if (!isValidSessionId(sessionId)) {
+          return reply.status(400).send({ 
+            message: 'Invalid session ID format' 
+          });
+        }
       }
 
       const data = addToCartSchema.parse(request.body);
@@ -90,12 +111,22 @@ export async function cartRoutes(fastify: FastifyInstance) {
   fastify.patch('/cart/items', async (request, reply) => {
     try {
       const userId = request.user?.userId;
-      const sessionId = request.headers['x-session-id'] as string | undefined;
+      let sessionId = request.headers['x-session-id'] as string | undefined;
 
       if (!userId && !sessionId) {
         return reply.status(400).send({ 
           message: 'Either authentication or x-session-id header required' 
         });
+      }
+
+      // Validate and sanitize session ID if provided
+      if (sessionId) {
+        sessionId = sanitizeSessionId(sessionId);
+        if (!isValidSessionId(sessionId)) {
+          return reply.status(400).send({ 
+            message: 'Invalid session ID format' 
+          });
+        }
       }
 
       const data = updateCartItemSchema.parse(request.body);
@@ -121,12 +152,22 @@ export async function cartRoutes(fastify: FastifyInstance) {
   fastify.delete('/cart/items', async (request, reply) => {
     try {
       const userId = request.user?.userId;
-      const sessionId = request.headers['x-session-id'] as string | undefined;
+      let sessionId = request.headers['x-session-id'] as string | undefined;
 
       if (!userId && !sessionId) {
         return reply.status(400).send({ 
           message: 'Either authentication or x-session-id header required' 
         });
+      }
+
+      // Validate and sanitize session ID if provided
+      if (sessionId) {
+        sessionId = sanitizeSessionId(sessionId);
+        if (!isValidSessionId(sessionId)) {
+          return reply.status(400).send({ 
+            message: 'Invalid session ID format' 
+          });
+        }
       }
 
       const data = removeFromCartSchema.parse(request.body);
@@ -152,12 +193,22 @@ export async function cartRoutes(fastify: FastifyInstance) {
   fastify.delete('/cart', async (request, reply) => {
     try {
       const userId = request.user?.userId;
-      const sessionId = request.headers['x-session-id'] as string | undefined;
+      let sessionId = request.headers['x-session-id'] as string | undefined;
 
       if (!userId && !sessionId) {
         return reply.status(400).send({ 
           message: 'Either authentication or x-session-id header required' 
         });
+      }
+
+      // Validate and sanitize session ID if provided
+      if (sessionId) {
+        sessionId = sanitizeSessionId(sessionId);
+        if (!isValidSessionId(sessionId)) {
+          return reply.status(400).send({ 
+            message: 'Invalid session ID format' 
+          });
+        }
       }
 
       const result = await cartService.clearCart({ userId, sessionId });
@@ -178,7 +229,16 @@ export async function cartRoutes(fastify: FastifyInstance) {
     try {
       const userId = request.user!.userId;
       const data = mergeCartSchema.parse(request.body);
-      const result = await cartService.mergeGuestCart(userId, data.sessionId);
+      
+      // Validate session ID
+      let sessionId = sanitizeSessionId(data.sessionId);
+      if (!isValidSessionId(sessionId)) {
+        return reply.status(400).send({ 
+          message: 'Invalid session ID format' 
+        });
+      }
+      
+      const result = await cartService.mergeGuestCart(userId, sessionId);
       return reply.send(result);
     } catch (error) {
       if (error instanceof z.ZodError) {

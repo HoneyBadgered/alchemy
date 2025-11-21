@@ -2,10 +2,6 @@
  * Cart API Client
  */
 
-import { ApiClient } from './api-client';
-
-const apiClient = new ApiClient();
-
 export interface Product {
   id: string;
   name: string;
