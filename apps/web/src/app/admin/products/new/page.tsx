@@ -223,7 +223,8 @@ export default function NewProductPage() {
             onChange={handleChange}
             rows={3}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            placeholder="https://images.unsplash.com/photo1.jpg&#10;https://images.unsplash.com/photo2.jpg"
+            placeholder="https://images.unsplash.com/photo1.jpg
+https://images.unsplash.com/photo2.jpg"
           />
           <p className="text-sm text-gray-500 mt-1">
             One image URL per line for the product gallery
