@@ -239,7 +239,8 @@ docker compose --profile <profile-name> up
 
 ### docker-compose.dev.yml (Development)
 
-- Uses node:20-alpine base image
+- Uses node:20-bookworm-slim base image for API (Debian-based for Prisma compatibility)
+- Uses node:20-alpine for web service
 - Mounts source code as volumes
 - Hot reload enabled
 - Faster startup (no build step)
@@ -276,6 +277,14 @@ For production:
 2. Use strong JWT secrets
 3. Never commit `.env` files with real credentials
 4. Use Docker secrets or environment variable injection for sensitive data
+
+## Technical Notes
+
+### Prisma and Docker Image Selection
+
+The API service uses `node:20-bookworm-slim` (Debian-based) instead of Alpine Linux for better compatibility with Prisma's pre-built query engine binaries. Alpine Linux 3.22+ uses OpenSSL 3.x, while Prisma's binaries may require OpenSSL 1.1.x, which can cause `PrismaClientInitializationError` with missing `libssl.so.1.1`.
+
+If you need to use Alpine for other services (like the web service), that's fine - the Prisma compatibility issue only affects services that use the `@prisma/client` package.
 
 ## Next Steps
 
