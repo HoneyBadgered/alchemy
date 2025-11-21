@@ -57,14 +57,23 @@ export interface Product {
   description: string;
   price: number;
   imageUrl?: string;
+  images?: string[];
   category?: string;
+  tags?: string[];
+  stock: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ProductsResponse {
   products: Product[];
-  total: number;
-  page: number;
-  perPage: number;
+  pagination: {
+    page: number;
+    perPage: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 // Crafting Types
