@@ -210,7 +210,7 @@ export default function CartPage() {
 
                 <button
                   className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-full font-semibold transition-colors mb-3"
-                  onClick={() => alert('Checkout coming soon!')}
+                  onClick={() => window.location.href = '/checkout'}
                 >
                   Proceed to Checkout
                 </button>
