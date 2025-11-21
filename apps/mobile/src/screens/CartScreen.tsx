@@ -234,7 +234,7 @@ export default function CartScreen({ navigation }: any) {
 
           <TouchableOpacity
             style={styles.checkoutButton}
-            onPress={() => Alert.alert('Checkout', 'Checkout coming soon!')}
+            onPress={() => navigation.navigate('Checkout')}
           >
             <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
           </TouchableOpacity>

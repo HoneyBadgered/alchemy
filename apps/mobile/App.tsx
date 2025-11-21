@@ -11,6 +11,9 @@ import InventoryScreen from './src/screens/InventoryScreen';
 import ShopScreen from './src/screens/ShopScreen';
 import ProductDetailsScreen from './src/screens/ProductDetailsScreen';
 import CartScreen from './src/screens/CartScreen';
+import CheckoutScreen from './src/screens/CheckoutScreen';
+import OrdersScreen from './src/screens/OrdersScreen';
+import OrderDetailScreen from './src/screens/OrderDetailScreen';
 import AppearanceScreen from './src/screens/AppearanceScreen';
 import LabelsScreen from './src/screens/LabelsScreen';
 import { CartProvider, useCart } from './src/contexts/CartContext';
@@ -35,6 +38,21 @@ function ShopStackNavigator() {
       <ShopStack.Screen
         name="Cart"
         component={CartScreen}
+        options={{ headerShown: false }}
+      />
+      <ShopStack.Screen
+        name="Checkout"
+        component={CheckoutScreen}
+        options={{ headerShown: false }}
+      />
+      <ShopStack.Screen
+        name="Orders"
+        component={OrdersScreen}
+        options={{ headerShown: false }}
+      />
+      <ShopStack.Screen
+        name="OrderDetail"
+        component={OrderDetailScreen}
         options={{ headerShown: false }}
       />
     </ShopStack.Navigator>
