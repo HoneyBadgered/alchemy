@@ -188,20 +188,22 @@ model Product {
 }
 
 model Order {
-  id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status          String   @default("pending") // pending, processing, shipped, completed, cancelled
-  totalAmount     Decimal  @db.Decimal(10, 2)
-  shippingMethod  String?
-  shippingCost    Decimal? @db.Decimal(10, 2)
-  taxAmount       Decimal? @db.Decimal(10, 2)
-  discountCode    String?
-  discountAmount  Decimal? @db.Decimal(10, 2)
-  customerNotes   String?
-  stripePaymentId String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                    String   @id @default(cuid())
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status                String   @default("pending") // pending, payment_processing, payment_failed, paid, processing, shipped, completed, cancelled
+  totalAmount           Decimal  @db.Decimal(10, 2)
+  shippingMethod        String?
+  shippingCost          Decimal? @db.Decimal(10, 2)
+  taxAmount             Decimal? @db.Decimal(10, 2)
+  discountCode          String?
+  discountAmount        Decimal? @db.Decimal(10, 2)
+  customerNotes         String?
+  stripePaymentId       String?  @unique // Stripe PaymentIntent ID
+  stripePaymentStatus   String?  // requires_payment_method, requires_confirmation, requires_action, processing, succeeded, canceled
+  stripeClientSecret    String?  // For frontend Stripe Elements
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   items       OrderItem[]
   labels      LabelDesign[]
@@ -441,4 +443,23 @@ model SiteSettings {
   updatedAt   DateTime @updatedAt
 
   @@map("site_settings")
+}
+
+// ============================================
+// Stripe Webhooks
+// ============================================
+
+model StripeWebhookEvent {
+  id          String   @id @default(cuid())
+  eventId     String   @unique // Stripe event ID for idempotency
+  eventType   String   // payment_intent.succeeded, payment_intent.failed, etc.
+  payload     Json     // Full webhook payload
+  processed   Boolean  @default(false)
+  processedAt DateTime?
+  error       String?  // Error message if processing failed
+  createdAt   DateTime @default(now())
+
+  @@index([eventType])
+  @@index([processed])
+  @@map("stripe_webhook_events")
 }
