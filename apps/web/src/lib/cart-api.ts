@@ -2,6 +2,8 @@
  * Cart API Client
  */
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
 export interface Product {
   id: string;
   name: string;
@@ -55,7 +57,7 @@ export const cartApi = {
       headers['x-session-id'] = sessionId;
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/cart`, {
+    const response = await fetch(`${API_URL}/cart`, {
       method: 'GET',
       headers,
       credentials: 'include',
@@ -87,7 +89,7 @@ export const cartApi = {
       headers['x-session-id'] = sessionId;
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/cart/items`, {
+    const response = await fetch(`${API_URL}/cart/items`, {
       method: 'POST',
       headers,
       credentials: 'include',
@@ -121,7 +123,7 @@ export const cartApi = {
       headers['x-session-id'] = sessionId;
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/cart/items`, {
+    const response = await fetch(`${API_URL}/cart/items`, {
       method: 'PATCH',
       headers,
       credentials: 'include',
@@ -154,7 +156,7 @@ export const cartApi = {
       headers['x-session-id'] = sessionId;
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/cart/items`, {
+    const response = await fetch(`${API_URL}/cart/items`, {
       method: 'DELETE',
       headers,
       credentials: 'include',
@@ -181,7 +183,7 @@ export const cartApi = {
       headers['x-session-id'] = sessionId;
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/cart`, {
+    const response = await fetch(`${API_URL}/cart`, {
       method: 'DELETE',
       headers,
       credentials: 'include',
@@ -198,7 +200,7 @@ export const cartApi = {
    * Merge guest cart with user cart (after login)
    */
   async mergeCart(sessionId: string, token: string): Promise<CartResponse> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/cart/merge`, {
+    const response = await fetch(`${API_URL}/cart/merge`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

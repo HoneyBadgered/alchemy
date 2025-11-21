@@ -2,7 +2,7 @@
  * Cart Routes
  */
 
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { CartService } from '../services/cart.service';
 import { authMiddleware } from '../middleware/auth';
@@ -30,32 +30,47 @@ export async function cartRoutes(fastify: FastifyInstance) {
   const cartService = new CartService();
 
   /**
+   * Helper function to validate user authentication or session ID
+   */
+  function validateAuthOrSession(
+    request: FastifyRequest,
+    reply: FastifyReply
+  ): { userId?: string; sessionId?: string } | null {
+    const userId = request.user?.userId;
+    let sessionId = request.headers['x-session-id'] as string | undefined;
+
+    if (!userId && !sessionId) {
+      reply.status(400).send({
+        message: 'Either authentication or x-session-id header required',
+      });
+      return null;
+    }
+
+    // Validate and sanitize session ID if provided
+    if (sessionId) {
+      sessionId = sanitizeSessionId(sessionId);
+      if (!isValidSessionId(sessionId)) {
+        reply.status(400).send({
+          message: 'Invalid session ID format',
+        });
+        return null;
+      }
+    }
+
+    return { userId, sessionId };
+  }
+
+  /**
    * Get user's or guest's cart
    * GET /cart
    * Optional authentication (supports both authenticated users and guests)
    */
   fastify.get('/cart', async (request, reply) => {
     try {
-      const userId = request.user?.userId;
-      let sessionId = request.headers['x-session-id'] as string | undefined;
+      const auth = validateAuthOrSession(request, reply);
+      if (!auth) return;
 
-      if (!userId && !sessionId) {
-        return reply.status(400).send({ 
-          message: 'Either authentication or x-session-id header required' 
-        });
-      }
-
-      // Validate and sanitize session ID if provided
-      if (sessionId) {
-        sessionId = sanitizeSessionId(sessionId);
-        if (!isValidSessionId(sessionId)) {
-          return reply.status(400).send({ 
-            message: 'Invalid session ID format' 
-          });
-        }
-      }
-
-      const result = await cartService.getCart({ userId, sessionId });
+      const result = await cartService.getCart(auth);
       return reply.send(result);
     } catch (error) {
       return reply.status(500).send({ message: (error as Error).message });
@@ -69,30 +84,13 @@ export async function cartRoutes(fastify: FastifyInstance) {
    */
   fastify.post('/cart/items', async (request, reply) => {
     try {
-      const userId = request.user?.userId;
-      let sessionId = request.headers['x-session-id'] as string | undefined;
-
-      if (!userId && !sessionId) {
-        return reply.status(400).send({ 
-          message: 'Either authentication or x-session-id header required' 
-        });
-      }
-
-      // Validate and sanitize session ID if provided
-      if (sessionId) {
-        sessionId = sanitizeSessionId(sessionId);
-        if (!isValidSessionId(sessionId)) {
-          return reply.status(400).send({ 
-            message: 'Invalid session ID format' 
-          });
-        }
-      }
+      const auth = validateAuthOrSession(request, reply);
+      if (!auth) return;
 
       const data = addToCartSchema.parse(request.body);
       const result = await cartService.addToCart({
         ...data,
-        userId,
-        sessionId,
+        ...auth,
       });
       return reply.send(result);
     } catch (error) {
@@ -110,30 +108,13 @@ export async function cartRoutes(fastify: FastifyInstance) {
    */
   fastify.patch('/cart/items', async (request, reply) => {
     try {
-      const userId = request.user?.userId;
-      let sessionId = request.headers['x-session-id'] as string | undefined;
-
-      if (!userId && !sessionId) {
-        return reply.status(400).send({ 
-          message: 'Either authentication or x-session-id header required' 
-        });
-      }
-
-      // Validate and sanitize session ID if provided
-      if (sessionId) {
-        sessionId = sanitizeSessionId(sessionId);
-        if (!isValidSessionId(sessionId)) {
-          return reply.status(400).send({ 
-            message: 'Invalid session ID format' 
-          });
-        }
-      }
+      const auth = validateAuthOrSession(request, reply);
+      if (!auth) return;
 
       const data = updateCartItemSchema.parse(request.body);
       const result = await cartService.updateCartItem({
         ...data,
-        userId,
-        sessionId,
+        ...auth,
       });
       return reply.send(result);
     } catch (error) {
@@ -151,30 +132,13 @@ export async function cartRoutes(fastify: FastifyInstance) {
    */
   fastify.delete('/cart/items', async (request, reply) => {
     try {
-      const userId = request.user?.userId;
-      let sessionId = request.headers['x-session-id'] as string | undefined;
-
-      if (!userId && !sessionId) {
-        return reply.status(400).send({ 
-          message: 'Either authentication or x-session-id header required' 
-        });
-      }
-
-      // Validate and sanitize session ID if provided
-      if (sessionId) {
-        sessionId = sanitizeSessionId(sessionId);
-        if (!isValidSessionId(sessionId)) {
-          return reply.status(400).send({ 
-            message: 'Invalid session ID format' 
-          });
-        }
-      }
+      const auth = validateAuthOrSession(request, reply);
+      if (!auth) return;
 
       const data = removeFromCartSchema.parse(request.body);
       const result = await cartService.removeFromCart({
         ...data,
-        userId,
-        sessionId,
+        ...auth,
       });
       return reply.send(result);
     } catch (error) {
@@ -192,26 +156,10 @@ export async function cartRoutes(fastify: FastifyInstance) {
    */
   fastify.delete('/cart', async (request, reply) => {
     try {
-      const userId = request.user?.userId;
-      let sessionId = request.headers['x-session-id'] as string | undefined;
+      const auth = validateAuthOrSession(request, reply);
+      if (!auth) return;
 
-      if (!userId && !sessionId) {
-        return reply.status(400).send({ 
-          message: 'Either authentication or x-session-id header required' 
-        });
-      }
-
-      // Validate and sanitize session ID if provided
-      if (sessionId) {
-        sessionId = sanitizeSessionId(sessionId);
-        if (!isValidSessionId(sessionId)) {
-          return reply.status(400).send({ 
-            message: 'Invalid session ID format' 
-          });
-        }
-      }
-
-      const result = await cartService.clearCart({ userId, sessionId });
+      const result = await cartService.clearCart(auth);
       return reply.send(result);
     } catch (error) {
       return reply.status(500).send({ message: (error as Error).message });
