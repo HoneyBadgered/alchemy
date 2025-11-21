@@ -9,9 +9,13 @@ import {
   useElements,
 } from '@stripe/react-stripe-js';
 
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
-);
+const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+
+if (!stripePublishableKey) {
+  console.error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not configured');
+}
+
+const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 
 interface PaymentFormProps {
   clientSecret: string;
@@ -94,6 +98,16 @@ export default function StripePayment({
   onSuccess,
   onError,
 }: StripePaymentProps) {
+  if (!stripePromise) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <p className="text-red-800 text-sm">
+          Payment system is not configured. Please contact support.
+        </p>
+      </div>
+    );
+  }
+
   const options = {
     clientSecret,
     appearance: {

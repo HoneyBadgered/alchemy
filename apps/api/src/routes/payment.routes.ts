@@ -98,8 +98,11 @@ export async function paymentRoutes(fastify: FastifyInstance) {
       // Verify webhook signature
       let event;
       try {
-        // Get raw body
-        const rawBody = (request as any).rawBody || request.body;
+        // Get raw body - rawBody is added by fastify-raw-body plugin
+        interface RequestWithRawBody extends FastifyRequest {
+          rawBody?: string | Buffer;
+        }
+        const rawBody = (request as RequestWithRawBody).rawBody || request.body;
         event = stripe.webhooks.constructEvent(
           rawBody,
           signature,

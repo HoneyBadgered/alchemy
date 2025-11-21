@@ -156,7 +156,12 @@ export class PaymentService {
       throw new Error('Order not found');
     }
 
-    const updates: any = {
+    interface OrderUpdate {
+      stripePaymentStatus: string;
+      status?: string;
+    }
+
+    const updates: OrderUpdate = {
       stripePaymentStatus: paymentIntent.status,
     };
 
