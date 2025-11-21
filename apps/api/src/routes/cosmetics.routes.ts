@@ -24,7 +24,13 @@ export async function cosmeticsRoutes(fastify: FastifyInstance) {
       const themes = await cosmeticsService.getThemes();
       return reply.send(themes);
     } catch (error) {
-      return reply.status(500).send({ message: (error as Error).message });
+      const err = error as any;
+      const statusCode = err.statusCode || 500;
+      return reply.status(statusCode).send({ 
+        error: 'Failed to retrieve themes',
+        message: err.message,
+        statusCode
+      });
     }
   });
 
@@ -35,7 +41,13 @@ export async function cosmeticsRoutes(fastify: FastifyInstance) {
       const skins = await cosmeticsService.getThemeSkins(id);
       return reply.send(skins);
     } catch (error) {
-      return reply.status(404).send({ message: (error as Error).message });
+      const err = error as any;
+      const statusCode = err.statusCode || 404;
+      return reply.status(statusCode).send({ 
+        error: 'Failed to retrieve theme skins',
+        message: err.message,
+        statusCode
+      });
     }
   });
 
@@ -45,7 +57,13 @@ export async function cosmeticsRoutes(fastify: FastifyInstance) {
       const cosmetics = await cosmeticsService.getMyCosmetics(request.user!.userId);
       return reply.send(cosmetics);
     } catch (error) {
-      return reply.status(500).send({ message: (error as Error).message });
+      const err = error as any;
+      const statusCode = err.statusCode || 500;
+      return reply.status(statusCode).send({ 
+        error: 'Failed to retrieve cosmetics',
+        message: err.message,
+        statusCode
+      });
     }
   });
 
@@ -57,9 +75,20 @@ export async function cosmeticsRoutes(fastify: FastifyInstance) {
       return reply.send(result);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return reply.status(400).send({ message: 'Validation error', errors: error.errors });
+        return reply.status(400).send({ 
+          error: 'Validation error',
+          message: 'Invalid request data',
+          details: error.errors,
+          statusCode: 400
+        });
       }
-      return reply.status(400).send({ message: (error as Error).message });
+      const err = error as any;
+      const statusCode = err.statusCode || 400;
+      return reply.status(statusCode).send({ 
+        error: 'Failed to set theme',
+        message: err.message,
+        statusCode
+      });
     }
   });
 
@@ -71,9 +100,20 @@ export async function cosmeticsRoutes(fastify: FastifyInstance) {
       return reply.send(result);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return reply.status(400).send({ message: 'Validation error', errors: error.errors });
+        return reply.status(400).send({ 
+          error: 'Validation error',
+          message: 'Invalid request data',
+          details: error.errors,
+          statusCode: 400
+        });
       }
-      return reply.status(400).send({ message: (error as Error).message });
+      const err = error as any;
+      const statusCode = err.statusCode || 400;
+      return reply.status(statusCode).send({ 
+        error: 'Failed to set table skin',
+        message: err.message,
+        statusCode
+      });
     }
   });
 }

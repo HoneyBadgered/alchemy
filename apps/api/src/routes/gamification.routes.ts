@@ -15,7 +15,13 @@ export async function gamificationRoutes(fastify: FastifyInstance) {
       const progress = await gamificationService.getProgress(request.user!.userId);
       return reply.send(progress);
     } catch (error) {
-      return reply.status(500).send({ message: (error as Error).message });
+      const err = error as any;
+      const statusCode = err.statusCode || 500;
+      return reply.status(statusCode).send({ 
+        error: 'Failed to retrieve progress',
+        message: err.message,
+        statusCode
+      });
     }
   });
 
@@ -25,7 +31,13 @@ export async function gamificationRoutes(fastify: FastifyInstance) {
       const quests = await gamificationService.getQuests(request.user!.userId);
       return reply.send(quests);
     } catch (error) {
-      return reply.status(500).send({ message: (error as Error).message });
+      const err = error as any;
+      const statusCode = err.statusCode || 500;
+      return reply.status(statusCode).send({ 
+        error: 'Failed to retrieve quests',
+        message: err.message,
+        statusCode
+      });
     }
   });
 
@@ -36,7 +48,13 @@ export async function gamificationRoutes(fastify: FastifyInstance) {
       const result = await gamificationService.claimQuest(request.user!.userId, id);
       return reply.send(result);
     } catch (error) {
-      return reply.status(400).send({ message: (error as Error).message });
+      const err = error as any;
+      const statusCode = err.statusCode || 400;
+      return reply.status(statusCode).send({ 
+        error: 'Failed to claim quest',
+        message: err.message,
+        statusCode
+      });
     }
   });
 
@@ -46,7 +64,13 @@ export async function gamificationRoutes(fastify: FastifyInstance) {
       const inventory = await gamificationService.getInventory(request.user!.userId);
       return reply.send(inventory);
     } catch (error) {
-      return reply.status(500).send({ message: (error as Error).message });
+      const err = error as any;
+      const statusCode = err.statusCode || 500;
+      return reply.status(statusCode).send({ 
+        error: 'Failed to retrieve inventory',
+        message: err.message,
+        statusCode
+      });
     }
   });
 }

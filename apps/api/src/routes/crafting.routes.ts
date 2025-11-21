@@ -20,7 +20,13 @@ export async function craftingRoutes(fastify: FastifyInstance) {
       const recipes = await craftingService.getRecipes(request.user!.userId);
       return reply.send(recipes);
     } catch (error) {
-      return reply.status(500).send({ message: (error as Error).message });
+      const err = error as any;
+      const statusCode = err.statusCode || 500;
+      return reply.status(statusCode).send({ 
+        error: 'Failed to retrieve recipes',
+        message: err.message,
+        statusCode 
+      });
     }
   });
 
@@ -32,9 +38,20 @@ export async function craftingRoutes(fastify: FastifyInstance) {
       return reply.send(result);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return reply.status(400).send({ message: 'Validation error', errors: error.errors });
+        return reply.status(400).send({ 
+          error: 'Validation error',
+          message: 'Invalid request data',
+          details: error.errors,
+          statusCode: 400
+        });
       }
-      return reply.status(400).send({ message: (error as Error).message });
+      const err = error as any;
+      const statusCode = err.statusCode || 400;
+      return reply.status(statusCode).send({ 
+        error: 'Crafting failed',
+        message: err.message,
+        statusCode
+      });
     }
   });
 }

@@ -60,6 +60,27 @@ npm start
 
 ## API Endpoints
 
+### Error Response Format
+
+All API endpoints return errors in a consistent format:
+
+```json
+{
+  "error": "Short error description",
+  "message": "Detailed error message",
+  "statusCode": 400,
+  "details": [] // Optional: Additional error details (e.g., validation errors)
+}
+```
+
+**Common HTTP Status Codes**:
+- `400` - Bad Request: Invalid input data or validation error
+- `403` - Forbidden: User doesn't have permission to access resource
+- `404` - Not Found: Resource not found
+- `409` - Conflict: Resource already exists or action already performed
+- `422` - Unprocessable Entity: Request is valid but business logic prevents action
+- `500` - Internal Server Error: Unexpected server error
+
 ### Authentication
 
 - `POST /auth/register` - Register new user
@@ -76,25 +97,64 @@ npm start
 ### Crafting
 
 - `GET /recipes` - Get all available recipes (protected)
+  - **Error Responses**:
+    - `404`: Player state not found
+    - `500`: Internal server error
 - `POST /craft` - Craft an item from a recipe (protected)
   - Body: `{ recipeId: string }`
+  - **Error Responses**:
+    - `400`: Validation error (missing/invalid recipeId)
+    - `404`: Recipe not found or player state not found
+    - `422`: Cannot craft (insufficient level or ingredients)
+    - `500`: Internal server error
 
 ### Gamification
 
 - `GET /me/progress` - Get player progression (level, XP, streaks) (protected)
+  - **Error Responses**:
+    - `404`: Player state not found
+    - `500`: Internal server error
 - `GET /me/quests` - Get player's active and completed quests (protected)
+  - **Error Responses**:
+    - `404`: Player state not found
+    - `500`: Internal server error
 - `POST /me/quests/:id/claim` - Claim quest rewards (protected)
+  - **Error Responses**:
+    - `404`: Quest not found
+    - `409`: Quest reward already claimed
+    - `422`: Quest is not completed yet
+    - `500`: Internal server error
 - `GET /me/inventory` - Get player's inventory items (protected)
+  - **Error Responses**:
+    - `500`: Internal server error
 
 ### Cosmetics
 
 - `GET /cosmetics/themes` - Get all available themes
+  - **Error Responses**:
+    - `500`: Internal server error
 - `GET /cosmetics/themes/:id/skins` - Get table skins for a theme
+  - **Error Responses**:
+    - `404`: Theme not found or not available
+    - `500`: Internal server error
 - `GET /me/cosmetics` - Get player's cosmetics (unlocked themes/skins) (protected)
+  - **Error Responses**:
+    - `404`: Player cosmetics not found
+    - `500`: Internal server error
 - `POST /me/cosmetics/theme` - Set active theme (protected)
   - Body: `{ themeId: string }`
+  - **Error Responses**:
+    - `400`: Validation error (missing/invalid themeId) or theme not available
+    - `403`: Theme not unlocked (player doesn't meet level requirement)
+    - `404`: Theme not found, player state not found, or player cosmetics not found
+    - `500`: Internal server error
 - `POST /me/cosmetics/table-skin` - Set active table skin (protected)
   - Body: `{ skinId: string }`
+  - **Error Responses**:
+    - `400`: Validation error (missing/invalid skinId) or skin not available
+    - `403`: Table skin not unlocked (player doesn't meet level requirement)
+    - `404`: Skin not found, player state not found, or player cosmetics not found
+    - `500`: Internal server error
 
 ### Labels (AI-Powered)
 

@@ -12,6 +12,10 @@ export interface CraftInput {
 
 export class CraftingService {
   async getRecipes(userId: string) {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
     // Get player state to check level
     const playerState = await prisma.playerState.findUnique({
       where: { userId },
@@ -33,6 +37,14 @@ export class CraftingService {
   }
 
   async craft(userId: string, input: CraftInput) {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    if (!input || !input.recipeId) {
+      throw new Error('Recipe ID is required');
+    }
+
     const { recipeId } = input;
 
     // Get recipe
@@ -40,8 +52,16 @@ export class CraftingService {
       where: { id: recipeId },
     });
 
-    if (!recipe || !recipe.isActive) {
-      throw new Error('Recipe not found');
+    if (!recipe) {
+      const error = new Error('Recipe not found');
+      (error as any).statusCode = 404;
+      throw error;
+    }
+
+    if (!recipe.isActive) {
+      const error = new Error('Recipe is not available');
+      (error as any).statusCode = 400;
+      throw error;
     }
 
     // Get player state and inventory
@@ -55,7 +75,9 @@ export class CraftingService {
     ]);
 
     if (!playerState) {
-      throw new Error('Player state not found');
+      const error = new Error('Player state not found');
+      (error as any).statusCode = 404;
+      throw error;
     }
 
     // Convert inventory to array for canCraftRecipe
@@ -76,7 +98,9 @@ export class CraftingService {
     );
 
     if (!craftCheck.canCraft) {
-      throw new Error(craftCheck.reason || 'Cannot craft this recipe. Check level and ingredients.');
+      const error = new Error(craftCheck.reason || 'Cannot craft this recipe. Check level and ingredients.');
+      (error as any).statusCode = 422;
+      throw error;
     }
 
     // Perform crafting logic
@@ -96,7 +120,9 @@ export class CraftingService {
         });
 
         if (!existing || existing.quantity < ingredient.quantity) {
-          throw new Error(`Insufficient ${ingredient.ingredientId}`);
+          const error = new Error(`Insufficient ${ingredient.ingredientId}`);
+          (error as any).statusCode = 422;
+          throw error;
         }
 
         if (existing.quantity === ingredient.quantity) {
