@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import BottomNavigation from '@/components/BottomNavigation';
 import { apiClient } from '@/lib/api-client';
+import { useCart } from '@/contexts/CartContext';
 
 interface Product {
   id: string;
@@ -34,6 +35,8 @@ interface ProductsResponse {
 export default function ShopPage() {
   const [category, setCategory] = useState<string | undefined>(undefined);
   const [page, setPage] = useState(1);
+  const { addToCart, itemCount } = useCart();
+  const [addingToCart, setAddingToCart] = useState<Set<string>>(new Set());
 
   const { data, isLoading, error } = useQuery<ProductsResponse>({
     queryKey: ['products', page, category],
@@ -57,15 +60,51 @@ export default function ShopPage() {
     'Specialty Items',
   ];
 
+  const handleAddToCart = async (productId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setAddingToCart(prev => new Set(prev).add(productId));
+    try {
+      await addToCart(productId, 1);
+      // Success feedback could be a toast notification in a production app
+    } catch (error) {
+      console.error('Failed to add to cart:', error);
+      alert('Failed to add to cart. Please try again.');
+    } finally {
+      setAddingToCart(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(productId);
+        return newSet;
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-100 to-blue-100 pb-20">
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold text-purple-900">Shop</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Discover magical blends and potions
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-purple-900">Shop</h1>
+              <p className="text-sm text-gray-600 mt-1">
+                Discover magical blends and potions
+              </p>
+            </div>
+            <Link
+              href="/cart"
+              className="relative bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-full font-semibold transition-colors flex items-center gap-2"
+            >
+              <span>🛒</span>
+              <span>Cart</span>
+              {itemCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                  {itemCount > 9 ? '9+' : itemCount}
+                </span>
+              )}
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -157,14 +196,11 @@ export default function ShopPage() {
                         ${product.price}
                       </span>
                       <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          // TODO: Add to cart functionality
-                          alert('Add to cart coming soon!');
-                        }}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-full text-sm font-semibold transition-colors"
+                        onClick={(e) => handleAddToCart(product.id, e)}
+                        disabled={addingToCart.has(product.id)}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-full text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Add to Cart
+                        {addingToCart.has(product.id) ? 'Adding...' : 'Add to Cart'}
                       </button>
                     </div>
                   </div>
