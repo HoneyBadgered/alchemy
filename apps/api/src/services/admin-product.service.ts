@@ -20,7 +20,9 @@ export interface CreateProductInput {
   description: string;
   price: number;
   imageUrl?: string;
+  images?: string[];
   category?: string;
+  tags?: string[];
   stock?: number;
   isActive?: boolean;
 }
@@ -30,7 +32,9 @@ export interface UpdateProductInput {
   description?: string;
   price?: number;
   imageUrl?: string;
+  images?: string[];
   category?: string;
+  tags?: string[];
   stock?: number;
   isActive?: boolean;
 }
@@ -133,7 +137,9 @@ export class AdminProductService {
         description: data.description,
         price: data.price,
         imageUrl: data.imageUrl,
+        images: data.images || [],
         category: data.category,
+        tags: data.tags || [],
         stock: data.stock ?? 0,
         isActive: data.isActive ?? true,
       },

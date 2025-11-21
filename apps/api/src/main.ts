@@ -5,6 +5,7 @@
 import Fastify from 'fastify';
 import rateLimit from '@fastify/rate-limit';
 import cookie from '@fastify/cookie';
+import cors from '@fastify/cors';
 import { config } from './config';
 import { authRoutes } from './routes/auth.routes';
 import { catalogRoutes } from './routes/catalog.routes';
@@ -20,6 +21,12 @@ import { adminDashboardRoutes } from './routes/admin-dashboard.routes';
 
 const fastify = Fastify({
   logger: config.isDevelopment,
+});
+
+// Register CORS support
+fastify.register(cors, {
+  origin: config.isDevelopment ? true : false, // Allow all origins in dev, restrict in production
+  credentials: true,
 });
 
 // Register cookie support

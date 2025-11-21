@@ -20,6 +20,7 @@
   "dependencies": {
     "@alchemy/core": "*",
     "@fastify/cookie": "^11.0.2",
+    "@fastify/cors": "^11.1.0",
     "@fastify/rate-limit": "^10.3.0",
     "@prisma/client": "^5.7.1",
     "bcrypt": "^5.1.1",

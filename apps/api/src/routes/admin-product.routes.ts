@@ -22,7 +22,9 @@ const createProductSchema = z.object({
   description: z.string(),
   price: z.number().positive(),
   imageUrl: z.string().url().optional(),
+  images: z.array(z.string().url()).optional(),
   category: z.string().optional(),
+  tags: z.array(z.string()).optional(),
   stock: z.number().int().nonnegative().optional(),
   isActive: z.boolean().optional(),
 });
@@ -32,7 +34,9 @@ const updateProductSchema = z.object({
   description: z.string().optional(),
   price: z.number().positive().optional(),
   imageUrl: z.string().url().optional(),
+  images: z.array(z.string().url()).optional(),
   category: z.string().optional(),
+  tags: z.array(z.string()).optional(),
   stock: z.number().int().nonnegative().optional(),
   isActive: z.boolean().optional(),
 });
