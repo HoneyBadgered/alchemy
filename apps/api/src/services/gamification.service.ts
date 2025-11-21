@@ -8,12 +8,18 @@ import type { Prisma } from '@prisma/client';
 
 export class GamificationService {
   async getProgress(userId: string) {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
     const playerState = await prisma.playerState.findUnique({
       where: { userId },
     });
 
     if (!playerState) {
-      throw new Error('Player state not found');
+      const error = new Error('Player state not found');
+      (error as any).statusCode = 404;
+      throw error;
     }
 
     return {
@@ -28,13 +34,19 @@ export class GamificationService {
   }
 
   async getQuests(userId: string) {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
     // Get player state to check level
     const playerState = await prisma.playerState.findUnique({
       where: { userId },
     });
 
     if (!playerState) {
-      throw new Error('Player state not found');
+      const error = new Error('Player state not found');
+      (error as any).statusCode = 404;
+      throw error;
     }
 
     // Get player quests
@@ -63,6 +75,14 @@ export class GamificationService {
   }
 
   async claimQuest(userId: string, questId: string) {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    if (!questId) {
+      throw new Error('Quest ID is required');
+    }
+
     // Get player quest
     const playerQuest = await prisma.playerQuest.findUnique({
       where: {
@@ -77,15 +97,21 @@ export class GamificationService {
     });
 
     if (!playerQuest) {
-      throw new Error('Quest not found');
+      const error = new Error('Quest not found');
+      (error as any).statusCode = 404;
+      throw error;
     }
 
     if (playerQuest.status !== 'completed') {
-      throw new Error('Quest is not completed yet');
+      const error = new Error('Quest is not completed yet');
+      (error as any).statusCode = 422;
+      throw error;
     }
 
     if (playerQuest.claimedAt) {
-      throw new Error('Quest reward already claimed');
+      const error = new Error('Quest reward already claimed');
+      (error as any).statusCode = 409;
+      throw error;
     }
 
     // Start transaction to claim rewards
@@ -110,7 +136,9 @@ export class GamificationService {
       });
 
       if (!playerState) {
-        throw new Error('Player state not found');
+        const error = new Error('Player state not found');
+        (error as any).statusCode = 404;
+        throw error;
       }
 
       const newTotalXp = playerState.totalXp + playerQuest.quest.xpReward;
@@ -187,6 +215,10 @@ export class GamificationService {
   }
 
   async getInventory(userId: string) {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
     const inventory = await prisma.playerInventory.findMany({
       where: { userId },
       orderBy: [

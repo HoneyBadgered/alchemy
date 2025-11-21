@@ -15,12 +15,24 @@ export class CosmeticsService {
   }
 
   async getThemeSkins(themeId: string) {
+    if (!themeId) {
+      throw new Error('Theme ID is required');
+    }
+
     const theme = await prisma.theme.findUnique({
       where: { id: themeId },
     });
 
-    if (!theme || !theme.isActive) {
-      throw new Error('Theme not found');
+    if (!theme) {
+      const error = new Error('Theme not found');
+      (error as any).statusCode = 404;
+      throw error;
+    }
+
+    if (!theme.isActive) {
+      const error = new Error('Theme is not available');
+      (error as any).statusCode = 404;
+      throw error;
     }
 
     const skins = await prisma.tableSkin.findMany({
@@ -35,12 +47,18 @@ export class CosmeticsService {
   }
 
   async getMyCosmetics(userId: string) {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
     const cosmetics = await prisma.playerCosmetics.findUnique({
       where: { userId },
     });
 
     if (!cosmetics) {
-      throw new Error('Player cosmetics not found');
+      const error = new Error('Player cosmetics not found');
+      (error as any).statusCode = 404;
+      throw error;
     }
 
     return {
@@ -52,6 +70,14 @@ export class CosmeticsService {
   }
 
   async setTheme(userId: string, themeId: string) {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    if (!themeId) {
+      throw new Error('Theme ID is required');
+    }
+
     // Get player state and cosmetics
     const [playerState, playerCosmetics] = await Promise.all([
       prisma.playerState.findUnique({
@@ -63,11 +89,15 @@ export class CosmeticsService {
     ]);
 
     if (!playerState) {
-      throw new Error('Player state not found');
+      const error = new Error('Player state not found');
+      (error as any).statusCode = 404;
+      throw error;
     }
 
     if (!playerCosmetics) {
-      throw new Error('Player cosmetics not found');
+      const error = new Error('Player cosmetics not found');
+      (error as any).statusCode = 404;
+      throw error;
     }
 
     // Get theme
@@ -75,8 +105,16 @@ export class CosmeticsService {
       where: { id: themeId },
     });
 
-    if (!theme || !theme.isActive) {
-      throw new Error('Theme not found');
+    if (!theme) {
+      const error = new Error('Theme not found');
+      (error as any).statusCode = 404;
+      throw error;
+    }
+
+    if (!theme.isActive) {
+      const error = new Error('Theme is not available');
+      (error as any).statusCode = 400;
+      throw error;
     }
 
     // Check if player can use this theme
@@ -84,7 +122,9 @@ export class CosmeticsService {
     const meetsLevel = playerState.level >= theme.requiredLevel;
 
     if (!hasUnlocked && !meetsLevel) {
-      throw new Error('Theme not unlocked');
+      const error = new Error(`Theme not unlocked. Required level: ${theme.requiredLevel}`);
+      (error as any).statusCode = 403;
+      throw error;
     }
 
     // Update active theme
@@ -100,6 +140,14 @@ export class CosmeticsService {
   }
 
   async setTableSkin(userId: string, skinId: string) {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    if (!skinId) {
+      throw new Error('Skin ID is required');
+    }
+
     // Get player state and cosmetics
     const [playerState, playerCosmetics] = await Promise.all([
       prisma.playerState.findUnique({
@@ -111,11 +159,15 @@ export class CosmeticsService {
     ]);
 
     if (!playerState) {
-      throw new Error('Player state not found');
+      const error = new Error('Player state not found');
+      (error as any).statusCode = 404;
+      throw error;
     }
 
     if (!playerCosmetics) {
-      throw new Error('Player cosmetics not found');
+      const error = new Error('Player cosmetics not found');
+      (error as any).statusCode = 404;
+      throw error;
     }
 
     // Get table skin
@@ -123,8 +175,16 @@ export class CosmeticsService {
       where: { id: skinId },
     });
 
-    if (!skin || !skin.isActive) {
-      throw new Error('Table skin not found');
+    if (!skin) {
+      const error = new Error('Table skin not found');
+      (error as any).statusCode = 404;
+      throw error;
+    }
+
+    if (!skin.isActive) {
+      const error = new Error('Table skin is not available');
+      (error as any).statusCode = 400;
+      throw error;
     }
 
     // Check if player can use this skin
@@ -132,7 +192,9 @@ export class CosmeticsService {
     const meetsLevel = playerState.level >= skin.requiredLevel;
 
     if (!hasUnlocked && !meetsLevel) {
-      throw new Error('Table skin not unlocked');
+      const error = new Error(`Table skin not unlocked. Required level: ${skin.requiredLevel}`);
+      (error as any).statusCode = 403;
+      throw error;
     }
 
     // Update active skin
