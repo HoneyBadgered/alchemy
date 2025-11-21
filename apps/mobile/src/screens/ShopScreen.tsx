@@ -8,8 +8,10 @@ import {
   SafeAreaView,
   Image,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
+import { useCart } from '../contexts/CartContext';
 
 interface Product {
   id: string;
@@ -41,6 +43,8 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 export default function ShopScreen({ navigation }: any) {
   const [category, setCategory] = useState<string | undefined>(undefined);
   const [page, setPage] = useState(1);
+  const { addToCart, itemCount } = useCart();
+  const [addingToCart, setAddingToCart] = useState<Set<string>>(new Set());
 
   const { data, isLoading, error } = useQuery<ProductsResponse>({
     queryKey: ['products', page, category],
@@ -68,15 +72,45 @@ export default function ShopScreen({ navigation }: any) {
     'Specialty Items',
   ];
 
+  const handleAddToCart = async (productId: string) => {
+    setAddingToCart(prev => new Set(prev).add(productId));
+    try {
+      await addToCart(productId, 1);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to add to cart. Please try again.');
+    } finally {
+      setAddingToCart(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(productId);
+        return newSet;
+      });
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Shop</Text>
-          <Text style={styles.subtitle}>
-            Discover magical blends and potions
-          </Text>
+          <View>
+            <Text style={styles.title}>Shop</Text>
+            <Text style={styles.subtitle}>
+              Discover magical blends and potions
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.cartButton}
+            onPress={() => navigation.navigate('Cart')}
+          >
+            <Text style={styles.cartIcon}>🛒</Text>
+            {itemCount > 0 && (
+              <View style={styles.cartBadge}>
+                <Text style={styles.cartBadgeText}>
+                  {itemCount > 9 ? '9+' : itemCount}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
 
         {/* Category Filter */}
@@ -182,14 +216,19 @@ export default function ShopScreen({ navigation }: any) {
                 <View style={styles.productFooter}>
                   <Text style={styles.productPrice}>${product.price}</Text>
                   <TouchableOpacity
-                    style={styles.addButton}
+                    style={[
+                      styles.addButton,
+                      addingToCart.has(product.id) && styles.addButtonDisabled,
+                    ]}
                     onPress={(e) => {
                       e.stopPropagation();
-                      // TODO: Add to cart functionality
-                      alert('Add to cart coming soon!');
+                      handleAddToCart(product.id);
                     }}
+                    disabled={addingToCart.has(product.id)}
                   >
-                    <Text style={styles.addButtonText}>Add to Cart</Text>
+                    <Text style={styles.addButtonText}>
+                      {addingToCart.has(product.id) ? 'Adding...' : 'Add to Cart'}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -259,6 +298,9 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#fff',
     padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -274,6 +316,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     marginTop: 4,
+  },
+  cartButton: {
+    position: 'relative',
+    padding: 8,
+  },
+  cartIcon: {
+    fontSize: 28,
+  },
+  cartBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: '#dc2626',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  cartBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   categoryScroll: {
     backgroundColor: '#fff',
@@ -390,6 +456,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 24,
+  },
+  addButtonDisabled: {
+    opacity: 0.5,
   },
   addButtonText: {
     color: '#fff',

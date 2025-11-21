@@ -37,6 +37,7 @@ model User {
   cosmetics     PlayerCosmetics?
   refreshTokens RefreshToken[]
   orderStatusLogs OrderStatusLog[]
+  cart          Cart?
 
   @@map("users")
 }
@@ -181,6 +182,7 @@ model Product {
   updatedAt   DateTime @updatedAt
 
   orderItems OrderItem[]
+  cartItems  CartItem[]
 
   @@map("products")
 }
@@ -219,6 +221,37 @@ model OrderItem {
   createdAt DateTime @default(now())
 
   @@map("order_items")
+}
+
+// ============================================
+// Shopping Cart
+// ============================================
+
+model Cart {
+  id        String   @id @default(cuid())
+  userId    String?  @unique // Null for guest carts
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId String?  @unique // For guest cart identification
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, productId])
+  @@map("cart_items")
 }
 
 // ============================================
