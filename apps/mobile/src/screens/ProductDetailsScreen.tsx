@@ -48,7 +48,7 @@ export default function ProductDetailsScreen({ route, navigation }: any) {
     if (product && !selectedImage) {
       setSelectedImage(product.imageUrl || product.images?.[0]);
     }
-  }, [product, selectedImage]);
+  }, [product]); // Only depend on product, not selectedImage
 
   return (
     <SafeAreaView style={styles.container}>

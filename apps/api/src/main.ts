@@ -23,9 +23,9 @@ const fastify = Fastify({
   logger: config.isDevelopment,
 });
 
-// Register CORS support for development
+// Register CORS support
 fastify.register(cors, {
-  origin: true, // Allow all origins in development
+  origin: config.isDevelopment ? true : false, // Allow all origins in dev, restrict in production
   credentials: true,
 });
 

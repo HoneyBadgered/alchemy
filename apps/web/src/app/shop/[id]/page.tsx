@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, use } from 'react';
+import { useState, use, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
@@ -36,9 +36,11 @@ export default function ProductDetailsPage({
   });
 
   // Set initial selected image when product loads
-  if (product && !selectedImage) {
-    setSelectedImage(product.imageUrl || product.images?.[0]);
-  }
+  useEffect(() => {
+    if (product && !selectedImage) {
+      setSelectedImage(product.imageUrl || product.images?.[0]);
+    }
+  }, [product]); // Only depend on product, not selectedImage
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-100 to-blue-100">
