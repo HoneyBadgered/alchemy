@@ -7,7 +7,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { BlendState, SelectedIngredient } from '@alchemy/core';
+import { BlendState } from '@alchemy/core';
 
 interface UseBlendStateReturn {
   blendState: BlendState;

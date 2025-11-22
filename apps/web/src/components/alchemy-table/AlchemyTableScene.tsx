@@ -36,7 +36,6 @@ export const AlchemyTableScene: React.FC = () => {
     toggleAddIn,
     updateAddInQuantity,
     clearBlend,
-    getAddInQuantity,
   } = useBlendState();
 
   // Memoize add-in quantities for panel
