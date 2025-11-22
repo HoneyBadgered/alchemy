@@ -14,10 +14,6 @@ const createPaymentIntentSchema = z.object({
   orderId: z.string().min(1),
 });
 
-const getPaymentStatusSchema = z.object({
-  orderId: z.string().min(1),
-});
-
 export async function paymentRoutes(fastify: FastifyInstance) {
   const paymentService = new PaymentService();
 
@@ -104,7 +100,7 @@ export async function paymentRoutes(fastify: FastifyInstance) {
         }
         const rawBody = (request as RequestWithRawBody).rawBody || request.body;
         event = stripe.webhooks.constructEvent(
-          rawBody,
+          rawBody as string | Buffer,
           signature,
           config.stripeWebhookSecret
         );
