@@ -4,14 +4,14 @@
  */
 
 import Stripe from 'stripe';
-import { config } from './config';
+import { config } from '../config';
 
 if (!config.stripeSecretKey) {
   throw new Error('STRIPE_SECRET_KEY is not configured');
 }
 
 export const stripe = new Stripe(config.stripeSecretKey, {
-  apiVersion: '2024-11-20.acacia', // Use the latest API version
+  apiVersion: '2025-11-17.clover', // Use the latest API version
   typescript: true,
 });
 
