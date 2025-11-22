@@ -42,3 +42,13 @@ export {
   getUnlockableThemes,
   getUnlockableSkins,
 } from './cosmetics';
+
+// Export ingredients data
+export {
+  INGREDIENTS,
+  CATEGORY_INFO,
+  getIngredientsByCategory,
+  getIngredientById,
+  getBaseTeas,
+  getAddIns,
+} from './ingredients';

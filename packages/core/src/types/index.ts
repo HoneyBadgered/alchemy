@@ -65,3 +65,38 @@ export interface PlayerCosmetics {
   activeThemeId?: string;
   activeTableSkinId?: string;
 }
+
+/**
+ * Ingredient category types
+ */
+export type IngredientCategory = 'base' | 'floral' | 'fruit' | 'herbal' | 'spice' | 'special';
+
+/**
+ * Individual ingredient definition
+ */
+export interface Ingredient {
+  id: string;
+  name: string;
+  category: IngredientCategory;
+  description?: string;
+  tags?: string[];
+  badges?: string[];
+  emoji?: string;
+  isBase?: boolean; // true for base teas, false for add-ins
+}
+
+/**
+ * Selected ingredient with quantity (for add-ins)
+ */
+export interface SelectedIngredient {
+  ingredientId: string;
+  quantity: number; // in grams
+}
+
+/**
+ * Complete blend state
+ */
+export interface BlendState {
+  baseTeaId?: string; // single base tea
+  addIns: SelectedIngredient[]; // multiple add-ins with quantities
+}
