@@ -4,7 +4,7 @@
   "description": "Backend API for The Alchemy Table",
   "private": true,
   "scripts": {
-    "build": "prisma generate && tsc",
+    "build": "prisma generate && tsc --build",
     "dev": "tsx watch src/main.ts",
     "start": "node dist/main.js",
     "type-check": "tsc --noEmit",
