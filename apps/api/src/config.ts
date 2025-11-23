@@ -4,6 +4,19 @@
 
 import dotenv from 'dotenv';
 import { z } from 'zod';
+import { existsSync } from 'fs';
+import { resolve } from 'path';
+
+// Check if .env file exists and provide helpful error message if not
+const envPath = resolve(process.cwd(), '.env');
+if (!existsSync(envPath)) {
+  console.error('\n❌ Error: .env file not found!\n');
+  console.error('To get started, copy the example environment file:');
+  console.error('  cp .env.example .env\n');
+  console.error('Then edit .env with your configuration.\n');
+  console.error('For more details, see the README.md file.\n');
+  process.exit(1);
+}
 
 dotenv.config();
 
@@ -26,7 +39,23 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
 });
 
-export const env = envSchema.parse(process.env);
+// Parse environment variables with improved error handling
+export let env: z.infer<typeof envSchema>;
+try {
+  env = envSchema.parse(process.env);
+} catch (error) {
+  if (error instanceof z.ZodError) {
+    console.error('\n❌ Environment configuration error!\n');
+    console.error('The following required environment variables are missing or invalid:\n');
+    error.errors.forEach((err) => {
+      console.error(`  - ${err.path.join('.')}: ${err.message}`);
+    });
+    console.error('\nPlease check your .env file and ensure all required variables are set.');
+    console.error('You can use .env.example as a reference.\n');
+    process.exit(1);
+  }
+  throw error;
+}
 
 export const config = {
   port: parseInt(env.PORT, 10),
