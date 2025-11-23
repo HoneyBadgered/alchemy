@@ -40,7 +40,7 @@ const envSchema = z.object({
 });
 
 // Parse environment variables with improved error handling
-let env: z.infer<typeof envSchema>;
+export let env: z.infer<typeof envSchema>;
 try {
   env = envSchema.parse(process.env);
 } catch (error) {
@@ -56,8 +56,6 @@ try {
   }
   throw error;
 }
-
-export { env };
 
 export const config = {
   port: parseInt(env.PORT, 10),
