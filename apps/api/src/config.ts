@@ -7,18 +7,14 @@ import { z } from 'zod';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 
-// Check if .env file exists and provide helpful error message if not
+// Load .env file if it exists (not required when running in Docker with environment variables)
 const envPath = resolve(process.cwd(), '.env');
-if (!existsSync(envPath)) {
-  console.error('\n❌ Error: .env file not found!\n');
-  console.error('To get started, copy the example environment file:');
-  console.error('  cp .env.example .env\n');
-  console.error('Then edit .env with your configuration.\n');
-  console.error('For more details, see the README.md file.\n');
-  process.exit(1);
+if (existsSync(envPath)) {
+  dotenv.config();
+} else {
+  // Only warn if .env file is missing - environment variables may be provided by Docker/system
+  console.log('ℹ️  No .env file found, using environment variables from system/Docker');
 }
-
-dotenv.config();
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -50,8 +46,15 @@ try {
     error.errors.forEach((err) => {
       console.error(`  - ${err.path.join('.')}: ${err.message}`);
     });
-    console.error('\nPlease check your .env file and ensure all required variables are set.');
-    console.error('You can use .env.example as a reference.\n');
+    if (existsSync(envPath)) {
+      console.error('\nPlease check your .env file and ensure all required variables are set.');
+      console.error('You can use .env.example as a reference.\n');
+    } else {
+      console.error('\nNo .env file found. For local development, create one:');
+      console.error('  cp .env.example .env\n');
+      console.error('Then edit .env with your configuration.');
+      console.error('For Docker deployments, ensure environment variables are set in docker-compose.yml\n');
+    }
     process.exit(1);
   }
   throw error;
