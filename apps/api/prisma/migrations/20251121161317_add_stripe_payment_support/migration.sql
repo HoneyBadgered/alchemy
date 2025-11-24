@@ -1,7 +1,6 @@
 -- AlterTable
 ALTER TABLE "orders" ADD COLUMN "stripePaymentStatus" TEXT,
-ADD COLUMN "stripeClientSecret" TEXT,
-ALTER COLUMN "stripePaymentId" SET CONSTRAINT orders_stripePaymentId_unique;
+ADD COLUMN "stripeClientSecret" TEXT;
 
 -- CreateIndex
 CREATE UNIQUE INDEX "orders_stripePaymentId_key" ON "orders"("stripePaymentId");
