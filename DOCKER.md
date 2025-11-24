@@ -80,6 +80,8 @@ docker compose logs -f api web
 docker compose --profile full down
 ```
 
+**Note:** Database migrations are applied automatically when the API container starts. You don't need to run them manually.
+
 ## Services
 
 ### PostgreSQL Database
@@ -183,6 +185,25 @@ Available variables:
 
 ### Development with Docker
 
+**Note:** Migrations now run automatically when using Docker Compose. You don't need to run them manually.
+
+1. Start all development services (database, API, web) with hot reload:
+   ```bash
+   docker compose -f docker-compose.dev.yml up
+   ```
+   
+   The API container will automatically:
+   - Install dependencies
+   - Generate Prisma client
+   - Run database migrations
+   - Start the development server
+
+2. Make code changes - they'll automatically reload!
+
+### Database Only (For Local Development)
+
+If you prefer to run just the database in Docker and the API locally:
+
 1. Start the database:
    ```bash
    docker compose up -d postgres
@@ -195,12 +216,10 @@ Available variables:
    cd ../..
    ```
 
-3. Start development services with hot reload:
+3. Start the API locally:
    ```bash
-   docker compose -f docker-compose.dev.yml up api web
+   npm run dev --workspace=@alchemy/api
    ```
-
-4. Make code changes - they'll automatically reload!
 
 ### Production Testing
 

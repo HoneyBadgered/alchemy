@@ -63,4 +63,5 @@ EXPOSE 3000
 
 WORKDIR /app/apps/api
 
-CMD ["node", "dist/main.js"]
+# Run database migrations and start the app
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]

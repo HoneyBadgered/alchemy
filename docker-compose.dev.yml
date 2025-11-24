@@ -26,7 +26,7 @@ services:
     image: node:20-bookworm-slim
     container_name: alchemy-api-dev
     working_dir: /app
-    command: sh -c "npm install && npx prisma generate --schema=apps/api/prisma/schema.prisma && npm run dev --workspace=@alchemy/api"
+    command: sh -c "npm install && npx prisma generate --schema=apps/api/prisma/schema.prisma && npx prisma migrate deploy --schema=apps/api/prisma/schema.prisma && npm run dev --workspace=@alchemy/api"
     environment:
       NODE_ENV: development
       PORT: 3000
