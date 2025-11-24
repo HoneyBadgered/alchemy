@@ -26,6 +26,14 @@ const mergeCartSchema = z.object({
   sessionId: z.string(),
 });
 
+const addBlendToCartSchema = z.object({
+  baseTeaId: z.string(),
+  addIns: z.array(z.object({
+    ingredientId: z.string(),
+    quantity: z.number().int().min(1),
+  })),
+});
+
 export async function cartRoutes(fastify: FastifyInstance) {
   const cartService = new CartService();
 
@@ -187,6 +195,30 @@ export async function cartRoutes(fastify: FastifyInstance) {
       }
       
       const result = await cartService.mergeGuestCart(userId, sessionId);
+      return reply.send(result);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return reply.status(400).send({ message: 'Validation error', errors: error.errors });
+      }
+      return reply.status(400).send({ message: (error as Error).message });
+    }
+  });
+
+  /**
+   * Add custom blend to cart
+   * POST /cart/blend
+   * Optional authentication (supports both authenticated users and guests)
+   */
+  fastify.post('/cart/blend', async (request, reply) => {
+    try {
+      const auth = validateAuthOrSession(request, reply);
+      if (!auth) return;
+
+      const data = addBlendToCartSchema.parse(request.body);
+      const result = await cartService.addBlendToCart({
+        ...data,
+        ...auth,
+      });
       return reply.send(result);
     } catch (error) {
       if (error instanceof z.ZodError) {

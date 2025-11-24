@@ -22,6 +22,8 @@ jest.mock('@prisma/client', () => {
     },
     product: {
       findUnique: jest.fn(),
+      findFirst: jest.fn(),
+      create: jest.fn(),
     },
   };
 
@@ -350,6 +352,186 @@ describe('CartService', () => {
           cartId: 'cart-1',
         },
       });
+    });
+  });
+
+  describe('addBlendToCart', () => {
+    it('should create a new blend product and add to cart', async () => {
+      const mockCart = {
+        id: 'cart-1',
+        userId: 'user-1',
+        sessionId: null,
+        items: [],
+      };
+
+      const mockCreatedProduct = {
+        id: 'blend-product-1',
+        name: 'Custom Green Tea Blend with 2 Add-ins',
+        description: 'Custom blend with green-tea base and 2 add-ins',
+        price: 15.99,
+        category: 'custom-blend',
+        tags: ['blend:green-tea:lavender:5,mint:5', 'custom', 'blend'],
+        isActive: true,
+        stock: 999,
+      };
+
+      // No existing blend found
+      mockPrisma.product.findFirst.mockResolvedValue(null);
+      mockPrisma.product.create.mockResolvedValue(mockCreatedProduct);
+      mockPrisma.product.findUnique.mockResolvedValue(mockCreatedProduct);
+      mockPrisma.cart.findFirst.mockResolvedValue(mockCart);
+      mockPrisma.cartItem.findUnique.mockResolvedValue(null);
+      mockPrisma.cartItem.create.mockResolvedValue({});
+
+      await cartService.addBlendToCart({
+        baseTeaId: 'green-tea',
+        addIns: [
+          { ingredientId: 'lavender', quantity: 5 },
+          { ingredientId: 'mint', quantity: 5 },
+        ],
+        userId: 'user-1',
+      });
+
+      // Should create a new blend product
+      expect(mockPrisma.product.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          name: expect.stringContaining('Custom Green Tea'),
+          category: 'custom-blend',
+          isActive: true,
+          stock: 999,
+        }),
+      });
+
+      // Should add to cart
+      expect(mockPrisma.cartItem.create).toHaveBeenCalledWith({
+        data: {
+          cartId: 'cart-1',
+          productId: 'blend-product-1',
+          quantity: 1,
+        },
+      });
+    });
+
+    it('should use existing blend product if same composition exists', async () => {
+      const mockCart = {
+        id: 'cart-1',
+        userId: 'user-1',
+        sessionId: null,
+        items: [],
+      };
+
+      const existingBlendProduct = {
+        id: 'existing-blend-1',
+        name: 'Custom Black Tea Blend with 1 Add-in',
+        description: 'Custom blend with black-tea base and 1 add-in',
+        price: 14.49,
+        category: 'custom-blend',
+        isActive: true,
+        stock: 999,
+      };
+
+      // Existing blend found
+      mockPrisma.product.findFirst.mockResolvedValue(existingBlendProduct);
+      mockPrisma.product.findUnique.mockResolvedValue(existingBlendProduct);
+      mockPrisma.cart.findFirst.mockResolvedValue(mockCart);
+      mockPrisma.cartItem.findUnique.mockResolvedValue(null);
+      mockPrisma.cartItem.create.mockResolvedValue({});
+
+      await cartService.addBlendToCart({
+        baseTeaId: 'black-tea',
+        addIns: [{ ingredientId: 'cinnamon', quantity: 3 }],
+        userId: 'user-1',
+      });
+
+      // Should NOT create a new product
+      expect(mockPrisma.product.create).not.toHaveBeenCalled();
+
+      // Should add existing product to cart
+      expect(mockPrisma.cartItem.create).toHaveBeenCalledWith({
+        data: {
+          cartId: 'cart-1',
+          productId: 'existing-blend-1',
+          quantity: 1,
+        },
+      });
+    });
+
+    it('should work for guest users with sessionId', async () => {
+      const mockCart = {
+        id: 'cart-2',
+        userId: null,
+        sessionId: 'guest-session-123',
+        items: [],
+      };
+
+      const mockCreatedProduct = {
+        id: 'blend-product-2',
+        name: 'Custom White Tea',
+        price: 12.99,
+        category: 'custom-blend',
+        isActive: true,
+        stock: 999,
+      };
+
+      mockPrisma.product.findFirst.mockResolvedValue(null);
+      mockPrisma.product.create.mockResolvedValue(mockCreatedProduct);
+      mockPrisma.product.findUnique.mockResolvedValue(mockCreatedProduct);
+      mockPrisma.cart.findFirst.mockResolvedValue(mockCart);
+      mockPrisma.cartItem.findUnique.mockResolvedValue(null);
+      mockPrisma.cartItem.create.mockResolvedValue({});
+
+      await cartService.addBlendToCart({
+        baseTeaId: 'white-tea',
+        addIns: [],
+        sessionId: 'guest-session-123',
+      });
+
+      // Should create product and add to guest cart
+      expect(mockPrisma.product.create).toHaveBeenCalled();
+      expect(mockPrisma.cartItem.create).toHaveBeenCalledWith({
+        data: {
+          cartId: 'cart-2',
+          productId: 'blend-product-2',
+          quantity: 1,
+        },
+      });
+    });
+
+    it('should calculate price based on add-ins', async () => {
+      const mockCart = {
+        id: 'cart-1',
+        userId: 'user-1',
+        sessionId: null,
+        items: [],
+      };
+
+      mockPrisma.product.findFirst.mockResolvedValue(null);
+      mockPrisma.product.create.mockImplementation((args: any) => Promise.resolve({
+        id: 'new-blend',
+        ...args.data,
+      }));
+      mockPrisma.product.findUnique.mockResolvedValue({
+        id: 'new-blend',
+        isActive: true,
+        stock: 999,
+      });
+      mockPrisma.cart.findFirst.mockResolvedValue(mockCart);
+      mockPrisma.cartItem.findUnique.mockResolvedValue(null);
+      mockPrisma.cartItem.create.mockResolvedValue({});
+
+      await cartService.addBlendToCart({
+        baseTeaId: 'oolong-tea',
+        addIns: [
+          { ingredientId: 'ginger', quantity: 5 },
+          { ingredientId: 'honey-dust', quantity: 3 },
+          { ingredientId: 'vanilla', quantity: 2 },
+        ],
+        userId: 'user-1',
+      });
+
+      // Price should be base (12.99) + 3 add-ins * 1.50 = 17.49
+      const createCall = mockPrisma.product.create.mock.calls[0][0];
+      expect(createCall.data.price).toBeCloseTo(17.49, 2);
     });
   });
 });

@@ -272,4 +272,88 @@ export class CartService {
 
     return this.getCart({ userId });
   }
+
+  /**
+   * Add custom blend to cart
+   * Creates a product for the blend if it doesn't exist, then adds to cart
+   */
+  async addBlendToCart({
+    baseTeaId,
+    addIns,
+    userId,
+    sessionId,
+  }: {
+    baseTeaId: string;
+    addIns: Array<{ ingredientId: string; quantity: number }>;
+    userId?: string;
+    sessionId?: string;
+  }) {
+    // Generate a unique product ID based on blend composition
+    const blendKey = this.generateBlendKey(baseTeaId, addIns);
+    
+    // Look for existing blend product with same composition
+    let product = await prisma.product.findFirst({
+      where: {
+        category: 'custom-blend',
+        tags: { has: blendKey },
+      },
+    });
+
+    // If product doesn't exist, create it
+    if (!product) {
+      // Calculate price based on base tea and add-ins
+      // Base price: $12.99 + $1.50 per add-in
+      const basePrice = 12.99;
+      const addInPrice = 1.50;
+      const totalPrice = basePrice + (addIns.length * addInPrice);
+
+      // Generate blend name
+      const blendName = this.generateBlendName(baseTeaId, addIns);
+
+      product = await prisma.product.create({
+        data: {
+          name: blendName,
+          description: `Custom blend with ${baseTeaId} base and ${addIns.length} add-in${addIns.length === 1 ? '' : 's'}`,
+          price: totalPrice,
+          category: 'custom-blend',
+          tags: [blendKey, 'custom', 'blend'],
+          isActive: true,
+          stock: 999, // Custom blends are always "in stock"
+        },
+      });
+    }
+
+    // Add the blend product to cart
+    return this.addToCart({
+      productId: product.id,
+      quantity: 1,
+      userId,
+      sessionId,
+    });
+  }
+
+  /**
+   * Generate a unique key for blend composition
+   */
+  private generateBlendKey(baseTeaId: string, addIns: Array<{ ingredientId: string; quantity: number }>): string {
+    const sortedAddIns = [...addIns].sort((a, b) => a.ingredientId.localeCompare(b.ingredientId));
+    const addInString = sortedAddIns.map(a => `${a.ingredientId}:${a.quantity}`).join(',');
+    return `blend:${baseTeaId}:${addInString}`;
+  }
+
+  /**
+   * Generate a readable name for the blend
+   */
+  private generateBlendName(baseTeaId: string, addIns: Array<{ ingredientId: string; quantity: number }>): string {
+    // Convert IDs to readable names (simple transformation)
+    const baseName = baseTeaId.split('-').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+    
+    const addInCount = addIns.length;
+    if (addInCount === 0) {
+      return `Custom ${baseName}`;
+    }
+    return `Custom ${baseName} Blend with ${addInCount} Add-in${addInCount === 1 ? '' : 's'}`;
+  }
 }
