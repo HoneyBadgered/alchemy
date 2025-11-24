@@ -14,6 +14,7 @@ import {
   IngredientCategory,
 } from '@alchemy/core';
 import { useBlendState } from '@/hooks/useBlendState';
+import { useCart } from '@/contexts/CartContext';
 import { JarCategory } from './JarCategory';
 import { IngredientPanel } from './IngredientPanel';
 import { BowlSummary } from './BowlSummary';
@@ -29,6 +30,7 @@ const CATEGORIES: IngredientCategory[] = [
 
 export const AlchemyTableScene: React.FC = () => {
   const [openCategory, setOpenCategory] = useState<IngredientCategory | null>(null);
+  const [isCrafting, setIsCrafting] = useState(false);
   
   const {
     blendState,
@@ -37,6 +39,8 @@ export const AlchemyTableScene: React.FC = () => {
     updateAddInQuantity,
     clearBlend,
   } = useBlendState();
+
+  const { addBlendToCart } = useCart();
 
   // Memoize add-in quantities for panel
   const addInQuantities = useMemo(() => {
@@ -74,17 +78,28 @@ export const AlchemyTableScene: React.FC = () => {
     setOpenCategory(null);
   };
 
-  const handleCraftBlend = () => {
-    // TODO: Implement actual crafting logic
-    // For now, show an alert with the blend details
-    const baseTea = INGREDIENTS.find(ing => ing.id === blendState.baseTeaId);
-    const addIns = blendState.addIns.map(item => {
-      const ingredient = INGREDIENTS.find(ing => ing.id === item.ingredientId);
-      return `${ingredient?.name} (${item.quantity}g)`;
-    });
-    
-    console.log('Crafting blend:', { baseTea: baseTea?.name, addIns });
-    alert(`✨ Crafting blend with:\n\nBase: ${baseTea?.name}\n\nAdd-ins:\n${addIns.join('\n')}\n\n🎉 Feature coming soon!`);
+  const handleCraftBlend = async () => {
+    if (!blendState.baseTeaId) {
+      alert('Please select a base tea first!');
+      return;
+    }
+
+    setIsCrafting(true);
+    try {
+      await addBlendToCart(blendState.baseTeaId, blendState.addIns);
+      
+      // Show success message
+      const baseTea = INGREDIENTS.find(ing => ing.id === blendState.baseTeaId);
+      alert(`✨ Your ${baseTea?.name || 'custom'} blend has been added to cart!`);
+      
+      // Clear the blend after successful addition
+      clearBlend();
+    } catch (error) {
+      console.error('Failed to craft blend:', error);
+      alert('Failed to add blend to cart. Please try again.');
+    } finally {
+      setIsCrafting(false);
+    }
   };
 
   const categoryIngredients = openCategory
@@ -146,6 +161,7 @@ export const AlchemyTableScene: React.FC = () => {
                 ingredients={INGREDIENTS}
                 onClearBlend={clearBlend}
                 onCraftBlend={handleCraftBlend}
+                isCrafting={isCrafting}
               />
             </div>
           </div>
@@ -157,6 +173,7 @@ export const AlchemyTableScene: React.FC = () => {
               ingredients={INGREDIENTS}
               onClearBlend={clearBlend}
               onCraftBlend={handleCraftBlend}
+              isCrafting={isCrafting}
             />
           </div>
         </div>

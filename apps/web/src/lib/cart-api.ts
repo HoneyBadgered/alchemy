@@ -216,4 +216,38 @@ export const cartApi = {
 
     return response.json();
   },
+
+  /**
+   * Add custom blend to cart
+   */
+  async addBlendToCart(
+    baseTeaId: string,
+    addIns: Array<{ ingredientId: string; quantity: number }>,
+    token?: string,
+    sessionId?: string
+  ): Promise<CartResponse> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    if (sessionId) {
+      headers['x-session-id'] = sessionId;
+    }
+
+    const response = await fetch(`${API_URL}/cart/blend`, {
+      method: 'POST',
+      headers,
+      credentials: 'include',
+      body: JSON.stringify({ baseTeaId, addIns }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to add blend to cart');
+    }
+
+    return response.json();
+  },
 };

@@ -14,6 +14,7 @@ interface BowlSummaryProps {
   ingredients: Ingredient[];
   onClearBlend?: () => void;
   onCraftBlend?: () => void;
+  isCrafting?: boolean;
 }
 
 export const BowlSummary: React.FC<BowlSummaryProps> = ({
@@ -21,6 +22,7 @@ export const BowlSummary: React.FC<BowlSummaryProps> = ({
   ingredients,
   onClearBlend,
   onCraftBlend,
+  isCrafting = false,
 }) => {
   const baseTea = blendState.baseTeaId
     ? ingredients.find(ing => ing.id === blendState.baseTeaId)
@@ -129,9 +131,10 @@ export const BowlSummary: React.FC<BowlSummaryProps> = ({
           {baseTea && (
             <button 
               onClick={onCraftBlend}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 rounded-lg transition-all transform hover:scale-105 shadow-md"
+              disabled={isCrafting}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 rounded-lg transition-all transform hover:scale-105 shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
-              ✨ Craft This Blend
+              {isCrafting ? '✨ Adding to Cart...' : '✨ Craft This Blend'}
             </button>
           )}
         </div>

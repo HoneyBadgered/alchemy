@@ -14,6 +14,7 @@ interface CartContextValue {
   itemCount: number;
   subtotal: number;
   addToCart: (productId: string, quantity: number) => Promise<void>;
+  addBlendToCart: (baseTeaId: string, addIns: Array<{ ingredientId: string; quantity: number }>) => Promise<void>;
   updateCartItem: (productId: string, quantity: number) => Promise<void>;
   removeFromCart: (productId: string) => Promise<void>;
   clearCart: () => Promise<void>;
@@ -97,6 +98,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const addBlendToCart = async (baseTeaId: string, addIns: Array<{ ingredientId: string; quantity: number }>) => {
+    setIsLoading(true);
+    try {
+      const result = await cartApi.addBlendToCart(
+        baseTeaId,
+        addIns,
+        accessToken || undefined,
+        sessionId || undefined
+      );
+      setCart(result);
+    } catch (error) {
+      console.error('Failed to add blend to cart:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const updateCartItem = async (productId: string, quantity: number) => {
     setIsLoading(true);
     try {
@@ -160,6 +179,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         itemCount: cart?.itemCount || 0,
         subtotal: cart?.subtotal || 0,
         addToCart,
+        addBlendToCart,
         updateCartItem,
         removeFromCart,
         clearCart,
