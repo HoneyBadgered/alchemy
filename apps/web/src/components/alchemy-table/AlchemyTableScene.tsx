@@ -74,6 +74,19 @@ export const AlchemyTableScene: React.FC = () => {
     setOpenCategory(null);
   };
 
+  const handleCraftBlend = () => {
+    // TODO: Implement actual crafting logic
+    // For now, show an alert with the blend details
+    const baseTea = INGREDIENTS.find(ing => ing.id === blendState.baseTeaId);
+    const addIns = blendState.addIns.map(item => {
+      const ingredient = INGREDIENTS.find(ing => ing.id === item.ingredientId);
+      return `${ingredient?.name} (${item.quantity}g)`;
+    });
+    
+    console.log('Crafting blend:', { baseTea: baseTea?.name, addIns });
+    alert(`✨ Crafting blend with:\n\nBase: ${baseTea?.name}\n\nAdd-ins:\n${addIns.join('\n')}\n\n🎉 Feature coming soon!`);
+  };
+
   const categoryIngredients = openCategory
     ? getIngredientsByCategory(openCategory)
     : [];
@@ -132,6 +145,7 @@ export const AlchemyTableScene: React.FC = () => {
                 blendState={blendState}
                 ingredients={INGREDIENTS}
                 onClearBlend={clearBlend}
+                onCraftBlend={handleCraftBlend}
               />
             </div>
           </div>
@@ -142,6 +156,7 @@ export const AlchemyTableScene: React.FC = () => {
               blendState={blendState}
               ingredients={INGREDIENTS}
               onClearBlend={clearBlend}
+              onCraftBlend={handleCraftBlend}
             />
           </div>
         </div>
