@@ -128,7 +128,7 @@ npm run dev
 
 # Or run specific apps
 npm run dev --workspace=@alchemy/api    # API on port 3000
-npm run dev --workspace=@alchemy/web    # Web on port 3000 (Next.js default)
+npm run dev --workspace=@alchemy/web    # Web on port 3001
 ```
 
 ### Development
