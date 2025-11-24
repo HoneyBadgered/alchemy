@@ -7,7 +7,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { PaymentService } from '../services/payment.service';
 import { authMiddleware } from '../middleware/auth';
-import { stripe } from '../utils/stripe';
+import { stripe, isStripeConfigured } from '../utils/stripe';
 import { config } from '../config';
 
 const createPaymentIntentSchema = z.object({
@@ -26,6 +26,14 @@ export async function paymentRoutes(fastify: FastifyInstance) {
     preHandler: authMiddleware,
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
+      // Check if Stripe is configured
+      if (!isStripeConfigured()) {
+        return reply.status(503).send({ 
+          message: 'Payment processing is not available. Stripe is not configured.',
+          configured: false,
+        });
+      }
+
       const userId = request.user!.userId;
       const data = createPaymentIntentSchema.parse(request.body);
       
@@ -57,6 +65,14 @@ export async function paymentRoutes(fastify: FastifyInstance) {
     preHandler: authMiddleware,
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
+      // Check if Stripe is configured
+      if (!isStripeConfigured()) {
+        return reply.status(503).send({ 
+          message: 'Payment processing is not available. Stripe is not configured.',
+          configured: false,
+        });
+      }
+
       const userId = request.user!.userId;
       const { orderId } = request.params as { orderId: string };
       
@@ -81,6 +97,13 @@ export async function paymentRoutes(fastify: FastifyInstance) {
     },
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
+      // Check if Stripe is configured
+      if (!isStripeConfigured()) {
+        return reply.status(503).send({ 
+          message: 'Payment processing is not available. Stripe is not configured.',
+        });
+      }
+
       const signature = request.headers['stripe-signature'] as string;
       
       if (!signature) {
