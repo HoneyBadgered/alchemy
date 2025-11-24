@@ -7,6 +7,11 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Constants for custom blend products
+const CUSTOM_BLEND_BASE_PRICE = 12.99;
+const CUSTOM_BLEND_ADDIN_PRICE = 1.50;
+const CUSTOM_BLEND_STOCK = 999; // Custom blends are always "in stock"
+
 interface AddToCartParams {
   productId: string;
   quantity: number;
@@ -302,10 +307,7 @@ export class CartService {
     // If product doesn't exist, create it
     if (!product) {
       // Calculate price based on base tea and add-ins
-      // Base price: $12.99 + $1.50 per add-in
-      const basePrice = 12.99;
-      const addInPrice = 1.50;
-      const totalPrice = basePrice + (addIns.length * addInPrice);
+      const totalPrice = CUSTOM_BLEND_BASE_PRICE + (addIns.length * CUSTOM_BLEND_ADDIN_PRICE);
 
       // Generate blend name
       const blendName = this.generateBlendName(baseTeaId, addIns);
@@ -318,7 +320,7 @@ export class CartService {
           category: 'custom-blend',
           tags: [blendKey, 'custom', 'blend'],
           isActive: true,
-          stock: 999, // Custom blends are always "in stock"
+          stock: CUSTOM_BLEND_STOCK,
         },
       });
     }
