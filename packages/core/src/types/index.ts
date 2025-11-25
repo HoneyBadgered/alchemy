@@ -83,6 +83,8 @@ export interface Ingredient {
   badges?: string[];
   emoji?: string;
   isBase?: boolean; // true for base teas, false for add-ins
+  baseAmount?: number; // Default starting amount for add-ins (in grams)
+  incrementAmount?: number; // Amount to increase/decrease per step (falls back to baseAmount if not specified)
 }
 
 /**

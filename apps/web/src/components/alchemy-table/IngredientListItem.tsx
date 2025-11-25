@@ -6,8 +6,8 @@
 
 'use client';
 
-import React, { useState } from 'react';
-import { Ingredient } from '@alchemy/core';
+import React, { useState, useEffect } from 'react';
+import { Ingredient, getIngredientBaseAmount, getIngredientIncrementAmount } from '@alchemy/core';
 import { formatQuantity } from '../../lib/format';
 
 interface IngredientListItemProps {
@@ -22,12 +22,25 @@ interface IngredientListItemProps {
 export const IngredientListItem: React.FC<IngredientListItemProps> = ({
   ingredient,
   isSelected,
-  quantity = 5,
+  quantity,
   onSelect,
   onQuantityChange,
   mode,
 }) => {
-  const [localQuantity, setLocalQuantity] = useState(quantity);
+  // Get ingredient-specific amounts with fallbacks
+  const baseAmount = getIngredientBaseAmount(ingredient);
+  const incrementAmount = getIngredientIncrementAmount(ingredient);
+  
+  // Use provided quantity or fall back to the ingredient's base amount
+  const initialQuantity = quantity ?? baseAmount;
+  const [localQuantity, setLocalQuantity] = useState(initialQuantity);
+
+  // Sync local quantity when the prop changes
+  useEffect(() => {
+    if (quantity !== undefined) {
+      setLocalQuantity(quantity);
+    }
+  }, [quantity]);
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuantity = parseFloat(e.target.value);
@@ -36,6 +49,10 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({
       onQuantityChange(ingredient.id, newQuantity);
     }
   };
+
+  // Calculate slider constraints based on ingredient configuration
+  const minValue = incrementAmount;
+  const maxValue = Math.max(baseAmount * 10, 50); // At least 10x base amount or 50g
 
   return (
     <div
@@ -140,9 +157,9 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({
             </div>
             <input
               type="range"
-              min="0.5"
-              max="50"
-              step="0.5"
+              min={minValue}
+              max={maxValue}
+              step={incrementAmount}
               value={localQuantity}
               onChange={handleSliderChange}
               onClick={(e) => e.stopPropagation()}

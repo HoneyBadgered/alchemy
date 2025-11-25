@@ -497,7 +497,7 @@ describe('CartService', () => {
       });
     });
 
-    it('should calculate price based on add-ins', async () => {
+    it('should calculate price based on add-ins with increment pricing', async () => {
       const mockCart = {
         id: 'cart-1',
         userId: 'user-1',
@@ -522,16 +522,65 @@ describe('CartService', () => {
       await cartService.addBlendToCart({
         baseTeaId: 'oolong-tea',
         addIns: [
+          // ginger: baseAmount=2, incrementAmount=0.5, quantity=5 => 6 increments above base => 6 * 0.25 = 1.50
           { ingredientId: 'ginger', quantity: 5 },
+          // honey-dust: baseAmount=2, incrementAmount=1, quantity=3 => 1 increment above base => 1 * 0.25 = 0.25
           { ingredientId: 'honey-dust', quantity: 3 },
+          // vanilla: baseAmount=1, incrementAmount=0.5, quantity=2 => 2 increments above base => 2 * 0.25 = 0.50
           { ingredientId: 'vanilla', quantity: 2 },
         ],
         userId: 'user-1',
       });
 
-      // Price should be base (12.99) + 3 add-ins * 1.50 = 17.49
+      // Price should be:
+      // Base price: 12.99
+      // + 3 add-in base prices (3 * 1.00) = 3.00
+      // + ginger increments (6 * 0.25) = 1.50
+      // + honey-dust increments (1 * 0.25) = 0.25
+      // + vanilla increments (2 * 0.25) = 0.50
+      // Total = 12.99 + 3.00 + 1.50 + 0.25 + 0.50 = 18.24
       const createCall = mockPrisma.product.create.mock.calls[0][0];
-      expect(createCall.data.price).toBeCloseTo(17.49, 2);
+      expect(createCall.data.price).toBeCloseTo(18.24, 2);
+    });
+
+    it('should calculate base price only when add-ins are at base amount', async () => {
+      const mockCart = {
+        id: 'cart-1',
+        userId: 'user-1',
+        sessionId: null,
+        items: [],
+      };
+
+      mockPrisma.product.findFirst.mockResolvedValue(null);
+      mockPrisma.product.create.mockImplementation((args: any) => Promise.resolve({
+        id: 'new-blend',
+        ...args.data,
+      }));
+      mockPrisma.product.findUnique.mockResolvedValue({
+        id: 'new-blend',
+        isActive: true,
+        stock: 999,
+      });
+      mockPrisma.cart.findFirst.mockResolvedValue(mockCart);
+      mockPrisma.cartItem.findUnique.mockResolvedValue(null);
+      mockPrisma.cartItem.create.mockResolvedValue({});
+
+      await cartService.addBlendToCart({
+        baseTeaId: 'green-tea',
+        addIns: [
+          // lavender: baseAmount=2, at base amount => no increment charge
+          { ingredientId: 'lavender', quantity: 2 },
+        ],
+        userId: 'user-1',
+      });
+
+      // Price should be:
+      // Base price: 12.99
+      // + 1 add-in base price (1 * 1.00) = 1.00
+      // + 0 increments = 0
+      // Total = 12.99 + 1.00 = 13.99
+      const createCall = mockPrisma.product.create.mock.calls[0][0];
+      expect(createCall.data.price).toBeCloseTo(13.99, 2);
     });
   });
 });
