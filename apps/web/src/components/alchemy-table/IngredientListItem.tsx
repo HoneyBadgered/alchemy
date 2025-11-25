@@ -149,10 +149,6 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({
               className="w-full h-2 bg-purple-100 rounded-lg appearance-none cursor-pointer accent-purple-600"
               aria-label={`Adjust quantity for ${ingredient.name}`}
             />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>0.5g</span>
-              <span>50g</span>
-            </div>
           </div>
         </div>
       )}
