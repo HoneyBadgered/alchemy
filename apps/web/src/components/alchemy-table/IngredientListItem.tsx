@@ -8,6 +8,7 @@
 
 import React, { useState } from 'react';
 import { Ingredient } from '@alchemy/core';
+import { formatQuantity } from '../../lib/format';
 
 interface IngredientListItemProps {
   ingredient: Ingredient;
@@ -17,11 +18,6 @@ interface IngredientListItemProps {
   onQuantityChange?: (ingredientId: string, quantity: number) => void;
   mode: 'single' | 'multi';
 }
-
-// Helper function to format quantity display (removes trailing .0)
-const formatQuantity = (value: number): string => {
-  return value % 1 === 0 ? value.toString() : value.toFixed(1);
-};
 
 export const IngredientListItem: React.FC<IngredientListItemProps> = ({
   ingredient,

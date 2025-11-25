@@ -8,11 +8,7 @@
 
 import React from 'react';
 import { BlendState, Ingredient, IngredientCategory } from '@alchemy/core';
-
-// Helper function to format quantity display (removes trailing .0)
-const formatQuantity = (value: number): string => {
-  return value % 1 === 0 ? value.toString() : value.toFixed(1);
-};
+import { formatQuantity } from '../../lib/format';
 
 interface BowlSummaryProps {
   blendState: BlendState;
