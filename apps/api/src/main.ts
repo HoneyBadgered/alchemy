@@ -31,6 +31,7 @@ const fastify = Fastify({
 fastify.register(cors, {
   origin: config.isDevelopment ? true : config.app.url, // Allow all origins in dev, restrict to APP_URL in production
   credentials: true,
+  methods: ['GET', 'HEAD', 'PUT', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
 });
 
 // Register raw body support (needed for Stripe webhooks)
