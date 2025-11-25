@@ -9,6 +9,11 @@
 import React from 'react';
 import { BlendState, Ingredient, IngredientCategory } from '@alchemy/core';
 
+// Helper function to format quantity display (removes trailing .0)
+const formatQuantity = (value: number): string => {
+  return value % 1 === 0 ? value.toString() : value.toFixed(1);
+};
+
 interface BowlSummaryProps {
   blendState: BlendState;
   ingredients: Ingredient[];
@@ -105,7 +110,7 @@ export const BowlSummary: React.FC<BowlSummaryProps> = ({
                       </div>
                     </div>
                     <div className="text-sm font-semibold text-purple-600">
-                      {quantity}g
+                      {formatQuantity(quantity)}g
                     </div>
                   </div>
                 ))}
@@ -122,7 +127,7 @@ export const BowlSummary: React.FC<BowlSummaryProps> = ({
             <div className="flex justify-between text-sm mt-1">
               <span className="text-gray-600">Total Weight:</span>
               <span className="font-semibold">
-                {blendState.addIns.reduce((sum, ing) => sum + ing.quantity, 0)}g
+                {formatQuantity(blendState.addIns.reduce((sum, ing) => sum + ing.quantity, 0))}g
               </span>
             </div>
           </div>

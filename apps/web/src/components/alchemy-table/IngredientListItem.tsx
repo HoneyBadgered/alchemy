@@ -18,6 +18,11 @@ interface IngredientListItemProps {
   mode: 'single' | 'multi';
 }
 
+// Helper function to format quantity display (removes trailing .0)
+const formatQuantity = (value: number): string => {
+  return value % 1 === 0 ? value.toString() : value.toFixed(1);
+};
+
 export const IngredientListItem: React.FC<IngredientListItemProps> = ({
   ingredient,
   isSelected,
@@ -28,8 +33,8 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({
 }) => {
   const [localQuantity, setLocalQuantity] = useState(quantity);
 
-  const handleQuantityChange = (delta: number) => {
-    const newQuantity = Math.max(1, Math.min(50, localQuantity + delta));
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newQuantity = parseFloat(e.target.value);
     setLocalQuantity(newQuantity);
     if (onQuantityChange) {
       onQuantityChange(ingredient.id, newQuantity);
@@ -131,33 +136,26 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({
       {mode === 'multi' && isSelected && (
         <div className="px-4 pb-4 pt-0">
           <div className="bg-white rounded-lg border border-purple-200 p-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-700">Quantity:</span>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleQuantityChange(-1);
-                  }}
-                  className="w-8 h-8 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-700 font-bold flex items-center justify-center transition-colors"
-                  aria-label="Decrease quantity"
-                >
-                  -
-                </button>
-                <span className="font-bold text-purple-900 w-12 text-center">
-                  {localQuantity}g
-                </span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleQuantityChange(1);
-                  }}
-                  className="w-8 h-8 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-700 font-bold flex items-center justify-center transition-colors"
-                  aria-label="Increase quantity"
-                >
-                  +
-                </button>
-              </div>
+              <span className="font-bold text-purple-900">
+                {formatQuantity(localQuantity)}g
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0.5"
+              max="50"
+              step="0.5"
+              value={localQuantity}
+              onChange={handleSliderChange}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full h-2 bg-purple-100 rounded-lg appearance-none cursor-pointer accent-purple-600"
+              aria-label={`Adjust quantity for ${ingredient.name}`}
+            />
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>0.5g</span>
+              <span>50g</span>
             </div>
           </div>
         </div>
