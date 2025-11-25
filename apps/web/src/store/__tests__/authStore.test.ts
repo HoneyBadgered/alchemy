@@ -35,6 +35,7 @@ describe('AuthStore', () => {
         id: 'user-1',
         email: 'test@example.com',
         username: 'testuser',
+        role: 'user',
         emailVerified: true,
         createdAt: new Date().toISOString(),
       };
@@ -54,6 +55,7 @@ describe('AuthStore', () => {
         id: 'user-1',
         email: 'test@example.com',
         username: 'testuser',
+        role: 'user',
         emailVerified: true,
         createdAt: new Date().toISOString(),
       };
@@ -80,6 +82,7 @@ describe('AuthStore', () => {
         id: 'user-1',
         email: 'test@example.com',
         username: 'testuser',
+        role: 'user',
         emailVerified: true,
         createdAt: new Date().toISOString(),
       };
@@ -102,6 +105,7 @@ describe('AuthStore', () => {
         id: 'user-1',
         email: 'test@example.com',
         username: 'testuser',
+        role: 'user',
         emailVerified: true,
         createdAt: new Date().toISOString(),
       };
@@ -130,6 +134,7 @@ describe('AuthStore', () => {
         id: 'user-1',
         email: 'test@example.com',
         username: 'testuser',
+        role: 'user',
         emailVerified: false,
         createdAt: new Date().toISOString(),
       };
@@ -158,6 +163,7 @@ describe('AuthStore', () => {
         id: 'user-1',
         email: 'test@example.com',
         username: 'testuser',
+        role: 'user',
         emailVerified: false,
         createdAt: new Date().toISOString(),
       };
@@ -210,6 +216,7 @@ describe('AuthStore', () => {
         id: 'user-1',
         email: 'test@example.com',
         username: 'testuser',
+        role: 'user',
         emailVerified: true,
         createdAt: new Date().toISOString(),
       };
