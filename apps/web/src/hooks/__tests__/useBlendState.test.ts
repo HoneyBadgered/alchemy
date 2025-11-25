@@ -52,7 +52,7 @@ describe('useBlendState', () => {
     expect(result.current.blendState.baseTeaId).toBe('black-tea');
   });
 
-  it('should toggle add-in on', () => {
+  it('should toggle add-in on with its configured base amount', () => {
     const { result } = renderHook(() => useBlendState());
 
     act(() => {
@@ -60,9 +60,10 @@ describe('useBlendState', () => {
     });
 
     expect(result.current.blendState.addIns).toHaveLength(1);
+    // Lavender has baseAmount of 2 defined in INGREDIENTS
     expect(result.current.blendState.addIns[0]).toEqual({
       ingredientId: 'lavender',
-      quantity: 5,
+      quantity: 2,
     });
   });
 
@@ -137,19 +138,20 @@ describe('useBlendState', () => {
     expect(result.current.getAddInQuantity('lavender')).toBe(20);
   });
 
-  it('should return default quantity for non-existent add-in', () => {
+  it('should return ingredient base amount for non-selected add-in', () => {
     const { result } = renderHook(() => useBlendState());
 
-    expect(result.current.getAddInQuantity('lavender')).toBe(5);
+    // Lavender has baseAmount of 2 defined in INGREDIENTS
+    expect(result.current.getAddInQuantity('lavender')).toBe(2);
   });
 
-  it('should handle multiple add-ins', () => {
+  it('should handle multiple add-ins with their respective base amounts', () => {
     const { result } = renderHook(() => useBlendState());
 
     act(() => {
-      result.current.toggleAddIn('lavender');
-      result.current.toggleAddIn('chamomile');
-      result.current.toggleAddIn('mint');
+      result.current.toggleAddIn('lavender');    // baseAmount: 2
+      result.current.toggleAddIn('chamomile');   // baseAmount: 3
+      result.current.toggleAddIn('mint');        // baseAmount: 2
     });
 
     expect(result.current.blendState.addIns).toHaveLength(3);
@@ -158,5 +160,10 @@ describe('useBlendState', () => {
       'chamomile',
       'mint',
     ]);
+    
+    // Each add-in should have its configured base amount
+    expect(result.current.blendState.addIns[0].quantity).toBe(2); // lavender
+    expect(result.current.blendState.addIns[1].quantity).toBe(3); // chamomile
+    expect(result.current.blendState.addIns[2].quantity).toBe(2); // mint
   });
 });

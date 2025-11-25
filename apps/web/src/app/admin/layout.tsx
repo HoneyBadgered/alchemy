@@ -81,6 +81,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               </li>
               <li>
                 <Link
+                  href="/admin/ingredients"
+                  className="block px-4 py-2 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-900 transition"
+                >
+                  🌿 Ingredients
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/admin/orders"
                   className="block px-4 py-2 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-900 transition"
                 >

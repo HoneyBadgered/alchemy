@@ -47,8 +47,12 @@ export {
 export {
   INGREDIENTS,
   CATEGORY_INFO,
+  DEFAULT_BASE_AMOUNT,
+  DEFAULT_INCREMENT_AMOUNT,
   getIngredientsByCategory,
   getIngredientById,
   getBaseTeas,
   getAddIns,
+  getIngredientBaseAmount,
+  getIngredientIncrementAmount,
 } from './ingredients';
