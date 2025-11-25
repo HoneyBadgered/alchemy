@@ -58,6 +58,7 @@ describe('AuthService', () => {
         id: 'user_123',
         email: 'test@example.com',
         username: 'testuser',
+        role: 'user',
         emailVerified: false,
         createdAt: new Date(),
         profile: {},
@@ -71,6 +72,7 @@ describe('AuthService', () => {
       });
 
       expect(result.user.email).toBe('test@example.com');
+      expect(result.user.role).toBe('user');
       expect(result.accessToken).toBe('access_token');
       expect(result.refreshToken).toBe('refresh_token');
       expect(prisma.user.create).toHaveBeenCalled();
@@ -133,6 +135,7 @@ describe('AuthService', () => {
         id: 'user_123',
         email: 'test@example.com',
         username: 'testuser',
+        role: 'user',
         password: 'hashed_StrongPass123',
         emailVerified: true,
         createdAt: new Date(),
@@ -146,8 +149,34 @@ describe('AuthService', () => {
       });
 
       expect(result.user.email).toBe('test@example.com');
+      expect(result.user.role).toBe('user');
       expect(result.accessToken).toBe('access_token');
       expect(prisma.playerState.update).toHaveBeenCalled();
+    });
+
+    it('should return admin role for admin users', async () => {
+      const { prisma } = require('../utils/prisma');
+      
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'admin_123',
+        email: 'admin@example.com',
+        username: 'adminuser',
+        role: 'admin',
+        password: 'hashed_AdminPass123',
+        emailVerified: true,
+        createdAt: new Date(),
+      });
+
+      prisma.playerState.update.mockResolvedValue({});
+
+      const result = await authService.login({
+        email: 'admin@example.com',
+        password: 'AdminPass123',
+      });
+
+      expect(result.user.email).toBe('admin@example.com');
+      expect(result.user.role).toBe('admin');
+      expect(result.accessToken).toBe('access_token');
     });
 
     it('should reject invalid credentials', async () => {
