@@ -23,12 +23,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }, []);
 
   useEffect(() => {
-    if (mounted && (!user || (user as any).role !== 'admin')) {
+    if (mounted && (!user || user.role !== 'admin')) {
       router.push('/login');
     }
   }, [user, router, mounted]);
 
-  if (!mounted || !user || (user as any).role !== 'admin') {
+  if (!mounted || !user || user.role !== 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-gray-600">Loading...</div>

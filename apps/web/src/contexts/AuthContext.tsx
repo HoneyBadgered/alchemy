@@ -56,7 +56,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const response = await authApi.login({ email, password });
         setAuth(response.user, response.accessToken);
-        router.push('/table');
+        // Redirect admins to admin dashboard, regular users to table
+        if (response.user.role === 'admin') {
+          router.push('/admin/dashboard');
+        } else {
+          router.push('/table');
+        }
       } catch (error) {
         if (error instanceof ApiError) {
           throw new Error(error.message);
