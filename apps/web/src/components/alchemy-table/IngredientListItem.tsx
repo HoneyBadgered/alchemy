@@ -51,7 +51,8 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({
   };
 
   // Calculate slider constraints based on ingredient configuration
-  const minValue = incrementAmount;
+  // Use the smaller of incrementAmount or baseAmount as minimum to allow selecting base amount
+  const minValue = Math.min(incrementAmount, baseAmount);
   const maxValue = Math.max(baseAmount * 10, 50); // At least 10x base amount or 50g
 
   return (

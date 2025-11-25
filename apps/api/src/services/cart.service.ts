@@ -358,8 +358,9 @@ export class CartService {
         const incrementAmount = getIngredientIncrementAmount(ingredient);
         
         // Calculate how many increments above base the user selected
+        // Use floor to avoid overcharging - charge only for complete increments
         const extraQuantity = Math.max(0, addIn.quantity - baseAmount);
-        const numberOfIncrements = incrementAmount > 0 ? Math.ceil(extraQuantity / incrementAmount) : 0;
+        const numberOfIncrements = incrementAmount > 0 ? Math.floor(extraQuantity / incrementAmount) : 0;
         
         // Add increment pricing
         totalPrice += numberOfIncrements * CUSTOM_BLEND_ADDIN_INCREMENT_PRICE;

@@ -31,7 +31,12 @@ export interface UpdateIngredientInput {
 
 /**
  * In-memory storage for ingredient customizations
- * In a production system, these would be persisted to a database
+ * 
+ * NOTE: This is a temporary solution. In a production system, these customizations
+ * should be persisted to the database (e.g., a new IngredientConfig table) to
+ * survive server restarts.
+ * 
+ * TODO: Create database table for ingredient customizations and migrate this storage
  */
 const ingredientCustomizations: Map<string, { baseAmount?: number; incrementAmount?: number }> = new Map();
 
