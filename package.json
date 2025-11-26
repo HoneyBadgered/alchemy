@@ -15,6 +15,9 @@
     "type-check": "turbo run type-check",
     "clean": "turbo run clean && rm -rf node_modules"
   },
+  "prisma": {
+    "seed": "npx tsx apps/api/prisma/seed.ts"
+  },
   "devDependencies": {
     "@types/node": "^24.10.1",
     "turbo": "^2.6.1",
