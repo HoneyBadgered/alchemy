@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { catalogApi, WishlistResponse } from '@/lib/catalog-api';
+import { getStockStatus, calculateDiscountPercent } from '@/lib/stock-utils';
 import { useCart } from '@/contexts/CartContext';
 import BottomNavigation from '@/components/BottomNavigation';
 import { StarRating, StockStatusBadge, SaleBadge } from '@/components/shop';
@@ -52,12 +53,6 @@ export default function WishlistPage() {
         return newSet;
       });
     }
-  };
-
-  const getStockStatus = (product: { stock: number; lowStockThreshold?: number }) => {
-    if (product.stock <= 0) return 'out_of_stock';
-    if (product.stock <= (product.lowStockThreshold || 5)) return 'low_stock';
-    return 'in_stock';
   };
 
   return (
@@ -115,14 +110,17 @@ export default function WishlistPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {data.items.map((item) => {
               const product = item.product;
-              const stockStatus = getStockStatus(product);
-              const isOutOfStock = stockStatus === 'out_of_stock';
-              const isOnSale = product.compareAtPrice
-                ? Number(product.compareAtPrice) > Number(product.price)
-                : false;
-              const discountPercent = isOnSale && product.compareAtPrice
-                ? Math.round(((Number(product.compareAtPrice) - Number(product.price)) / Number(product.compareAtPrice)) * 100)
-                : 0;
+              const stockStatus = getStockStatus(
+                product.stock,
+                product.lowStockThreshold || 5,
+                true
+              );
+              const isOutOfStock = stockStatus.status === 'out_of_stock';
+              const discountPercent = calculateDiscountPercent(
+                Number(product.compareAtPrice || 0),
+                Number(product.price)
+              );
+              const isOnSale = discountPercent > 0;
 
               return (
                 <div
@@ -184,7 +182,7 @@ export default function WishlistPage() {
 
                     {/* Stock Status */}
                     <div className="mb-3">
-                      <StockStatusBadge status={stockStatus} size="sm" />
+                      <StockStatusBadge status={stockStatus.status} size="sm" />
                     </div>
 
                     {/* Price */}

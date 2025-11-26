@@ -9,6 +9,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { catalogApi, RecommendedProduct } from '@/lib/catalog-api';
+import { getStockStatus, calculateDiscountPercent } from '@/lib/stock-utils';
 import { StarRating } from './StarRating';
 import { StockStatusBadge } from './StockStatusBadge';
 import { SaleBadge } from './SaleBadge';
@@ -71,24 +72,16 @@ export function RecommendedProducts({
     return null;
   }
 
-  const getStockStatus = (product: RecommendedProduct) => {
-    if (product.stock <= 0) return 'out_of_stock';
-    if (product.stock <= (product.lowStockThreshold || 5)) return 'low_stock';
-    return 'in_stock';
-  };
-
-  const getDiscountPercent = (product: RecommendedProduct) => {
-    if (!product.compareAtPrice || product.compareAtPrice <= product.price) return 0;
-    return Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100);
-  };
-
   return (
     <div className="mt-12">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">{title}</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {data.products.map((product) => {
-          const stockStatus = getStockStatus(product);
-          const discountPercent = getDiscountPercent(product);
+          const stockStatus = getStockStatus(product.stock, product.lowStockThreshold || 5, true);
+          const discountPercent = calculateDiscountPercent(
+            product.compareAtPrice || 0,
+            product.price
+          );
           const isOnSale = discountPercent > 0;
 
           return (
@@ -145,17 +138,17 @@ export function RecommendedProducts({
                 </div>
 
                 {/* Stock Status */}
-                <StockStatusBadge status={stockStatus} size="sm" />
+                <StockStatusBadge status={stockStatus.status} size="sm" />
 
                 {/* Add to Cart Button */}
                 <button
                   onClick={(e) => handleAddToCart(product, e)}
-                  disabled={stockStatus === 'out_of_stock' || addingToCart.has(product.id)}
+                  disabled={stockStatus.status === 'out_of_stock' || addingToCart.has(product.id)}
                   className="w-full mt-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white text-sm py-1.5 rounded-full font-semibold transition-colors"
                 >
                   {addingToCart.has(product.id)
                     ? 'Adding...'
-                    : stockStatus === 'out_of_stock'
+                    : stockStatus.status === 'out_of_stock'
                     ? 'Sold Out'
                     : 'Add to Cart'}
                 </button>
