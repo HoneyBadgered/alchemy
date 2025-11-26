@@ -6,20 +6,39 @@ import Link from 'next/link';
 import BottomNavigation from '@/components/BottomNavigation';
 import { apiClient } from '@/lib/api-client';
 import { useCart } from '@/contexts/CartContext';
+import {
+  StarRating,
+  StockStatusBadge,
+  SaleBadge,
+  WishlistButton,
+} from '@/components/shop';
+
+interface StockStatus {
+  status: 'in_stock' | 'low_stock' | 'out_of_stock';
+  label: string;
+  available: number;
+}
 
 interface Product {
   id: string;
   name: string;
   description: string;
   price: number;
+  compareAtPrice?: number;
   imageUrl?: string;
   images?: string[];
   category?: string;
   tags?: string[];
   stock: number;
+  lowStockThreshold?: number;
+  averageRating?: number;
+  reviewCount?: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  stockStatus?: StockStatus;
+  isOnSale?: boolean;
+  discountPercent?: number;
 }
 
 interface ProductsResponse {
@@ -160,52 +179,93 @@ export default function ShopPage() {
         {data && (
           <>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {data.products.map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/shop/${product.id}`}
-                  className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-                >
-                  <div className="aspect-square relative overflow-hidden bg-gray-100">
-                    {product.imageUrl ? (
-                      <img
-                        src={product.imageUrl}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-6xl">
-                        🧪
-                      </div>
+              {data.products.map((product) => {
+                const stockStatus = product.stockStatus || {
+                  status: product.stock > 0 ? 'in_stock' : 'out_of_stock',
+                  label: product.stock > 0 ? 'In Stock' : 'Sold Out',
+                  available: product.stock,
+                };
+                const isOutOfStock = stockStatus.status === 'out_of_stock';
+
+                return (
+                  <Link
+                    key={product.id}
+                    href={`/shop/${product.id}`}
+                    className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow group relative"
+                  >
+                    {/* Sale Badge */}
+                    {product.isOnSale && product.discountPercent && (
+                      <SaleBadge discountPercent={product.discountPercent} />
                     )}
-                  </div>
-                  <div className="p-4">
-                    {product.category && (
-                      <div className="text-xs text-purple-600 font-semibold mb-1">
-                        {product.category}
-                      </div>
-                    )}
-                    <h3 className="font-bold text-lg mb-2 line-clamp-2">
-                      {product.name}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                      {product.description}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-purple-600">
-                        ${product.price}
-                      </span>
-                      <button
-                        onClick={(e) => handleAddToCart(product.id, e)}
-                        disabled={addingToCart.has(product.id)}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-full text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {addingToCart.has(product.id) ? 'Adding...' : 'Add to Cart'}
-                      </button>
+
+                    {/* Wishlist Button */}
+                    <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <WishlistButton productId={product.id} size="sm" />
                     </div>
-                  </div>
-                </Link>
-              ))}
+
+                    <div className="aspect-square relative overflow-hidden bg-gray-100">
+                      {product.imageUrl ? (
+                        <img
+                          src={product.imageUrl}
+                          alt={product.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-6xl">
+                          🧪
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      {product.category && (
+                        <div className="text-xs text-purple-600 font-semibold mb-1">
+                          {product.category}
+                        </div>
+                      )}
+                      <h3 className="font-bold text-lg mb-1 line-clamp-2 group-hover:text-purple-600">
+                        {product.name}
+                      </h3>
+                      
+                      {/* Rating */}
+                      {product.averageRating != null && product.reviewCount != null && product.reviewCount > 0 && (
+                        <div className="flex items-center gap-1 mb-2">
+                          <StarRating rating={product.averageRating} size="sm" />
+                          <span className="text-xs text-gray-500">({product.reviewCount})</span>
+                        </div>
+                      )}
+
+                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                        {product.description}
+                      </p>
+
+                      {/* Stock Status */}
+                      <div className="mb-3">
+                        <StockStatusBadge status={stockStatus.status} size="sm" />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl font-bold text-purple-600">
+                            ${Number(product.price).toFixed(2)}
+                          </span>
+                          {product.isOnSale && product.compareAtPrice && (
+                            <span className="text-sm text-gray-400 line-through">
+                              ${Number(product.compareAtPrice).toFixed(2)}
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          onClick={(e) => handleAddToCart(product.id, e)}
+                          disabled={addingToCart.has(product.id) || isOutOfStock}
+                          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-full text-sm font-semibold transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        >
+                          {addingToCart.has(product.id) ? 'Adding...' : isOutOfStock ? 'Sold Out' : 'Add to Cart'}
+                        </button>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
 
             {/* Pagination */}
