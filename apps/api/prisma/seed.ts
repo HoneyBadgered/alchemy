@@ -4,11 +4,62 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
+const SALT_ROUNDS = 10;
+
+async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, SALT_ROUNDS);
+}
 
 async function main() {
   console.log('🌱 Starting database seed...\n');
+
+  // Seed Admin User
+  console.log('👤 Seeding admin user...');
+  
+  const adminEmail = 'admin@alchemy.dev';
+  const existingAdmin = await prisma.user.findUnique({
+    where: { email: adminEmail },
+  });
+
+  if (!existingAdmin) {
+    const hashedPassword = await hashPassword('Admin123!');
+    await prisma.user.create({
+      data: {
+        email: adminEmail,
+        password: hashedPassword,
+        username: 'admin',
+        role: 'admin',
+        emailVerified: true,
+        profile: {
+          create: {
+            firstName: 'Admin',
+            lastName: 'User',
+          },
+        },
+        playerState: {
+          create: {
+            level: 99,
+            xp: 0,
+            totalXp: 999999,
+          },
+        },
+        cosmetics: {
+          create: {
+            unlockedThemes: [],
+            unlockedSkins: [],
+          },
+        },
+      },
+    });
+    console.log('  ✓ Created admin user: admin@alchemy.dev / Admin123!');
+  } else {
+    console.log('  ⊘ Skipped (exists): admin@alchemy.dev');
+  }
+
+  console.log('');
 
   // Seed Products (Blends and Items)
   console.log('📦 Seeding products...');
