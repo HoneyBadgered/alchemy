@@ -135,7 +135,7 @@ describe('CraftingService', () => {
 
       await expect(
         craftingService.craft('user-1', { recipeId: 'recipe-1' })
-      ).rejects.toThrow('Recipe not found');
+      ).rejects.toThrow('Recipe is not available');
     });
 
     it('should throw error if player state not found', async () => {
