@@ -57,11 +57,14 @@ export class AuthService {
     // Validate password strength
     this.validatePasswordStrength(input.password);
 
+    // Normalize email to lowercase for case-insensitive comparison
+    const normalizedEmail = input.email.toLowerCase();
+
     // Check if user already exists
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
-          { email: input.email },
+          { email: normalizedEmail },
           { username: input.username },
         ],
       },
@@ -82,7 +85,7 @@ export class AuthService {
     // Create user with initial player state and profile
     const user = await prisma.user.create({
       data: {
-        email: input.email,
+        email: normalizedEmail,
         password: hashedPassword,
         username: input.username,
         emailVerificationToken: hashedVerificationToken,
@@ -146,9 +149,12 @@ export class AuthService {
   }
 
   async login(input: LoginInput) {
+    // Normalize email to lowercase for case-insensitive comparison
+    const normalizedEmail = input.email.toLowerCase();
+
     // Find user
     const user = await prisma.user.findUnique({
-      where: { email: input.email },
+      where: { email: normalizedEmail },
     });
 
     if (!user) {
@@ -234,8 +240,11 @@ export class AuthService {
   }
 
   async requestPasswordReset(input: PasswordResetRequestInput) {
+    // Normalize email to lowercase for case-insensitive comparison
+    const normalizedEmail = input.email.toLowerCase();
+
     const user = await prisma.user.findUnique({
-      where: { email: input.email },
+      where: { email: normalizedEmail },
     });
 
     // Don't reveal if user exists for security
@@ -339,8 +348,11 @@ export class AuthService {
   }
 
   async resendVerificationEmail(email: string) {
+    // Normalize email to lowercase for case-insensitive comparison
+    const normalizedEmail = email.toLowerCase();
+
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (!user) {
