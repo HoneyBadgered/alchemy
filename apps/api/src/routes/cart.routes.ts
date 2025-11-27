@@ -8,14 +8,20 @@ import { CartService } from '../services/cart.service';
 import { authMiddleware } from '../middleware/auth';
 import { isValidSessionId, sanitizeSessionId } from '../utils/session';
 
+// Helper schema for integer quantity that accepts floats and converts them to integers
+const intQuantitySchema = z.preprocess(
+  (val) => (typeof val === 'number' ? Math.floor(val) : val),
+  z.number().int().min(1)
+);
+
 const addToCartSchema = z.object({
   productId: z.string(),
-  quantity: z.number().int().min(1).default(1),
+  quantity: intQuantitySchema.default(1),
 });
 
 const updateCartItemSchema = z.object({
   productId: z.string(),
-  quantity: z.number().int().min(1),
+  quantity: intQuantitySchema,
 });
 
 const removeFromCartSchema = z.object({
@@ -30,7 +36,7 @@ const addBlendToCartSchema = z.object({
   baseTeaId: z.string(),
   addIns: z.array(z.object({
     ingredientId: z.string(),
-    quantity: z.number().int().min(1),
+    quantity: intQuantitySchema,
   })),
 });
 
