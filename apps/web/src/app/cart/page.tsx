@@ -5,11 +5,17 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import BottomNavigation from '@/components/BottomNavigation';
 import { useState } from 'react';
+import { useAuthStore } from '@/store/authStore';
+import { catalogApi, CouponValidation } from '@/lib/catalog-api';
+import { CouponInput, StockStatusBadge } from '@/components/shop';
 
 export default function CartPage() {
   const router = useRouter();
+  const { isAuthenticated, accessToken } = useAuthStore();
   const { cart, isLoading, itemCount, subtotal, updateCartItem, removeFromCart, clearCart } = useCart();
   const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
+  const [appliedCoupon, setAppliedCoupon] = useState<CouponValidation | null>(null);
+  const [savingForLater, setSavingForLater] = useState<Set<string>>(new Set());
 
   const handleQuantityChange = async (productId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
@@ -47,6 +53,28 @@ export default function CartPage() {
     }
   };
 
+  const handleSaveForLater = async (productId: string) => {
+    if (!isAuthenticated || !accessToken) {
+      alert('Please log in to save items for later');
+      return;
+    }
+
+    setSavingForLater(prev => new Set(prev).add(productId));
+    try {
+      await catalogApi.addToWishlist(productId, accessToken);
+      await removeFromCart(productId);
+    } catch (error) {
+      console.error('Failed to save for later:', error);
+      alert('Failed to save item. Please try again.');
+    } finally {
+      setSavingForLater(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(productId);
+        return newSet;
+      });
+    }
+  };
+
   const handleClearCart = async () => {
     if (!confirm('Are you sure you want to clear your cart?')) return;
 
@@ -57,6 +85,10 @@ export default function CartPage() {
       alert('Failed to clear cart. Please try again.');
     }
   };
+
+  // Calculate final total with discount
+  const discountAmount = appliedCoupon?.discountAmount || 0;
+  const finalTotal = Math.max(0, subtotal - discountAmount);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-100 to-blue-100 pb-20">
@@ -173,13 +205,27 @@ export default function CartPage() {
                         </button>
                       </div>
 
-                      <button
-                        onClick={() => handleRemove(item.product.id)}
-                        disabled={updatingItems.has(item.product.id)}
-                        className="text-red-600 hover:text-red-700 text-sm font-semibold disabled:opacity-50"
-                      >
-                        Remove
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleRemove(item.product.id)}
+                          disabled={updatingItems.has(item.product.id)}
+                          className="text-red-600 hover:text-red-700 text-sm font-semibold disabled:opacity-50"
+                        >
+                          Remove
+                        </button>
+                        {isAuthenticated && (
+                          <>
+                            <span className="text-gray-300">|</span>
+                            <button
+                              onClick={() => handleSaveForLater(item.product.id)}
+                              disabled={savingForLater.has(item.product.id)}
+                              className="text-purple-600 hover:text-purple-700 text-sm font-semibold disabled:opacity-50"
+                            >
+                              {savingForLater.has(item.product.id) ? 'Saving...' : 'Save for Later'}
+                            </button>
+                          </>
+                        )}
+                      </div>
 
                       <div className="text-sm text-gray-600 mt-1">
                         Subtotal: ${(Number(item.product.price) * item.quantity).toFixed(2)}
@@ -195,18 +241,34 @@ export default function CartPage() {
               <div className="bg-white rounded-xl shadow-md p-6 sticky top-4">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
 
+                {/* Coupon Code */}
+                <div className="mb-6">
+                  <CouponInput
+                    subtotal={subtotal}
+                    onApply={setAppliedCoupon}
+                    onRemove={() => setAppliedCoupon(null)}
+                    appliedCoupon={appliedCoupon}
+                  />
+                </div>
+
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal ({itemCount} items)</span>
                     <span className="font-semibold">${subtotal.toFixed(2)}</span>
                   </div>
+                  {appliedCoupon && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Discount ({appliedCoupon.code})</span>
+                      <span className="font-semibold">-${discountAmount.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-gray-600">
                     <span>Shipping</span>
                     <span className="font-semibold">Calculated at checkout</span>
                   </div>
                   <div className="border-t pt-3 flex justify-between text-lg font-bold text-gray-900">
                     <span>Total</span>
-                    <span className="text-purple-600">${subtotal.toFixed(2)}</span>
+                    <span className="text-purple-600">${finalTotal.toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -223,6 +285,15 @@ export default function CartPage() {
                 >
                   Continue Shopping
                 </Link>
+
+                {isAuthenticated && (
+                  <Link
+                    href="/wishlist"
+                    className="block text-center text-gray-600 hover:text-gray-700 font-semibold mt-2"
+                  >
+                    View Saved Items
+                  </Link>
+                )}
               </div>
             </div>
           </div>

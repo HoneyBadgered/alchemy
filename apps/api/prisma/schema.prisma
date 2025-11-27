@@ -38,6 +38,8 @@ model User {
   refreshTokens RefreshToken[]
   orderStatusLogs OrderStatusLog[]
   cart          Cart?
+  reviews       Review[]
+  wishlistItems WishlistItem[]
 
   @@map("users")
 }
@@ -168,21 +170,31 @@ model Recipe {
 // ============================================
 
 model Product {
-  id          String   @id @default(cuid())
-  name        String
-  description String
-  price       Decimal  @db.Decimal(10, 2)
-  imageUrl    String?
-  images      String[] @default([])
-  category    String?
-  tags        String[] @default([])
-  isActive    Boolean  @default(true)
-  stock       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  name            String
+  description     String
+  price           Decimal  @db.Decimal(10, 2)
+  compareAtPrice  Decimal? @db.Decimal(10, 2) // Original price for sale items
+  imageUrl        String?
+  images          String[] @default([])
+  category        String?
+  tags            String[] @default([])
+  isActive        Boolean  @default(true)
+  stock           Int      @default(0)
+  lowStockThreshold Int    @default(5) // Threshold for "Low Stock" status
+  trackInventory  Boolean  @default(true)
+  averageRating   Decimal? @db.Decimal(2, 1) // Cached average rating (e.g., 4.5)
+  reviewCount     Int      @default(0) // Cached review count
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  orderItems OrderItem[]
-  cartItems  CartItem[]
+  orderItems      OrderItem[]
+  cartItems       CartItem[]
+  reviews         Review[]
+  wishlistItems   WishlistItem[]
+  relatedProducts ProductRelation[] @relation("SourceProduct")
+  relatedBy       ProductRelation[] @relation("RelatedProduct")
+  bundleItems     BundleItem[]
 
   @@map("products")
 }
@@ -223,6 +235,91 @@ model OrderItem {
   createdAt DateTime @default(now())
 
   @@map("order_items")
+}
+
+// ============================================
+// Reviews & Ratings
+// ============================================
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  rating    Int      // 1-5 stars
+  title     String?
+  content   String?
+  isVerified Boolean @default(false) // Verified purchase
+  isApproved Boolean @default(true) // For moderation
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId]) // One review per user per product
+  @@index([productId])
+  @@map("reviews")
+}
+
+// ============================================
+// Wishlist
+// ============================================
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@map("wishlist_items")
+}
+
+// ============================================
+// Product Bundles & Upsells
+// ============================================
+
+model ProductBundle {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  discount    Decimal  @db.Decimal(5, 2) // Percentage discount for buying bundle
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items BundleItem[]
+
+  @@map("product_bundles")
+}
+
+model BundleItem {
+  id        String        @id @default(cuid())
+  bundleId  String
+  bundle    ProductBundle @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product       @relation(fields: [productId], references: [id])
+  quantity  Int           @default(1)
+
+  @@unique([bundleId, productId])
+  @@map("bundle_items")
+}
+
+model ProductRelation {
+  id              String   @id @default(cuid())
+  sourceProductId String
+  sourceProduct   Product  @relation("SourceProduct", fields: [sourceProductId], references: [id], onDelete: Cascade)
+  relatedProductId String
+  relatedProduct  Product  @relation("RelatedProduct", fields: [relatedProductId], references: [id], onDelete: Cascade)
+  relationType    String   // "upsell", "cross-sell", "recommendation"
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  @@unique([sourceProductId, relatedProductId])
+  @@index([sourceProductId])
+  @@map("product_relations")
 }
 
 // ============================================

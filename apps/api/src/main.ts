@@ -23,6 +23,10 @@ import { adminThemeRoutes } from './routes/admin-theme.routes';
 import { adminSettingsRoutes } from './routes/admin-settings.routes';
 import { adminDashboardRoutes } from './routes/admin-dashboard.routes';
 import { adminIngredientRoutes } from './routes/admin-ingredient.routes';
+import { reviewsRoutes } from './routes/reviews.routes';
+import { wishlistRoutes } from './routes/wishlist.routes';
+import { promotionsRoutes } from './routes/promotions.routes';
+import { bundlesRoutes } from './routes/bundles.routes';
 
 const fastify = Fastify({
   logger: config.isDevelopment,
@@ -71,6 +75,10 @@ fastify.register(adminThemeRoutes);
 fastify.register(adminSettingsRoutes);
 fastify.register(adminDashboardRoutes);
 fastify.register(adminIngredientRoutes);
+fastify.register(reviewsRoutes);
+fastify.register(wishlistRoutes);
+fastify.register(promotionsRoutes);
+fastify.register(bundlesRoutes);
 
 // Health check
 fastify.get('/health', async () => {
