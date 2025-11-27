@@ -125,6 +125,37 @@ describe('AuthService', () => {
         })
       ).rejects.toThrow('User with this email or username already exists');
     });
+
+    it('should normalize email to lowercase during registration', async () => {
+      const { prisma } = require('../utils/prisma');
+      
+      prisma.user.findFirst.mockResolvedValue(null);
+      prisma.user.create.mockResolvedValue({
+        id: 'user_123',
+        email: 'test@example.com',
+        username: 'testuser',
+        role: 'user',
+        emailVerified: false,
+        createdAt: new Date(),
+        profile: {},
+        playerState: { level: 1, xp: 0 },
+      });
+
+      await authService.register({
+        email: 'TEST@EXAMPLE.COM',
+        password: 'StrongPass123',
+        username: 'testuser',
+      });
+
+      // Verify that create was called with lowercase email
+      expect(prisma.user.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            email: 'test@example.com',
+          }),
+        })
+      );
+    });
   });
 
   describe('login', () => {
@@ -207,6 +238,62 @@ describe('AuthService', () => {
           password: 'WrongPass123',
         })
       ).rejects.toThrow('Invalid credentials');
+    });
+
+    it('should login with uppercase email (case-insensitive)', async () => {
+      const { prisma } = require('../utils/prisma');
+      
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'user_123',
+        email: 'test@example.com',
+        username: 'testuser',
+        role: 'user',
+        password: 'hashed_StrongPass123',
+        emailVerified: true,
+        createdAt: new Date(),
+      });
+
+      prisma.playerState.update.mockResolvedValue({});
+
+      const result = await authService.login({
+        email: 'TEST@EXAMPLE.COM',
+        password: 'StrongPass123',
+      });
+
+      expect(result.user.email).toBe('test@example.com');
+      expect(result.accessToken).toBe('access_token');
+      // Verify that findUnique was called with lowercase email
+      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+        where: { email: 'test@example.com' },
+      });
+    });
+
+    it('should login with mixed case email (case-insensitive)', async () => {
+      const { prisma } = require('../utils/prisma');
+      
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'admin_123',
+        email: 'admin@alchemy.dev',
+        username: 'admin',
+        role: 'admin',
+        password: 'hashed_Admin123!',
+        emailVerified: true,
+        createdAt: new Date(),
+      });
+
+      prisma.playerState.update.mockResolvedValue({});
+
+      const result = await authService.login({
+        email: 'Admin@Alchemy.Dev',
+        password: 'Admin123!',
+      });
+
+      expect(result.user.email).toBe('admin@alchemy.dev');
+      expect(result.user.role).toBe('admin');
+      // Verify that findUnique was called with lowercase email
+      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+        where: { email: 'admin@alchemy.dev' },
+      });
     });
   });
 
