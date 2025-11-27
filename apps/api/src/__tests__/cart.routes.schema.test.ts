@@ -3,13 +3,18 @@
  *
  * Tests that the cart routes correctly handle float to integer conversion
  * for quantity fields.
+ *
+ * Note: The schemas are duplicated here to test the validation logic in isolation.
+ * This ensures that the schema behavior is explicitly tested without relying on
+ * the route implementation details.
  */
 
 import { z } from 'zod';
 
 // Replicate the schema from cart.routes.ts to test in isolation
+// Uses Math.round() for intuitive rounding behavior
 const intQuantitySchema = z.preprocess(
-  (val) => (typeof val === 'number' ? Math.floor(val) : val),
+  (val) => (typeof val === 'number' ? Math.round(val) : val),
   z.number().int().min(1)
 );
 
@@ -40,9 +45,9 @@ describe('Cart Routes Schema Validation', () => {
       expect(result).toEqual({ productId: 'prod-1', quantity: 2 });
     });
 
-    it('should convert float quantity to integer using floor', () => {
+    it('should round float quantity to nearest integer', () => {
       const result = addToCartSchema.parse({ productId: 'prod-1', quantity: 1.5 });
-      expect(result).toEqual({ productId: 'prod-1', quantity: 1 });
+      expect(result).toEqual({ productId: 'prod-1', quantity: 2 });
     });
 
     it('should convert float 1.0 to integer 1', () => {
@@ -55,8 +60,8 @@ describe('Cart Routes Schema Validation', () => {
       expect(result).toEqual({ productId: 'prod-1', quantity: 1 });
     });
 
-    it('should reject quantity that floors to 0', () => {
-      expect(() => addToCartSchema.parse({ productId: 'prod-1', quantity: 0.5 })).toThrow();
+    it('should reject quantity that rounds to 0', () => {
+      expect(() => addToCartSchema.parse({ productId: 'prod-1', quantity: 0.4 })).toThrow();
     });
 
     it('should reject negative quantity', () => {
@@ -70,9 +75,9 @@ describe('Cart Routes Schema Validation', () => {
       expect(result).toEqual({ productId: 'prod-1', quantity: 5 });
     });
 
-    it('should convert float quantity to integer', () => {
+    it('should round float quantity to nearest integer', () => {
       const result = updateCartItemSchema.parse({ productId: 'prod-1', quantity: 2.7 });
-      expect(result).toEqual({ productId: 'prod-1', quantity: 2 });
+      expect(result).toEqual({ productId: 'prod-1', quantity: 3 });
     });
   });
 
@@ -88,14 +93,14 @@ describe('Cart Routes Schema Validation', () => {
       });
     });
 
-    it('should convert float quantity to integer in addIns', () => {
+    it('should round float quantity to nearest integer in addIns', () => {
       const result = addBlendToCartSchema.parse({
         baseTeaId: 'tea-1',
         addIns: [{ ingredientId: 'ing-1', quantity: 3.9 }],
       });
       expect(result).toEqual({
         baseTeaId: 'tea-1',
-        addIns: [{ ingredientId: 'ing-1', quantity: 3 }],
+        addIns: [{ ingredientId: 'ing-1', quantity: 4 }],
       });
     });
   });

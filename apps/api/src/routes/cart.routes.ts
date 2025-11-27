@@ -9,8 +9,9 @@ import { authMiddleware } from '../middleware/auth';
 import { isValidSessionId, sanitizeSessionId } from '../utils/session';
 
 // Helper schema for integer quantity that accepts floats and converts them to integers
+// Uses Math.round() for more intuitive rounding (e.g., 2.7 -> 3, 2.3 -> 2)
 const intQuantitySchema = z.preprocess(
-  (val) => (typeof val === 'number' ? Math.floor(val) : val),
+  (val) => (typeof val === 'number' ? Math.round(val) : val),
   z.number().int().min(1)
 );
 
