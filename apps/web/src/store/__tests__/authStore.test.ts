@@ -13,6 +13,7 @@ describe('AuthStore', () => {
       accessToken: null,
       isAuthenticated: false,
       isLoading: false,
+      hasHydrated: false,
     });
     
     // Clear localStorage
@@ -26,6 +27,7 @@ describe('AuthStore', () => {
       expect(state.accessToken).toBeNull();
       expect(state.isAuthenticated).toBe(false);
       expect(state.isLoading).toBe(false);
+      expect(state.hasHydrated).toBe(false);
     });
   });
 
@@ -206,6 +208,28 @@ describe('AuthStore', () => {
         const parsed = JSON.parse(stored);
         // isLoading should not be in persisted state
         expect(parsed.state.isLoading).toBeUndefined();
+      }
+    });
+  });
+
+  describe('setHasHydrated', () => {
+    it('should set hasHydrated state', () => {
+      expect(useAuthStore.getState().hasHydrated).toBe(false);
+      
+      useAuthStore.getState().setHasHydrated(true);
+      expect(useAuthStore.getState().hasHydrated).toBe(true);
+    });
+
+    it('should not persist hasHydrated state to localStorage', () => {
+      useAuthStore.getState().setHasHydrated(true);
+
+      const stored = localStorage.getItem('auth-storage');
+      expect(stored).toBeTruthy();
+      
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // hasHydrated should not be in persisted state
+        expect(parsed.state.hasHydrated).toBeUndefined();
       }
     });
   });
