@@ -13,8 +13,8 @@ interface AuthContextValue {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, username: string) => Promise<void>;
+  login: (email: string, password: string, redirectTo?: string) => Promise<void>;
+  register: (email: string, password: string, username: string, redirectTo?: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshAuth: () => Promise<void>;
 }
@@ -51,13 +51,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(
-    async (email: string, password: string) => {
+    async (email: string, password: string, redirectTo?: string) => {
       setLoading(true);
       try {
         const response = await authApi.login({ email, password });
         setAuth(response.user, response.accessToken);
-        // Redirect admins to admin dashboard, regular users to table
-        if (response.user.role === 'admin') {
+        // If redirectTo is provided, use it; otherwise redirect based on role
+        if (redirectTo) {
+          router.push(redirectTo);
+        } else if (response.user.role === 'admin') {
           router.push('/admin/dashboard');
         } else {
           router.push('/table');
@@ -75,12 +77,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const register = useCallback(
-    async (email: string, password: string, username: string) => {
+    async (email: string, password: string, username: string, redirectTo?: string) => {
       setLoading(true);
       try {
         const response = await authApi.register({ email, password, username });
         setAuth(response.user, response.accessToken);
-        router.push('/table');
+        // If redirectTo is provided, use it; otherwise redirect to table
+        router.push(redirectTo || '/table');
       } catch (error) {
         if (error instanceof ApiError) {
           throw new Error(error.message);
