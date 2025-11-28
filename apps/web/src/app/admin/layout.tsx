@@ -23,15 +23,37 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }, []);
 
   useEffect(() => {
-    if (mounted && (!user || user.role !== 'admin')) {
-      router.push('/login');
+    if (mounted) {
+      if (!user) {
+        // User is not logged in, redirect to login
+        router.push('/login');
+      } else if (user.role !== 'admin') {
+        // User is logged in but not an admin, redirect to table
+        router.push('/table');
+      }
     }
   }, [user, router, mounted]);
 
-  if (!mounted || !user || user.role !== 'admin') {
+  if (!mounted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-gray-600">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-gray-600">Redirecting to login...</div>
+      </div>
+    );
+  }
+
+  if (user.role !== 'admin') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-gray-600">Access denied. Redirecting...</div>
       </div>
     );
   }

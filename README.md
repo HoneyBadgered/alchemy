@@ -48,10 +48,17 @@ docker compose ps
 cd apps/api
 npm run prisma:migrate
 npm run prisma:generate
+
+# Seed the database with initial data (including admin user)
+npm run prisma:seed
 cd ../..
 ```
 
 The database will be available at `postgresql://alchemy:alchemy_password@localhost:5432/alchemy`
+
+**Default Admin Credentials:**
+- Email: `admin@alchemy.dev`
+- Password: `Admin123!`
 
 ```bash
 # Stop the database
