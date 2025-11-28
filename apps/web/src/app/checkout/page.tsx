@@ -14,7 +14,7 @@ type CheckoutStep = 'shipping' | 'payment' | 'processing';
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, itemCount, subtotal, isLoading: cartLoading, clearCart } = useCart();
-  const { isAuthenticated, accessToken } = useAuthStore();
+  const { isAuthenticated, accessToken, hasHydrated } = useAuthStore();
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('shipping');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +34,15 @@ export default function CheckoutPage() {
   });
 
   const [customerNotes, setCustomerNotes] = useState('');
+
+  // Wait for auth state to be hydrated before checking authentication
+  if (!hasHydrated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-green-100 to-blue-100 flex justify-center items-center">
+        <div className="text-purple-900 text-lg">Loading...</div>
+      </div>
+    );
+  }
 
   // Redirect if not authenticated
   if (!isAuthenticated) {
