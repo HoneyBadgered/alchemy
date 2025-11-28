@@ -17,15 +17,16 @@ export default function LoginPage() {
   const [error, setError] = useState('');
 
   // Redirect already authenticated users to appropriate dashboard
+  // Only redirect when not loading and both isAuthenticated and user are available
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (!isLoading && isAuthenticated && user) {
       if (user.role === 'admin') {
         router.push('/admin/dashboard');
       } else {
         router.push('/table');
       }
     }
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user, router, isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

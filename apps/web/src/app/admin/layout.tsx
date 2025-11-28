@@ -14,7 +14,7 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
@@ -22,8 +22,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     setMounted(true);
   }, []);
 
+  // Only redirect when mounted, not loading, and auth state is determined
   useEffect(() => {
-    if (mounted) {
+    if (mounted && !isLoading) {
       if (!user) {
         // User is not logged in, redirect to login
         router.push('/login');
@@ -32,9 +33,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         router.push('/table');
       }
     }
-  }, [user, router, mounted]);
+  }, [user, router, mounted, isLoading]);
 
-  if (!mounted) {
+  if (!mounted || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-gray-600">Loading...</div>
