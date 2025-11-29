@@ -18,6 +18,17 @@ export async function paymentRoutes(fastify: FastifyInstance) {
   const paymentService = new PaymentService();
 
   /**
+   * Check if Stripe payment processing is configured
+   * GET /payments/config
+   * Public endpoint - returns configuration status
+   */
+  fastify.get('/payments/config', async (_request: FastifyRequest, reply: FastifyReply) => {
+    return reply.status(200).send({
+      configured: isStripeConfigured(),
+    });
+  });
+
+  /**
    * Create a payment intent for an order
    * POST /payments/create-intent
    * Supports both authenticated users and guests (via x-session-id header)

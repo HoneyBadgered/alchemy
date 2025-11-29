@@ -63,6 +63,12 @@ export default function CheckoutPage() {
         throw new Error('Email is required for guest checkout');
       }
 
+      // Step 0: Check if payment processing is available
+      const paymentConfig = await paymentApi.getConfig();
+      if (!paymentConfig.configured) {
+        throw new Error('Payment processing is currently unavailable. Please try again later or contact support.');
+      }
+
       // Step 1: Create the order
       const order = await orderApi.placeOrder(
         {
