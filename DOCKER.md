@@ -32,12 +32,19 @@ docker compose ps
 cd apps/api
 DATABASE_URL="postgresql://alchemy:alchemy_password@localhost:5432/alchemy?schema=public" npm run prisma:migrate
 DATABASE_URL="postgresql://alchemy:alchemy_password@localhost:5432/alchemy?schema=public" npm run prisma:generate
+
+# Seed the database with initial data (including admin user)
+DATABASE_URL="postgresql://alchemy:alchemy_password@localhost:5432/alchemy?schema=public" npm run prisma:seed
 cd ../..
 
 # Now run your API and Web locally
 npm install
 npm run dev
 ```
+
+**Default Admin Credentials:**
+- Email: `admin@alchemy.dev`
+- Password: `Admin123!`
 
 ### Option 2: Full Development Stack with Hot Reload
 
@@ -198,7 +205,17 @@ Available variables:
    - Run database migrations
    - Start the development server
 
-2. Make code changes - they'll automatically reload!
+2. Seed the database (first time only) to create initial data including the admin user:
+   ```bash
+   # In a separate terminal
+   docker exec -it alchemy-api npx prisma db seed
+   ```
+   
+   **Default Admin Credentials:**
+   - Email: `admin@alchemy.dev`
+   - Password: `Admin123!`
+
+3. Make code changes - they'll automatically reload!
 
 ### Database Only (For Local Development)
 
@@ -216,7 +233,18 @@ If you prefer to run just the database in Docker and the API locally:
    cd ../..
    ```
 
-3. Start the API locally:
+3. Seed the database (first time only):
+   ```bash
+   cd apps/api
+   DATABASE_URL="postgresql://alchemy:alchemy_password@localhost:5432/alchemy?schema=public" npm run prisma:seed
+   cd ../..
+   ```
+   
+   **Default Admin Credentials:**
+   - Email: `admin@alchemy.dev`
+   - Password: `Admin123!`
+
+4. Start the API locally:
    ```bash
    npm run dev --workspace=@alchemy/api
    ```
