@@ -1,5 +1,8 @@
 # Web Dockerfile for The Alchemy Table
 FROM node:20-alpine AS base
+# Add these two lines (insert them immediately after the first FROM <...> line)
+ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+ENV NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
 
 # Install dependencies only when needed
 FROM base AS deps
