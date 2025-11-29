@@ -201,8 +201,10 @@ model Product {
 
 model Order {
   id                  String   @id @default(cuid())
-  userId              String
-  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId              String?  // Null for guest orders
+  user                User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guestEmail          String?  // Email for guest checkout
+  sessionId           String?  // Session ID for guest checkout
   status              String   @default("pending") // pending, payment_processing, payment_failed, paid, processing, shipped, completed, cancelled
   totalAmount         Decimal  @db.Decimal(10, 2)
   shippingMethod      String?
@@ -458,8 +460,8 @@ model OrderStatusLog {
   order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   fromStatus String?
   toStatus   String
-  changedBy  String
-  user       User     @relation(fields: [changedBy], references: [id])
+  changedBy  String?  // Null for guest orders
+  user       User?    @relation(fields: [changedBy], references: [id])
   notes      String?
   createdAt  DateTime @default(now())
 

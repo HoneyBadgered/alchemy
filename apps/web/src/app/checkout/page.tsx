@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useCart } from '@/contexts/CartContext';
 import { useAuthStore } from '@/store/authStore';
 import { orderApi, type ShippingAddress } from '@/lib/order-api';
@@ -13,13 +14,14 @@ type CheckoutStep = 'shipping' | 'payment' | 'processing';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, itemCount, subtotal, isLoading: cartLoading, clearCart } = useCart();
+  const { cart, itemCount, subtotal, isLoading: cartLoading, clearCart, sessionId } = useCart();
   const { isAuthenticated, accessToken, hasHydrated } = useAuthStore();
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('shipping');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [paymentClientSecret, setPaymentClientSecret] = useState<string | null>(null);
+  const [guestEmail, setGuestEmail] = useState('');
 
   const [shippingInfo, setShippingInfo] = useState<ShippingAddress>({
     firstName: '',
@@ -35,19 +37,13 @@ export default function CheckoutPage() {
 
   const [customerNotes, setCustomerNotes] = useState('');
 
-  // Wait for auth state to be hydrated before checking authentication
+  // Wait for auth state to be hydrated before rendering
   if (!hasHydrated) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-green-100 to-blue-100 flex justify-center items-center">
         <div className="text-purple-900 text-lg">Loading...</div>
       </div>
     );
-  }
-
-  // Redirect if not authenticated
-  if (!isAuthenticated) {
-    router.push('/login?redirect=/checkout');
-    return null;
   }
 
   // Redirect if cart is empty
@@ -62,8 +58,9 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
-      if (!accessToken) {
-        throw new Error('Not authenticated');
+      // For guest checkout, require email
+      if (!isAuthenticated && !guestEmail) {
+        throw new Error('Email is required for guest checkout');
       }
 
       // Step 1: Create the order
@@ -71,8 +68,10 @@ export default function CheckoutPage() {
         {
           shippingAddress: shippingInfo,
           customerNotes: customerNotes || undefined,
+          guestEmail: !isAuthenticated ? guestEmail : undefined,
         },
-        accessToken
+        accessToken || undefined,
+        !isAuthenticated ? sessionId : undefined
       );
 
       setOrderId(order.id);
@@ -80,7 +79,8 @@ export default function CheckoutPage() {
       // Step 2: Create payment intent
       const paymentIntent = await paymentApi.createPaymentIntent(
         { orderId: order.id },
-        accessToken
+        accessToken || undefined,
+        !isAuthenticated ? sessionId : undefined
       );
 
       setPaymentClientSecret(paymentIntent.clientSecret);
@@ -116,7 +116,7 @@ export default function CheckoutPage() {
   };
 
   const isFormValid = () => {
-    return (
+    const baseValid = (
       shippingInfo.firstName &&
       shippingInfo.lastName &&
       shippingInfo.addressLine1 &&
@@ -125,6 +125,13 @@ export default function CheckoutPage() {
       shippingInfo.zipCode &&
       shippingInfo.country
     );
+    
+    // For guest checkout, also require email
+    if (!isAuthenticated) {
+      return baseValid && guestEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail);
+    }
+    
+    return baseValid;
   };
 
   return (
@@ -170,6 +177,39 @@ export default function CheckoutPage() {
               {/* Shipping Form */}
               {currentStep === 'shipping' && (
                 <form onSubmit={handleShippingSubmit}>
+                  {/* Guest Checkout - Email & Sign In Option */}
+                  {!isAuthenticated && (
+                    <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+                      <h2 className="text-xl font-bold text-gray-900 mb-4">Contact Information</h2>
+                      <div className="mb-4">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Email Address *
+                        </label>
+                        <input
+                          type="email"
+                          value={guestEmail}
+                          onChange={(e) => setGuestEmail(e.target.value)}
+                          required
+                          placeholder="your@email.com"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          We'll send your order confirmation to this email
+                        </p>
+                      </div>
+                      <div className="text-sm text-gray-600 p-3 bg-purple-50 rounded-lg">
+                        <span>Already have an account? </span>
+                        <Link
+                          href="/login?redirect=/checkout"
+                          className="text-purple-600 font-semibold hover:text-purple-700"
+                        >
+                          Sign in
+                        </Link>
+                        <span> for faster checkout</span>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Shipping Address */}
                   <div className="bg-white rounded-xl shadow-md p-6 mb-6">
                     <h2 className="text-xl font-bold text-gray-900 mb-4">Shipping Address</h2>

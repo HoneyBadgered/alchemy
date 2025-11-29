@@ -26,14 +26,24 @@ export const paymentApi = {
    */
   async createPaymentIntent(
     input: CreatePaymentIntentInput,
-    token: string
+    token?: string,
+    sessionId?: string
   ): Promise<PaymentIntentResult> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    if (sessionId) {
+      headers['x-session-id'] = sessionId;
+    }
+    
     const response = await fetch(`${API_URL}/payments/create-intent`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
+      headers,
       credentials: 'include',
       body: JSON.stringify(input),
     });

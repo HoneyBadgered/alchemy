@@ -21,6 +21,7 @@ export interface PlaceOrderInput {
   shippingMethod?: string;
   customerNotes?: string;
   discountCode?: string;
+  guestEmail?: string;
 }
 
 export interface OrderItem {
@@ -75,15 +76,24 @@ export interface OrderListResponse {
 
 export const orderApi = {
   /**
-   * Place an order from the user's cart
+   * Place an order from the user's or guest's cart
    */
-  async placeOrder(input: PlaceOrderInput, token: string): Promise<Order> {
+  async placeOrder(input: PlaceOrderInput, token?: string, sessionId?: string): Promise<Order> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    if (sessionId) {
+      headers['x-session-id'] = sessionId;
+    }
+    
     const response = await fetch(`${API_URL}/orders`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
+      headers,
       credentials: 'include',
       body: JSON.stringify(input),
     });

@@ -13,6 +13,7 @@ interface CartContextValue {
   isLoading: boolean;
   itemCount: number;
   subtotal: number;
+  sessionId: string;
   addToCart: (productId: string, quantity: number) => Promise<void>;
   addBlendToCart: (baseTeaId: string, addIns: Array<{ ingredientId: string; quantity: number }>) => Promise<void>;
   updateCartItem: (productId: string, quantity: number) => Promise<void>;
@@ -178,6 +179,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         itemCount: cart?.itemCount || 0,
         subtotal: cart?.subtotal || 0,
+        sessionId,
         addToCart,
         addBlendToCart,
         updateCartItem,

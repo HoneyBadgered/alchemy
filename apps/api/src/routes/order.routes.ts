@@ -7,6 +7,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { OrderService } from '../services/order.service';
 import { authMiddleware } from '../middleware/auth';
+import { isValidSessionId, sanitizeSessionId } from '../utils/session';
 
 const shippingAddressSchema = z.object({
   firstName: z.string().min(1),
@@ -25,6 +26,7 @@ const placeOrderSchema = z.object({
   shippingMethod: z.string().optional(),
   customerNotes: z.string().optional(),
   discountCode: z.string().optional(),
+  guestEmail: z.string().email().optional(),
 });
 
 const orderListFiltersSchema = z.object({
@@ -37,19 +39,44 @@ export async function orderRoutes(fastify: FastifyInstance) {
   const orderService = new OrderService();
 
   /**
-   * Place an order from the user's cart
+   * Place an order from the user's or guest's cart
    * POST /orders
-   * Requires authentication
+   * Supports both authenticated users and guests (via x-session-id header)
    */
-  fastify.post('/orders', {
-    preHandler: authMiddleware,
-  }, async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.post('/orders', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      const userId = request.user!.userId;
+      const userId = request.user?.userId;
+      let sessionId = request.headers['x-session-id'] as string | undefined;
       const data = placeOrderSchema.parse(request.body);
+
+      // Validate and sanitize session ID if provided
+      if (sessionId) {
+        sessionId = sanitizeSessionId(sessionId);
+        if (!isValidSessionId(sessionId)) {
+          return reply.status(400).send({
+            message: 'Invalid session ID format',
+          });
+        }
+      }
+
+      // Require either authentication or session ID
+      if (!userId && !sessionId) {
+        return reply.status(400).send({
+          message: 'Either authentication or x-session-id header required',
+        });
+      }
+
+      // For guest checkout, require email
+      if (!userId && !data.guestEmail) {
+        return reply.status(400).send({
+          message: 'Guest email is required for guest checkout',
+        });
+      }
       
       const order = await orderService.placeOrder({
         userId,
+        sessionId,
+        guestEmail: data.guestEmail,
         ...data,
       });
 

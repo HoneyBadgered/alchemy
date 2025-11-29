@@ -9,7 +9,8 @@ import { stripe, STRIPE_PAYMENT_SUCCESS_STATUSES } from '../utils/stripe';
 
 export interface CreatePaymentIntentInput {
   orderId: string;
-  userId: string;
+  userId?: string;
+  sessionId?: string;
 }
 
 export interface PaymentIntentResult {
@@ -22,14 +23,19 @@ export class PaymentService {
    * Create a Stripe PaymentIntent for an order
    */
   async createPaymentIntent(input: CreatePaymentIntentInput): Promise<PaymentIntentResult> {
-    const { orderId, userId } = input;
+    const { orderId, userId, sessionId } = input;
+
+    // Build query to find order - support both authenticated users and guests
+    const whereClause: { id: string; userId?: string; sessionId?: string } = { id: orderId };
+    if (userId) {
+      whereClause.userId = userId;
+    } else if (sessionId) {
+      whereClause.sessionId = sessionId;
+    }
 
     // Get the order
     const order = await prisma.order.findFirst({
-      where: {
-        id: orderId,
-        userId,
-      },
+      where: whereClause,
       include: {
         user: true,
       },
@@ -58,16 +64,20 @@ export class PaymentService {
       }
     }
 
+    // Get email for receipt (from user or guest email)
+    const receiptEmail = order.user?.email || order.guestEmail;
+
     // Create new PaymentIntent
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(Number(order.totalAmount) * 100), // Convert to cents
       currency: 'usd',
       metadata: {
         orderId: order.id,
-        userId: order.userId,
+        userId: order.userId || 'guest',
+        sessionId: order.sessionId || '',
       },
       description: `Order #${order.id}`,
-      receipt_email: order.user.email,
+      receipt_email: receiptEmail || undefined,
       automatic_payment_methods: {
         enabled: true,
       },
@@ -90,7 +100,7 @@ export class PaymentService {
         orderId,
         fromStatus: order.status,
         toStatus: 'payment_processing',
-        changedBy: userId,
+        changedBy: userId || null,
         notes: 'Payment intent created',
       },
     });
@@ -108,12 +118,17 @@ export class PaymentService {
   /**
    * Get payment status for an order
    */
-  async getPaymentStatus(orderId: string, userId: string) {
+  async getPaymentStatus(orderId: string, userId?: string, sessionId?: string) {
+    // Build query to find order - support both authenticated users and guests
+    const whereClause: { id: string; userId?: string; sessionId?: string } = { id: orderId };
+    if (userId) {
+      whereClause.userId = userId;
+    } else if (sessionId) {
+      whereClause.sessionId = sessionId;
+    }
+
     const order = await prisma.order.findFirst({
-      where: {
-        id: orderId,
-        userId,
-      },
+      where: whereClause,
     });
 
     if (!order) {
