@@ -49,6 +49,9 @@ export async function authRoutes(fastify: FastifyInstance) {
   // POST /auth/register
   fastify.post('/auth/register', async (request, reply) => {
     try {
+      if (!request.body) {
+        return reply.status(400).send({ message: 'Request body is required' });
+      }
       const body = registerSchema.parse(request.body);
       const result = await authService.register(body);
       return reply.status(201).send(result);
@@ -70,6 +73,9 @@ export async function authRoutes(fastify: FastifyInstance) {
     },
   }, async (request, reply) => {
     try {
+      if (!request.body) {
+        return reply.status(400).send({ message: 'Request body is required' });
+      }
       const body = loginSchema.parse(request.body);
       const result = await authService.login(body);
       
@@ -97,6 +103,9 @@ export async function authRoutes(fastify: FastifyInstance) {
   // POST /auth/logout
   fastify.post('/auth/logout', { preHandler: authMiddleware }, async (request, reply) => {
     try {
+      if (!request.body) {
+        return reply.status(400).send({ message: 'Request body is required' });
+      }
       const body = logoutSchema.parse(request.body);
       await authService.logout(request.user!.userId, body.refreshToken);
       
@@ -119,6 +128,9 @@ export async function authRoutes(fastify: FastifyInstance) {
     },
   }, async (request, reply) => {
     try {
+      if (!request.body) {
+        return reply.status(400).send({ message: 'Request body is required' });
+      }
       const body = refreshSchema.parse(request.body);
       
       // Verify and get user from stored refresh token
@@ -175,6 +187,9 @@ export async function authRoutes(fastify: FastifyInstance) {
   // POST /auth/password-reset/request
   fastify.post('/auth/password-reset/request', async (request, reply) => {
     try {
+      if (!request.body) {
+        return reply.status(400).send({ message: 'Request body is required' });
+      }
       const body = passwordResetRequestSchema.parse(request.body);
       const result = await authService.requestPasswordReset(body);
       return reply.send(result);
@@ -189,6 +204,9 @@ export async function authRoutes(fastify: FastifyInstance) {
   // POST /auth/password-reset/confirm
   fastify.post('/auth/password-reset/confirm', async (request, reply) => {
     try {
+      if (!request.body) {
+        return reply.status(400).send({ message: 'Request body is required' });
+      }
       const body = passwordResetSchema.parse(request.body);
       const result = await authService.resetPassword(body);
       return reply.send(result);
@@ -210,6 +228,9 @@ export async function authRoutes(fastify: FastifyInstance) {
     },
   }, async (request, reply) => {
     try {
+      if (!request.body) {
+        return reply.status(400).send({ message: 'Request body is required' });
+      }
       const body = verifyEmailSchema.parse(request.body);
       const result = await authService.verifyEmail(body.token);
       return reply.send(result);
@@ -231,6 +252,9 @@ export async function authRoutes(fastify: FastifyInstance) {
     },
   }, async (request, reply) => {
     try {
+      if (!request.body) {
+        return reply.status(400).send({ message: 'Request body is required' });
+      }
       const body = resendVerificationSchema.parse(request.body);
       const result = await authService.resendVerificationEmail(body.email);
       return reply.send(result);
