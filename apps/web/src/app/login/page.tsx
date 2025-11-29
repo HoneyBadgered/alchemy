@@ -4,18 +4,29 @@
  * Login Page
  */
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-function LoginForm() {
-  const { login, isLoading } = useAuth();
-  const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || undefined;
+export default function LoginPage() {
+  const { login, isLoading, isAuthenticated, user } = useAuth();
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+
+  // Redirect already authenticated users to appropriate dashboard
+  // Only redirect when not loading and both isAuthenticated and user are available
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && user) {
+      if (user.role === 'admin') {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/table');
+      }
+    }
+  }, [isAuthenticated, user, router, isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
