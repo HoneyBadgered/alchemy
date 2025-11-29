@@ -6,7 +6,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { PaymentService } from '../services/payment.service';
-import { authMiddleware } from '../middleware/auth';
 import { stripe, isStripeConfigured } from '../utils/stripe';
 import { config } from '../config';
 import { isValidSessionId, sanitizeSessionId } from '../utils/session';
