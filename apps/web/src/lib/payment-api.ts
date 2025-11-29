@@ -20,7 +20,28 @@ export interface PaymentStatusResult {
   paymentIntentId?: string;
 }
 
+export interface PaymentConfigResult {
+  configured: boolean;
+}
+
 export const paymentApi = {
+  /**
+   * Check if payment processing is configured
+   */
+  async getConfig(): Promise<PaymentConfigResult> {
+    const response = await fetch(`${API_URL}/payments/config`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      // If we can't get config, assume not configured
+      return { configured: false };
+    }
+
+    return response.json();
+  },
+
   /**
    * Create a payment intent for an order
    */
