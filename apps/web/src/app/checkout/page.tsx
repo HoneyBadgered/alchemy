@@ -44,7 +44,8 @@ export default function CheckoutPage() {
       try {
         const config = await paymentApi.getConfig();
         setPaymentConfigured(config.configured);
-      } catch {
+      } catch (err) {
+        console.error('Failed to check payment configuration:', err);
         setPaymentConfigured(false);
       }
     };
@@ -77,8 +78,16 @@ export default function CheckoutPage() {
         throw new Error('Email is required for guest checkout');
       }
 
-      // Check if payment processing is available (use pre-checked value or re-check)
-      if (paymentConfigured === false) {
+      // Check if payment processing is available
+      // If paymentConfigured is null (still loading), re-check the config
+      let isConfigured = paymentConfigured;
+      if (isConfigured === null) {
+        const config = await paymentApi.getConfig();
+        isConfigured = config.configured;
+        setPaymentConfigured(isConfigured);
+      }
+      
+      if (!isConfigured) {
         throw new Error('Payment processing is not configured. Please contact the store administrator.');
       }
 
