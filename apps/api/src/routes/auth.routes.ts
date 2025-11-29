@@ -22,10 +22,6 @@ const refreshSchema = z.object({
   refreshToken: z.string(),
 });
 
-const logoutSchema = z.object({
-  refreshToken: z.string(),
-});
-
 const passwordResetRequestSchema = z.object({
   email: z.string().email(),
 });
@@ -49,6 +45,9 @@ export async function authRoutes(fastify: FastifyInstance) {
   // POST /auth/register
   fastify.post('/auth/register', async (request, reply) => {
     try {
+      if (!request.body) {
+        return reply.status(400).send({ message: 'Request body is required' });
+      }
       const body = registerSchema.parse(request.body);
       const result = await authService.register(body);
       return reply.status(201).send(result);
@@ -70,6 +69,9 @@ export async function authRoutes(fastify: FastifyInstance) {
     },
   }, async (request, reply) => {
     try {
+      if (!request.body) {
+        return reply.status(400).send({ message: 'Request body is required' });
+      }
       const body = loginSchema.parse(request.body);
       const result = await authService.login(body);
       
@@ -97,8 +99,18 @@ export async function authRoutes(fastify: FastifyInstance) {
   // POST /auth/logout
   fastify.post('/auth/logout', { preHandler: authMiddleware }, async (request, reply) => {
     try {
-      const body = logoutSchema.parse(request.body);
-      await authService.logout(request.user!.userId, body.refreshToken);
+      // Get refresh token from body or cookie
+      const bodyToken = request.body && typeof request.body === 'object' && 'refreshToken' in request.body
+        ? (request.body as { refreshToken?: string }).refreshToken
+        : undefined;
+      const cookieToken = request.cookies?.refreshToken;
+      const refreshToken = bodyToken || cookieToken;
+      
+      if (!refreshToken) {
+        return reply.status(400).send({ message: 'Refresh token is required (provide in body or cookie)' });
+      }
+      
+      await authService.logout(request.user!.userId, refreshToken);
       
       // Clear refresh token cookie
       reply.clearCookie('refreshToken', { path: '/' });
@@ -119,6 +131,9 @@ export async function authRoutes(fastify: FastifyInstance) {
     },
   }, async (request, reply) => {
     try {
+      if (!request.body) {
+        return reply.status(400).send({ message: 'Request body is required' });
+      }
       const body = refreshSchema.parse(request.body);
       
       // Verify and get user from stored refresh token
@@ -175,6 +190,9 @@ export async function authRoutes(fastify: FastifyInstance) {
   // POST /auth/password-reset/request
   fastify.post('/auth/password-reset/request', async (request, reply) => {
     try {
+      if (!request.body) {
+        return reply.status(400).send({ message: 'Request body is required' });
+      }
       const body = passwordResetRequestSchema.parse(request.body);
       const result = await authService.requestPasswordReset(body);
       return reply.send(result);
@@ -189,6 +207,9 @@ export async function authRoutes(fastify: FastifyInstance) {
   // POST /auth/password-reset/confirm
   fastify.post('/auth/password-reset/confirm', async (request, reply) => {
     try {
+      if (!request.body) {
+        return reply.status(400).send({ message: 'Request body is required' });
+      }
       const body = passwordResetSchema.parse(request.body);
       const result = await authService.resetPassword(body);
       return reply.send(result);
@@ -210,6 +231,9 @@ export async function authRoutes(fastify: FastifyInstance) {
     },
   }, async (request, reply) => {
     try {
+      if (!request.body) {
+        return reply.status(400).send({ message: 'Request body is required' });
+      }
       const body = verifyEmailSchema.parse(request.body);
       const result = await authService.verifyEmail(body.token);
       return reply.send(result);
@@ -231,6 +255,9 @@ export async function authRoutes(fastify: FastifyInstance) {
     },
   }, async (request, reply) => {
     try {
+      if (!request.body) {
+        return reply.status(400).send({ message: 'Request body is required' });
+      }
       const body = resendVerificationSchema.parse(request.body);
       const result = await authService.resendVerificationEmail(body.email);
       return reply.send(result);
