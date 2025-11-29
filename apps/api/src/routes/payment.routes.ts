@@ -9,6 +9,7 @@ import { PaymentService } from '../services/payment.service';
 import { authMiddleware } from '../middleware/auth';
 import { stripe, isStripeConfigured } from '../utils/stripe';
 import { config } from '../config';
+import { isValidSessionId, sanitizeSessionId } from '../utils/session';
 
 const createPaymentIntentSchema = z.object({
   orderId: z.string().min(1),
@@ -20,11 +21,9 @@ export async function paymentRoutes(fastify: FastifyInstance) {
   /**
    * Create a payment intent for an order
    * POST /payments/create-intent
-   * Requires authentication
+   * Supports both authenticated users and guests (via x-session-id header)
    */
-  fastify.post('/payments/create-intent', {
-    preHandler: authMiddleware,
-  }, async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.post('/payments/create-intent', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       // Check if Stripe is configured
       if (!isStripeConfigured()) {
@@ -34,12 +33,31 @@ export async function paymentRoutes(fastify: FastifyInstance) {
         });
       }
 
-      const userId = request.user!.userId;
+      const userId = request.user?.userId;
+      let sessionId = request.headers['x-session-id'] as string | undefined;
       const data = createPaymentIntentSchema.parse(request.body);
+
+      // Validate and sanitize session ID if provided
+      if (sessionId) {
+        sessionId = sanitizeSessionId(sessionId);
+        if (!isValidSessionId(sessionId)) {
+          return reply.status(400).send({
+            message: 'Invalid session ID format',
+          });
+        }
+      }
+
+      // Require either authentication or session ID
+      if (!userId && !sessionId) {
+        return reply.status(400).send({
+          message: 'Either authentication or x-session-id header required',
+        });
+      }
       
       const result = await paymentService.createPaymentIntent({
         orderId: data.orderId,
         userId,
+        sessionId,
       });
 
       return reply.status(200).send(result);
@@ -59,11 +77,9 @@ export async function paymentRoutes(fastify: FastifyInstance) {
   /**
    * Get payment status for an order
    * GET /payments/status/:orderId
-   * Requires authentication
+   * Supports both authenticated users and guests (via x-session-id header)
    */
-  fastify.get('/payments/status/:orderId', {
-    preHandler: authMiddleware,
-  }, async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get('/payments/status/:orderId', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       // Check if Stripe is configured
       if (!isStripeConfigured()) {
@@ -73,10 +89,28 @@ export async function paymentRoutes(fastify: FastifyInstance) {
         });
       }
 
-      const userId = request.user!.userId;
+      const userId = request.user?.userId;
+      let sessionId = request.headers['x-session-id'] as string | undefined;
       const { orderId } = request.params as { orderId: string };
+
+      // Validate and sanitize session ID if provided
+      if (sessionId) {
+        sessionId = sanitizeSessionId(sessionId);
+        if (!isValidSessionId(sessionId)) {
+          return reply.status(400).send({
+            message: 'Invalid session ID format',
+          });
+        }
+      }
+
+      // Require either authentication or session ID
+      if (!userId && !sessionId) {
+        return reply.status(400).send({
+          message: 'Either authentication or x-session-id header required',
+        });
+      }
       
-      const status = await paymentService.getPaymentStatus(orderId, userId);
+      const status = await paymentService.getPaymentStatus(orderId, userId, sessionId);
       return reply.send(status);
     } catch (error) {
       return reply.status(404).send({ 

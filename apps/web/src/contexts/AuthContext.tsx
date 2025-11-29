@@ -13,13 +13,33 @@ interface AuthContextValue {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, username: string) => Promise<void>;
+  login: (email: string, password: string, redirectTo?: string) => Promise<void>;
+  register: (email: string, password: string, username: string, redirectTo?: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+/**
+ * Validates a redirect URL to prevent open redirect vulnerabilities.
+ * Only allows relative paths starting with '/' that don't include protocol or external domains.
+ */
+function isValidRedirectUrl(url: string | undefined): boolean {
+  if (!url) return false;
+  
+  // Must start with a single forward slash (not double slash for protocol-relative URLs)
+  if (!url.startsWith('/') || url.startsWith('//')) return false;
+  
+  // Check for any protocol indicators
+  if (url.includes(':')) return false;
+  
+  // Don't allow URLs that could be interpreted as external
+  // (e.g., /\example.com or encoded characters)
+  if (url.includes('\\')) return false;
+  
+  return true;
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -51,13 +71,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(
-    async (email: string, password: string) => {
+    async (email: string, password: string, redirectTo?: string) => {
       setLoading(true);
       try {
         const response = await authApi.login({ email, password });
         setAuth(response.user, response.accessToken);
-        // Redirect admins to admin dashboard, regular users to table
-        if (response.user.role === 'admin') {
+        // If redirectTo is provided and valid, use it; otherwise redirect based on role
+        if (isValidRedirectUrl(redirectTo)) {
+          router.push(redirectTo!);
+        } else if (response.user.role === 'admin') {
           router.push('/admin/dashboard');
         } else {
           router.push('/table');
@@ -75,12 +97,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const register = useCallback(
-    async (email: string, password: string, username: string) => {
+    async (email: string, password: string, username: string, redirectTo?: string) => {
       setLoading(true);
       try {
         const response = await authApi.register({ email, password, username });
         setAuth(response.user, response.accessToken);
-        router.push('/table');
+        // If redirectTo is provided and valid, use it; otherwise redirect to table
+        router.push(isValidRedirectUrl(redirectTo) ? redirectTo! : '/table');
       } catch (error) {
         if (error instanceof ApiError) {
           throw new Error(error.message);

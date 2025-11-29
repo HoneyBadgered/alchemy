@@ -7,8 +7,9 @@ import { prisma } from '../utils/prisma';
 import type { Prisma } from '@prisma/client';
 
 export interface PlaceOrderInput {
-  userId: string;
+  userId?: string;
   sessionId?: string;
+  guestEmail?: string;
   shippingAddress?: {
     firstName: string;
     lastName: string;
@@ -49,10 +50,10 @@ interface CartItemWithProduct {
 
 export class OrderService {
   /**
-   * Place an order from the user's cart
+   * Place an order from the user's or guest's cart
    */
   async placeOrder(input: PlaceOrderInput) {
-    const { userId, sessionId, shippingAddress, shippingMethod, customerNotes, discountCode } = input;
+    const { userId, sessionId, guestEmail, shippingAddress, shippingMethod, customerNotes, discountCode } = input;
 
     // Get user's cart
     const cart = await prisma.cart.findFirst({
@@ -141,7 +142,9 @@ export class OrderService {
       // Create order
       const newOrder = await tx.order.create({
         data: {
-          userId,
+          userId: userId || null,
+          guestEmail: guestEmail || null,
+          sessionId: sessionId || null,
           status: 'pending',
           totalAmount,
           shippingMethod,
@@ -197,8 +200,8 @@ export class OrderService {
           orderId: newOrder.id,
           fromStatus: null,
           toStatus: 'pending',
-          changedBy: userId,
-          notes: 'Order placed',
+          changedBy: userId || null,
+          notes: userId ? 'Order placed' : 'Guest order placed',
         },
       });
 
