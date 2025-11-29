@@ -22,10 +22,6 @@ const refreshSchema = z.object({
   refreshToken: z.string(),
 });
 
-const logoutSchema = z.object({
-  refreshToken: z.string(),
-});
-
 const passwordResetRequestSchema = z.object({
   email: z.string().email(),
 });
@@ -103,11 +99,18 @@ export async function authRoutes(fastify: FastifyInstance) {
   // POST /auth/logout
   fastify.post('/auth/logout', { preHandler: authMiddleware }, async (request, reply) => {
     try {
-      if (!request.body) {
-        return reply.status(400).send({ message: 'Request body is required' });
+      // Get refresh token from body or cookie
+      const bodyToken = request.body && typeof request.body === 'object' && 'refreshToken' in request.body
+        ? (request.body as { refreshToken?: string }).refreshToken
+        : undefined;
+      const cookieToken = request.cookies?.refreshToken;
+      const refreshToken = bodyToken || cookieToken;
+      
+      if (!refreshToken) {
+        return reply.status(400).send({ message: 'Refresh token is required (provide in body or cookie)' });
       }
-      const body = logoutSchema.parse(request.body);
-      await authService.logout(request.user!.userId, body.refreshToken);
+      
+      await authService.logout(request.user!.userId, refreshToken);
       
       // Clear refresh token cookie
       reply.clearCookie('refreshToken', { path: '/' });
