@@ -225,6 +225,7 @@ describe('PaymentService', () => {
         status: 'payment_processing',
         stripePaymentId: 'pi_test_123',
         stripePaymentStatus: 'requires_payment_method',
+        stripeClientSecret: 'pi_test_123_secret',
         items: [
           {
             id: 'item-1',
@@ -248,12 +249,40 @@ describe('PaymentService', () => {
       expect(result.paymentStatus).toBe('succeeded');
     });
 
+    it('should validate client secret if provided', async () => {
+      const mockOrder = {
+        id: 'order-1',
+        status: 'payment_processing',
+        stripePaymentId: 'pi_test_123',
+        stripePaymentStatus: 'requires_payment_method',
+        stripeClientSecret: 'pi_test_123_secret',
+        items: [],
+      };
+
+      mockPrisma.order.findFirst.mockResolvedValue(mockOrder);
+
+      // Invalid client secret should throw
+      await expect(
+        paymentService.getOrderByPaymentIntent('pi_test_123', 'wrong_secret')
+      ).rejects.toThrow('Invalid payment credentials');
+
+      // Valid client secret should work
+      mockStripe.paymentIntents.retrieve.mockResolvedValue({
+        id: 'pi_test_123',
+        status: 'succeeded',
+      });
+
+      const result = await paymentService.getOrderByPaymentIntent('pi_test_123', 'pi_test_123_secret');
+      expect(result.orderId).toBe('order-1');
+    });
+
     it('should update order status if payment status changed', async () => {
       const mockOrder = {
         id: 'order-1',
         status: 'payment_processing',
         stripePaymentId: 'pi_test_123',
         stripePaymentStatus: 'requires_payment_method',
+        stripeClientSecret: 'pi_test_123_secret',
         items: [],
       };
 
@@ -270,6 +299,33 @@ describe('PaymentService', () => {
 
       // Should update order with new payment status
       expect(mockPrisma.order.update).toHaveBeenCalled();
+    });
+
+    it('should handle update error gracefully', async () => {
+      const mockOrder = {
+        id: 'order-1',
+        status: 'payment_processing',
+        stripePaymentId: 'pi_test_123',
+        stripePaymentStatus: 'requires_payment_method',
+        stripeClientSecret: 'pi_test_123_secret',
+        items: [],
+      };
+
+      const mockPaymentIntent = {
+        id: 'pi_test_123',
+        status: 'succeeded',
+      };
+
+      mockPrisma.order.findFirst.mockResolvedValue(mockOrder);
+      mockPrisma.order.findUnique.mockResolvedValue(mockOrder);
+      mockStripe.paymentIntents.retrieve.mockResolvedValue(mockPaymentIntent);
+      // Simulate update failure
+      mockPrisma.order.update.mockRejectedValueOnce(new Error('Update failed'));
+
+      // Should still return order details even if update fails
+      const result = await paymentService.getOrderByPaymentIntent('pi_test_123');
+      expect(result.orderId).toBe('order-1');
+      expect(result.paymentStatus).toBe('succeeded');
     });
   });
 

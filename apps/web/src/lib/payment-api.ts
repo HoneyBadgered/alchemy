@@ -110,9 +110,17 @@ export const paymentApi = {
    * Get order by payment intent ID (used after Stripe redirect)
    */
   async getOrderByPaymentIntent(
-    paymentIntentId: string
+    paymentIntentId: string,
+    clientSecret?: string
   ): Promise<OrderByPaymentIntentResult> {
-    const response = await fetch(`${API_URL}/payments/order-by-intent/${paymentIntentId}`, {
+    const params = new URLSearchParams();
+    if (clientSecret) {
+      params.append('client_secret', clientSecret);
+    }
+    const queryString = params.toString();
+    const url = `${API_URL}/payments/order-by-intent/${paymentIntentId}${queryString ? `?${queryString}` : ''}`;
+
+    const response = await fetch(url, {
       method: 'GET',
       credentials: 'include',
     });

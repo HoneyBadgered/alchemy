@@ -16,6 +16,7 @@ export default function PaymentSuccessPage() {
   useEffect(() => {
     const handlePaymentSuccess = async () => {
       const paymentIntent = searchParams.get('payment_intent');
+      const clientSecret = searchParams.get('payment_intent_client_secret');
       const redirectStatus = searchParams.get('redirect_status');
 
       if (!paymentIntent) {
@@ -32,10 +33,17 @@ export default function PaymentSuccessPage() {
       }
 
       try {
-        // Get the order details from the payment intent
-        const result = await paymentApi.getOrderByPaymentIntent(paymentIntent);
+        // Get the order details from the payment intent (pass client secret for validation)
+        const result = await paymentApi.getOrderByPaymentIntent(paymentIntent, clientSecret || undefined);
 
-        // Clear the cart
+        // Verify payment was actually successful before clearing cart
+        if (result.paymentStatus !== 'succeeded') {
+          setStatus('error');
+          setErrorMessage(`Payment status: ${result.paymentStatus}. Please try again or contact support.`);
+          return;
+        }
+
+        // Clear the cart only after confirming payment success
         await clearCart();
 
         // Redirect to the order confirmation page

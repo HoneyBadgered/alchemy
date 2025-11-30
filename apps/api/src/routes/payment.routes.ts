@@ -132,7 +132,8 @@ export async function paymentRoutes(fastify: FastifyInstance) {
   /**
    * Get order by payment intent ID (for Stripe redirect)
    * GET /payments/order-by-intent/:paymentIntentId
-   * Public endpoint - used after Stripe redirect to get order details
+   * Semi-public endpoint - validates the payment intent against the stored client secret
+   * The client secret is passed via query parameter for verification
    */
   fastify.get('/payments/order-by-intent/:paymentIntentId', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
@@ -145,6 +146,7 @@ export async function paymentRoutes(fastify: FastifyInstance) {
       }
 
       const { paymentIntentId } = request.params as { paymentIntentId: string };
+      const { client_secret: clientSecret } = request.query as { client_secret?: string };
 
       // Basic validation of payment intent ID format
       if (!paymentIntentId || !paymentIntentId.startsWith('pi_')) {
@@ -153,11 +155,14 @@ export async function paymentRoutes(fastify: FastifyInstance) {
         });
       }
 
-      const result = await paymentService.getOrderByPaymentIntent(paymentIntentId);
+      const result = await paymentService.getOrderByPaymentIntent(paymentIntentId, clientSecret);
       return reply.send(result);
     } catch (error) {
-      return reply.status(404).send({ 
-        message: (error as Error).message 
+      const message = (error as Error).message;
+      // Return 401 for invalid credentials, 404 for not found
+      const statusCode = message === 'Invalid payment credentials' ? 401 : 404;
+      return reply.status(statusCode).send({ 
+        message,
       });
     }
   });
