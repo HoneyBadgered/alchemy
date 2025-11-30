@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { useAuthStore } from '@/store/authStore';
 
 interface DashboardStats {
   todayStats: {
@@ -53,17 +54,19 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { accessToken } = useAuthStore();
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (accessToken) {
+      fetchDashboardData();
+    }
+  }, [accessToken]);
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
       const response = await fetch('http://localhost:3000/admin/dashboard', {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${accessToken}`,
         },
       });
 

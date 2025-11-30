@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useAuthStore } from '@/store/authStore';
 
 interface Product {
   id: string;
@@ -28,18 +29,20 @@ export default function AdminProductsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
+  const { accessToken } = useAuthStore();
 
   useEffect(() => {
-    fetchProducts();
-    fetchCategories();
-  }, []);
+    if (accessToken) {
+      fetchProducts();
+      fetchCategories();
+    }
+  }, [accessToken]);
 
   const fetchProducts = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
       const response = await fetch('http://localhost:3000/admin/products', {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${accessToken}`,
         },
       });
 
@@ -58,10 +61,9 @@ export default function AdminProductsPage() {
 
   const fetchCategories = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
       const response = await fetch('http://localhost:3000/admin/products/categories', {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${accessToken}`,
         },
       });
 
@@ -76,11 +78,10 @@ export default function AdminProductsPage() {
 
   const toggleProductVisibility = async (id: string) => {
     try {
-      const token = localStorage.getItem('accessToken');
       const response = await fetch(`http://localhost:3000/admin/products/${id}/toggle`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${accessToken}`,
         },
       });
 
@@ -98,11 +99,10 @@ export default function AdminProductsPage() {
     }
 
     try {
-      const token = localStorage.getItem('accessToken');
       const response = await fetch(`http://localhost:3000/admin/products/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${accessToken}`,
         },
       });
 
