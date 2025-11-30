@@ -15,8 +15,50 @@ jest.mock('next/navigation', () => ({
   }),
 }));
 
+// User type for testing
+interface TestUser {
+  id: string;
+  email: string;
+  username: string;
+  role: 'admin' | 'user';
+  emailVerified: boolean;
+  createdAt: string;
+}
+
+// Helper to create a test admin user
+const createTestAdminUser = (overrides: Partial<TestUser> = {}): TestUser => ({
+  id: 'admin-1',
+  email: 'admin@example.com',
+  username: 'adminuser',
+  role: 'admin',
+  emailVerified: true,
+  createdAt: new Date().toISOString(),
+  ...overrides,
+});
+
+// Helper to create a test regular user
+const createTestUser = (overrides: Partial<TestUser> = {}): TestUser => ({
+  id: 'user-1',
+  email: 'test@example.com',
+  username: 'testuser',
+  role: 'user',
+  emailVerified: true,
+  createdAt: new Date().toISOString(),
+  ...overrides,
+});
+
+interface MockAuthContext {
+  user: TestUser | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: jest.Mock;
+  register: jest.Mock;
+  logout: jest.Mock;
+  refreshAuth: jest.Mock;
+}
+
 // Factory function to create fresh mock auth context
-const createMockAuthContext = (overrides = {}) => ({
+const createMockAuthContext = (overrides: Partial<MockAuthContext> = {}): MockAuthContext => ({
   user: null,
   isAuthenticated: false,
   isLoading: false,
@@ -33,28 +75,6 @@ let mockAuthContext = createMockAuthContext();
 jest.mock('@/contexts/AuthContext', () => ({
   useAuth: () => mockAuthContext,
 }));
-
-// Helper to create a test admin user
-const createTestAdminUser = (overrides = {}) => ({
-  id: 'admin-1',
-  email: 'admin@example.com',
-  username: 'adminuser',
-  role: 'admin' as const,
-  emailVerified: true,
-  createdAt: new Date().toISOString(),
-  ...overrides,
-});
-
-// Helper to create a test regular user
-const createTestUser = (overrides = {}) => ({
-  id: 'user-1',
-  email: 'test@example.com',
-  username: 'testuser',
-  role: 'user' as const,
-  emailVerified: true,
-  createdAt: new Date().toISOString(),
-  ...overrides,
-});
 
 describe('AdminLayout', () => {
   beforeEach(() => {
