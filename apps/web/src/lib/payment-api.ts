@@ -20,6 +20,12 @@ export interface PaymentStatusResult {
   paymentIntentId?: string;
 }
 
+export interface OrderByPaymentIntentResult {
+  orderId: string;
+  orderStatus: string;
+  paymentStatus: string;
+}
+
 export interface PaymentConfigResult {
   configured: boolean;
 }
@@ -95,6 +101,33 @@ export const paymentApi = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to get payment status');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Get order by payment intent ID (used after Stripe redirect)
+   */
+  async getOrderByPaymentIntent(
+    paymentIntentId: string,
+    clientSecret?: string
+  ): Promise<OrderByPaymentIntentResult> {
+    const params = new URLSearchParams();
+    if (clientSecret) {
+      params.append('client_secret', clientSecret);
+    }
+    const queryString = params.toString();
+    const url = `${API_URL}/payments/order-by-intent/${paymentIntentId}${queryString ? `?${queryString}` : ''}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to get order details');
     }
 
     return response.json();

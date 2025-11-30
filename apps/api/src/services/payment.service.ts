@@ -116,6 +116,53 @@ export class PaymentService {
   }
 
   /**
+   * Get order by payment intent ID
+   * Used when returning from Stripe redirect after payment
+   */
+  async getOrderByPaymentIntent(paymentIntentId: string, clientSecret?: string) {
+    const order = await prisma.order.findFirst({
+      where: {
+        stripePaymentId: paymentIntentId,
+      },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      throw new Error('Order not found for this payment');
+    }
+
+    // Validate client secret if provided (additional security measure)
+    if (clientSecret && order.stripeClientSecret !== clientSecret) {
+      throw new Error('Invalid payment credentials');
+    }
+
+    // Refresh payment status from Stripe
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    // Update order status if payment status changed (graceful error handling)
+    if (paymentIntent.status !== order.stripePaymentStatus) {
+      try {
+        await this.updateOrderPaymentStatus(order.id, paymentIntent);
+      } catch (updateError) {
+        // Log the error but don't fail the request - the order lookup was successful
+        console.error('Failed to update order payment status:', updateError);
+      }
+    }
+
+    return {
+      orderId: order.id,
+      orderStatus: order.status,
+      paymentStatus: paymentIntent.status,
+    };
+  }
+
+  /**
    * Get payment status for an order
    */
   async getPaymentStatus(orderId: string, userId?: string, sessionId?: string) {

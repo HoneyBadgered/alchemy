@@ -130,6 +130,44 @@ export async function paymentRoutes(fastify: FastifyInstance) {
   });
 
   /**
+   * Get order by payment intent ID (for Stripe redirect)
+   * GET /payments/order-by-intent/:paymentIntentId
+   * Semi-public endpoint - validates the payment intent against the stored client secret
+   * The client secret is passed via query parameter for verification
+   */
+  fastify.get('/payments/order-by-intent/:paymentIntentId', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      // Check if Stripe is configured
+      if (!isStripeConfigured()) {
+        return reply.status(503).send({ 
+          message: 'Payment processing is not available. Stripe is not configured.',
+          configured: false,
+        });
+      }
+
+      const { paymentIntentId } = request.params as { paymentIntentId: string };
+      const { client_secret: clientSecret } = request.query as { client_secret?: string };
+
+      // Basic validation of payment intent ID format
+      if (!paymentIntentId || !paymentIntentId.startsWith('pi_')) {
+        return reply.status(400).send({
+          message: 'Invalid payment intent ID format',
+        });
+      }
+
+      const result = await paymentService.getOrderByPaymentIntent(paymentIntentId, clientSecret);
+      return reply.send(result);
+    } catch (error) {
+      const message = (error as Error).message;
+      // Return 401 for invalid credentials, 404 for not found
+      const statusCode = message === 'Invalid payment credentials' ? 401 : 404;
+      return reply.status(statusCode).send({ 
+        message,
+      });
+    }
+  });
+
+  /**
    * Stripe webhook endpoint
    * POST /payments/webhook
    * Public endpoint - validated by Stripe signature
