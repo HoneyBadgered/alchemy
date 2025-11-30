@@ -116,6 +116,43 @@ export class PaymentService {
   }
 
   /**
+   * Get order by payment intent ID
+   * Used when returning from Stripe redirect after payment
+   */
+  async getOrderByPaymentIntent(paymentIntentId: string) {
+    const order = await prisma.order.findFirst({
+      where: {
+        stripePaymentId: paymentIntentId,
+      },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      throw new Error('Order not found for this payment');
+    }
+
+    // Refresh payment status from Stripe
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    // Update order status if payment status changed
+    if (paymentIntent.status !== order.stripePaymentStatus) {
+      await this.updateOrderPaymentStatus(order.id, paymentIntent);
+    }
+
+    return {
+      orderId: order.id,
+      orderStatus: order.status,
+      paymentStatus: paymentIntent.status,
+    };
+  }
+
+  /**
    * Get payment status for an order
    */
   async getPaymentStatus(orderId: string, userId?: string, sessionId?: string) {

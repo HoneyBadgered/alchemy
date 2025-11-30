@@ -210,6 +210,69 @@ describe('PaymentService', () => {
     });
   });
 
+  describe('getOrderByPaymentIntent', () => {
+    it('should throw error if order not found for payment intent', async () => {
+      mockPrisma.order.findFirst.mockResolvedValue(null);
+
+      await expect(
+        paymentService.getOrderByPaymentIntent('pi_test_123')
+      ).rejects.toThrow('Order not found for this payment');
+    });
+
+    it('should return order details for valid payment intent', async () => {
+      const mockOrder = {
+        id: 'order-1',
+        status: 'payment_processing',
+        stripePaymentId: 'pi_test_123',
+        stripePaymentStatus: 'requires_payment_method',
+        items: [
+          {
+            id: 'item-1',
+            product: { id: 'prod-1', name: 'Test Product' },
+          },
+        ],
+      };
+
+      const mockPaymentIntent = {
+        id: 'pi_test_123',
+        status: 'succeeded',
+      };
+
+      mockPrisma.order.findFirst.mockResolvedValue(mockOrder);
+      mockPrisma.order.findUnique.mockResolvedValue(mockOrder);
+      mockStripe.paymentIntents.retrieve.mockResolvedValue(mockPaymentIntent);
+
+      const result = await paymentService.getOrderByPaymentIntent('pi_test_123');
+
+      expect(result.orderId).toBe('order-1');
+      expect(result.paymentStatus).toBe('succeeded');
+    });
+
+    it('should update order status if payment status changed', async () => {
+      const mockOrder = {
+        id: 'order-1',
+        status: 'payment_processing',
+        stripePaymentId: 'pi_test_123',
+        stripePaymentStatus: 'requires_payment_method',
+        items: [],
+      };
+
+      const mockPaymentIntent = {
+        id: 'pi_test_123',
+        status: 'succeeded',
+      };
+
+      mockPrisma.order.findFirst.mockResolvedValue(mockOrder);
+      mockPrisma.order.findUnique.mockResolvedValue(mockOrder);
+      mockStripe.paymentIntents.retrieve.mockResolvedValue(mockPaymentIntent);
+
+      await paymentService.getOrderByPaymentIntent('pi_test_123');
+
+      // Should update order with new payment status
+      expect(mockPrisma.order.update).toHaveBeenCalled();
+    });
+  });
+
   describe('handleWebhookEvent', () => {
     it('should skip already processed events', async () => {
       const mockEvent = {

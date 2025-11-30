@@ -130,6 +130,39 @@ export async function paymentRoutes(fastify: FastifyInstance) {
   });
 
   /**
+   * Get order by payment intent ID (for Stripe redirect)
+   * GET /payments/order-by-intent/:paymentIntentId
+   * Public endpoint - used after Stripe redirect to get order details
+   */
+  fastify.get('/payments/order-by-intent/:paymentIntentId', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      // Check if Stripe is configured
+      if (!isStripeConfigured()) {
+        return reply.status(503).send({ 
+          message: 'Payment processing is not available. Stripe is not configured.',
+          configured: false,
+        });
+      }
+
+      const { paymentIntentId } = request.params as { paymentIntentId: string };
+
+      // Basic validation of payment intent ID format
+      if (!paymentIntentId || !paymentIntentId.startsWith('pi_')) {
+        return reply.status(400).send({
+          message: 'Invalid payment intent ID format',
+        });
+      }
+
+      const result = await paymentService.getOrderByPaymentIntent(paymentIntentId);
+      return reply.send(result);
+    } catch (error) {
+      return reply.status(404).send({ 
+        message: (error as Error).message 
+      });
+    }
+  });
+
+  /**
    * Stripe webhook endpoint
    * POST /payments/webhook
    * Public endpoint - validated by Stripe signature
