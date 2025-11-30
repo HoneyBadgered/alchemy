@@ -13,7 +13,7 @@ export default function NewProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { accessToken } = useAuthStore();
+  const { accessToken, hasHydrated } = useAuthStore();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -29,6 +29,12 @@ export default function NewProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!hasHydrated || !accessToken) {
+      setError('Authentication not ready. Please try again.');
+      return;
+    }
+    
     setLoading(true);
     setError(null);
 
