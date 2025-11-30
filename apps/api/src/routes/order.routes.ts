@@ -6,7 +6,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { OrderService } from '../services/order.service';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { isValidSessionId, sanitizeSessionId } from '../utils/session';
 
 const shippingAddressSchema = z.object({
@@ -43,7 +43,9 @@ export async function orderRoutes(fastify: FastifyInstance) {
    * POST /orders
    * Supports both authenticated users and guests (via x-session-id header)
    */
-  fastify.post('/orders', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.post('/orders', {
+    preHandler: optionalAuthMiddleware,
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const userId = request.user?.userId;
       let sessionId = request.headers['x-session-id'] as string | undefined;
