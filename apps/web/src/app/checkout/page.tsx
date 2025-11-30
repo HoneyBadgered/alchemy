@@ -61,8 +61,8 @@ export default function CheckoutPage() {
     );
   }
 
-  // Redirect if cart is empty
-  if (!cartLoading && itemCount === 0) {
+  // Redirect if cart is empty (but not when processing payment - cart is cleared after successful payment)
+  if (!cartLoading && itemCount === 0 && currentStep !== 'processing') {
     router.push('/cart');
     return null;
   }
