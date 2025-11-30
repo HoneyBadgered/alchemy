@@ -14,6 +14,12 @@ interface ProtectedRouteProps {
   requireAuth?: boolean;
 }
 
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+  </div>
+);
+
 export function ProtectedRoute({
   children,
   requireAuth = true,
@@ -30,11 +36,7 @@ export function ProtectedRoute({
 
   // Show loading state while checking authentication or waiting for hydration
   if (isLoading || !hasHydrated) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   // If authentication is required and user is not authenticated, don't render children
@@ -44,11 +46,7 @@ export function ProtectedRoute({
 
   // Additional safety check: don't render children if authenticated but user is null
   if (requireAuth && isAuthenticated && !user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return <>{children}</>;
