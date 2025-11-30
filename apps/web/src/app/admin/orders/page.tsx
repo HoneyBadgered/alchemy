@@ -30,13 +30,13 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState('');
-  const { accessToken } = useAuthStore();
+  const { accessToken, hasHydrated } = useAuthStore();
 
   useEffect(() => {
-    if (accessToken) {
+    if (hasHydrated && accessToken) {
       fetchOrders();
     }
-  }, [filterStatus, accessToken]);
+  }, [filterStatus, accessToken, hasHydrated]);
 
   const fetchOrders = async () => {
     try {

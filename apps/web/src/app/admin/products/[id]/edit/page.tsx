@@ -33,7 +33,7 @@ export default function EditProductPage({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [product, setProduct] = useState<Product | null>(null);
-  const { accessToken } = useAuthStore();
+  const { accessToken, hasHydrated } = useAuthStore();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -48,10 +48,10 @@ export default function EditProductPage({
   });
 
   useEffect(() => {
-    if (accessToken) {
+    if (hasHydrated && accessToken) {
       fetchProduct();
     }
-  }, [id, accessToken]);
+  }, [id, accessToken, hasHydrated]);
 
   const fetchProduct = async () => {
     try {

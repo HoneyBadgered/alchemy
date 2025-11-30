@@ -37,13 +37,13 @@ export default function AdminIngredientsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ baseAmount: '', incrementAmount: '' });
   const [saving, setSaving] = useState(false);
-  const { accessToken } = useAuthStore();
+  const { accessToken, hasHydrated } = useAuthStore();
 
   useEffect(() => {
-    if (accessToken) {
+    if (hasHydrated && accessToken) {
       fetchIngredients();
     }
-  }, [accessToken]);
+  }, [accessToken, hasHydrated]);
 
   const fetchIngredients = async () => {
     try {

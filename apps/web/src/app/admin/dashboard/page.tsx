@@ -54,13 +54,13 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { accessToken } = useAuthStore();
+  const { accessToken, hasHydrated } = useAuthStore();
 
   useEffect(() => {
-    if (accessToken) {
+    if (hasHydrated && accessToken) {
       fetchDashboardData();
     }
-  }, [accessToken]);
+  }, [accessToken, hasHydrated]);
 
   const fetchDashboardData = async () => {
     try {

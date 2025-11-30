@@ -29,14 +29,14 @@ export default function AdminProductsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
-  const { accessToken } = useAuthStore();
+  const { accessToken, hasHydrated } = useAuthStore();
 
   useEffect(() => {
-    if (accessToken) {
+    if (hasHydrated && accessToken) {
       fetchProducts();
       fetchCategories();
     }
-  }, [accessToken]);
+  }, [accessToken, hasHydrated]);
 
   const fetchProducts = async () => {
     try {
