@@ -11,7 +11,9 @@ import Link from 'next/link';
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '';
+  // Get redirect parameter and validate it (trim whitespace, ensure non-empty)
+  const rawRedirect = searchParams.get('redirect');
+  const redirectTo = rawRedirect?.trim() || '';
   const { login, isLoading, isAuthenticated, user } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
