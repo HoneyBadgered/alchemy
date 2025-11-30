@@ -5,7 +5,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { CartService } from '../services/cart.service';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { isValidSessionId, sanitizeSessionId } from '../utils/session';
 
 // Helper schema for integer quantity that accepts floats and converts them to integers
@@ -80,7 +80,9 @@ export async function cartRoutes(fastify: FastifyInstance) {
    * GET /cart
    * Optional authentication (supports both authenticated users and guests)
    */
-  fastify.get('/cart', async (request, reply) => {
+  fastify.get('/cart', {
+    preHandler: optionalAuthMiddleware,
+  }, async (request, reply) => {
     try {
       const auth = validateAuthOrSession(request, reply);
       if (!auth) return;
@@ -97,7 +99,9 @@ export async function cartRoutes(fastify: FastifyInstance) {
    * POST /cart/items
    * Optional authentication (supports both authenticated users and guests)
    */
-  fastify.post('/cart/items', async (request, reply) => {
+  fastify.post('/cart/items', {
+    preHandler: optionalAuthMiddleware,
+  }, async (request, reply) => {
     try {
       const auth = validateAuthOrSession(request, reply);
       if (!auth) return;
@@ -121,7 +125,9 @@ export async function cartRoutes(fastify: FastifyInstance) {
    * PATCH /cart/items
    * Optional authentication (supports both authenticated users and guests)
    */
-  fastify.patch('/cart/items', async (request, reply) => {
+  fastify.patch('/cart/items', {
+    preHandler: optionalAuthMiddleware,
+  }, async (request, reply) => {
     try {
       const auth = validateAuthOrSession(request, reply);
       if (!auth) return;
@@ -145,7 +151,9 @@ export async function cartRoutes(fastify: FastifyInstance) {
    * DELETE /cart/items
    * Optional authentication (supports both authenticated users and guests)
    */
-  fastify.delete('/cart/items', async (request, reply) => {
+  fastify.delete('/cart/items', {
+    preHandler: optionalAuthMiddleware,
+  }, async (request, reply) => {
     try {
       const auth = validateAuthOrSession(request, reply);
       if (!auth) return;
@@ -169,7 +177,9 @@ export async function cartRoutes(fastify: FastifyInstance) {
    * DELETE /cart
    * Optional authentication (supports both authenticated users and guests)
    */
-  fastify.delete('/cart', async (request, reply) => {
+  fastify.delete('/cart', {
+    preHandler: optionalAuthMiddleware,
+  }, async (request, reply) => {
     try {
       const auth = validateAuthOrSession(request, reply);
       if (!auth) return;
@@ -216,7 +226,9 @@ export async function cartRoutes(fastify: FastifyInstance) {
    * POST /cart/blend
    * Optional authentication (supports both authenticated users and guests)
    */
-  fastify.post('/cart/blend', async (request, reply) => {
+  fastify.post('/cart/blend', {
+    preHandler: optionalAuthMiddleware,
+  }, async (request, reply) => {
     try {
       const auth = validateAuthOrSession(request, reply);
       if (!auth) return;

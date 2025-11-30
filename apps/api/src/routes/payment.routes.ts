@@ -9,6 +9,7 @@ import { PaymentService } from '../services/payment.service';
 import { stripe, isStripeConfigured } from '../utils/stripe';
 import { config } from '../config';
 import { isValidSessionId, sanitizeSessionId } from '../utils/session';
+import { optionalAuthMiddleware } from '../middleware/auth';
 
 const createPaymentIntentSchema = z.object({
   orderId: z.string().min(1),
@@ -33,7 +34,9 @@ export async function paymentRoutes(fastify: FastifyInstance) {
    * POST /payments/create-intent
    * Supports both authenticated users and guests (via x-session-id header)
    */
-  fastify.post('/payments/create-intent', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.post('/payments/create-intent', {
+    preHandler: optionalAuthMiddleware,
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       // Check if Stripe is configured
       if (!isStripeConfigured()) {
@@ -89,7 +92,9 @@ export async function paymentRoutes(fastify: FastifyInstance) {
    * GET /payments/status/:orderId
    * Supports both authenticated users and guests (via x-session-id header)
    */
-  fastify.get('/payments/status/:orderId', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get('/payments/status/:orderId', {
+    preHandler: optionalAuthMiddleware,
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       // Check if Stripe is configured
       if (!isStripeConfigured()) {
