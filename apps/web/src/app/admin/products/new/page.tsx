@@ -7,11 +7,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuthStore } from '@/store/authStore';
 
 export default function NewProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { accessToken, hasHydrated } = useAuthStore();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -27,12 +29,16 @@ export default function NewProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!hasHydrated || !accessToken) {
+      setError('Authentication not ready. Please try again.');
+      return;
+    }
+    
     setLoading(true);
     setError(null);
 
     try {
-      const token = localStorage.getItem('accessToken');
-      
       // Parse images and tags
       const imagesArray = formData.images
         .split('\n')
@@ -47,7 +53,7 @@ export default function NewProductPage() {
       const response = await fetch('http://localhost:3000/admin/products', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({

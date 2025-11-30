@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { useAuthStore } from '@/store/authStore';
 
 interface Ingredient {
   id: string;
@@ -36,18 +37,20 @@ export default function AdminIngredientsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ baseAmount: '', incrementAmount: '' });
   const [saving, setSaving] = useState(false);
+  const { accessToken, hasHydrated } = useAuthStore();
 
   useEffect(() => {
-    fetchIngredients();
-  }, []);
+    if (hasHydrated && accessToken) {
+      fetchIngredients();
+    }
+  }, [accessToken, hasHydrated]);
 
   const fetchIngredients = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('accessToken');
       const response = await fetch('http://localhost:3000/admin/ingredients/add-ins', {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${accessToken}`,
         },
       });
 
@@ -81,12 +84,11 @@ export default function AdminIngredientsPage() {
   const handleSave = async (id: string) => {
     try {
       setSaving(true);
-      const token = localStorage.getItem('accessToken');
       
       const response = await fetch(`http://localhost:3000/admin/ingredients/${id}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -117,12 +119,11 @@ export default function AdminIngredientsPage() {
 
     try {
       setSaving(true);
-      const token = localStorage.getItem('accessToken');
       
       const response = await fetch(`http://localhost:3000/admin/ingredients/${id}/reset`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${accessToken}`,
         },
       });
 

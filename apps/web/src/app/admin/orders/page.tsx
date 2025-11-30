@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { useAuthStore } from '@/store/authStore';
 
 interface Order {
   id: string;
@@ -29,14 +30,16 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState('');
+  const { accessToken, hasHydrated } = useAuthStore();
 
   useEffect(() => {
-    fetchOrders();
-  }, [filterStatus]);
+    if (hasHydrated && accessToken) {
+      fetchOrders();
+    }
+  }, [filterStatus, accessToken, hasHydrated]);
 
   const fetchOrders = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
       const url = new URL('http://localhost:3000/admin/orders');
       if (filterStatus) {
         url.searchParams.append('status', filterStatus);
@@ -44,7 +47,7 @@ export default function AdminOrdersPage() {
 
       const response = await fetch(url.toString(), {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${accessToken}`,
         },
       });
 
@@ -63,11 +66,10 @@ export default function AdminOrdersPage() {
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
-      const token = localStorage.getItem('accessToken');
       const response = await fetch(`http://localhost:3000/admin/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ status: newStatus }),

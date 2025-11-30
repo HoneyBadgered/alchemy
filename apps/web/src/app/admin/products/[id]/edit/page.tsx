@@ -7,6 +7,7 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuthStore } from '@/store/authStore';
 
 interface Product {
   id: string;
@@ -32,6 +33,7 @@ export default function EditProductPage({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [product, setProduct] = useState<Product | null>(null);
+  const { accessToken, hasHydrated } = useAuthStore();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -46,15 +48,16 @@ export default function EditProductPage({
   });
 
   useEffect(() => {
-    fetchProduct();
-  }, [id]);
+    if (hasHydrated && accessToken) {
+      fetchProduct();
+    }
+  }, [id, accessToken, hasHydrated]);
 
   const fetchProduct = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
       const response = await fetch(`http://localhost:3000/admin/products/${id}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${accessToken}`,
         },
       });
 
@@ -90,8 +93,6 @@ export default function EditProductPage({
     setError(null);
 
     try {
-      const token = localStorage.getItem('accessToken');
-      
       // Parse images and tags
       const imagesArray = formData.images
         .split('\n')
@@ -106,7 +107,7 @@ export default function EditProductPage({
       const response = await fetch(`http://localhost:3000/admin/products/${id}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
