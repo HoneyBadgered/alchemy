@@ -13,7 +13,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   // Get redirect parameter and validate it (trim whitespace, ensure non-empty)
   const rawRedirect = searchParams.get('redirect');
-  const redirectTo = rawRedirect?.trim() || '';
+  const redirectTo = rawRedirect?.trim() || undefined;
   const { login, isLoading, isAuthenticated, user } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
