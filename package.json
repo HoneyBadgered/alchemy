@@ -31,5 +31,9 @@
   "overrides": {
     "glob": "^10.4.5",
     "rimraf": "^6.0.1"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "bcrypt": "^6.0.0"
   }
 }
