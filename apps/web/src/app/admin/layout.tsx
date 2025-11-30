@@ -5,6 +5,7 @@
  */
 
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -13,8 +14,15 @@ interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
+const LoadingSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-100" role="status" aria-label="Loading">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+  </div>
+);
+
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const { user, logout, isLoading } = useAuth();
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
@@ -22,9 +30,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     setMounted(true);
   }, []);
 
-  // Only redirect when mounted, not loading, and auth state is determined
+  // Only redirect when mounted, not loading, hydrated, and auth state is determined
   useEffect(() => {
-    if (mounted && !isLoading) {
+    if (mounted && !isLoading && hasHydrated) {
       if (!user) {
         // User is not logged in, redirect to login
         router.push('/login');
@@ -33,14 +41,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         router.push('/table');
       }
     }
-  }, [user, router, mounted, isLoading]);
+  }, [user, router, mounted, isLoading, hasHydrated]);
 
-  if (!mounted || isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-gray-600">Loading...</div>
-      </div>
-    );
+  // Show loading state while waiting for hydration or auth check
+  if (!mounted || isLoading || !hasHydrated) {
+    return <LoadingSpinner />;
   }
 
   if (!user) {
