@@ -12,7 +12,9 @@ import Link from 'next/link';
 function SignupForm() {
   const { register, isLoading } = useAuth();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || undefined;
+  // Get redirect parameter and validate it (trim whitespace, ensure non-empty)
+  const rawRedirect = searchParams.get('redirect');
+  const redirectTo = rawRedirect?.trim() || undefined;
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
