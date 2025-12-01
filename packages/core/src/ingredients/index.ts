@@ -362,6 +362,12 @@ export const CATEGORY_INFO: Record<IngredientCategory, {
     emoji: '🌿',
     color: 'green',
   },
+  herb: {
+    title: 'Herb',
+    description: 'Culinary and medicinal herbs',
+    emoji: '🌿',
+    color: 'green',
+  },
   spice: {
     title: 'Spice',
     description: 'Warm and aromatic spices',
@@ -373,5 +379,17 @@ export const CATEGORY_INFO: Record<IngredientCategory, {
     description: 'Rare and magical ingredients',
     emoji: '✨',
     color: 'purple',
+  },
+  tea: {
+    title: 'Tea',
+    description: 'Traditional tea varieties',
+    emoji: '🍵',
+    color: 'emerald',
+  },
+  sweetener: {
+    title: 'Sweetener',
+    description: 'Natural and artificial sweeteners',
+    emoji: '🍯',
+    color: 'yellow',
   },
 };

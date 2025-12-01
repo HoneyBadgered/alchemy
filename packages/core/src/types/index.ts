@@ -67,17 +67,39 @@ export interface PlayerCosmetics {
 }
 
 /**
- * Ingredient category types
+ * Ingredient category types (legacy + new)
  */
-export type IngredientCategory = 'base' | 'floral' | 'fruit' | 'herbal' | 'spice' | 'special';
+export type IngredientCategory = 'base' | 'floral' | 'fruit' | 'herbal' | 'spice' | 'special' | 'herb' | 'tea' | 'sweetener';
 
 /**
- * Individual ingredient definition
+ * Ingredient role types
+ */
+export type IngredientRole = 'base' | 'addIn' | 'either';
+
+/**
+ * Ingredient status types
+ */
+export type IngredientStatus = 'active' | 'archived' | 'outOfStock';
+
+/**
+ * Caffeine level types
+ */
+export type CaffeineLevel = 'none' | 'low' | 'medium' | 'high';
+
+/**
+ * Cut or grade types
+ */
+export type CutOrGrade = 'whole leaf' | 'pieces' | 'powder' | 'crystals' | 'cut and sift' | 'ground' | 'whole';
+
+/**
+ * Individual ingredient definition (extended for admin management)
  */
 export interface Ingredient {
   id: string;
   name: string;
   category: IngredientCategory;
+  
+  // Legacy fields (for backwards compatibility with crafting system)
   description?: string;
   tags?: string[];
   badges?: string[];
@@ -85,6 +107,58 @@ export interface Ingredient {
   isBase?: boolean; // true for base teas, false for add-ins
   baseAmount?: number; // Default starting amount for add-ins (in grams)
   incrementAmount?: number; // Amount to increase/decrease per step (falls back to baseAmount if not specified)
+  
+  // Extended fields for admin management
+  role?: IngredientRole;
+  descriptionShort?: string;
+  descriptionLong?: string;
+  image?: string;
+  
+  // Flavor & Use
+  flavorNotes?: string[];
+  cutOrGrade?: CutOrGrade | string;
+  recommendedUsageMin?: number; // Slider start percentage
+  recommendedUsageMax?: number; // Slider end percentage
+  pairings?: string[]; // Array of ingredient IDs
+  
+  // Brewing
+  steepTemperature?: number; // in °F
+  steepTimeMin?: number; // in seconds
+  steepTimeMax?: number; // in seconds
+  brewNotes?: string;
+  
+  // Inventory & Costing
+  supplierId?: string;
+  costPerOunce?: number;
+  costPerGram?: number; // Computed from costPerOunce
+  inventoryAmount?: number;
+  minimumStockLevel?: number;
+  status?: IngredientStatus;
+  
+  // Safety
+  caffeineLevel?: CaffeineLevel;
+  allergens?: string[];
+  internalNotes?: string;
+  
+  // Timestamps
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
+/**
+ * Supplier model
+ */
+export interface Supplier {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  address?: string;
+  notes?: string;
+  isActive: boolean;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }
 
 /**

@@ -25,7 +25,12 @@ interface IngredientPanelProps {
 
 // Helper function to get category-specific class names
 const getCategoryClasses = (category: IngredientCategory) => {
-  const classes = {
+  const classes: Record<IngredientCategory, {
+    header: string;
+    title: string;
+    description: string;
+    closeBtn: string;
+  }> = {
     base: {
       header: 'bg-gradient-to-r from-emerald-100 to-emerald-200',
       title: 'text-emerald-900',
@@ -50,6 +55,12 @@ const getCategoryClasses = (category: IngredientCategory) => {
       description: 'text-green-700',
       closeBtn: 'bg-green-200 hover:bg-green-300 text-green-900',
     },
+    herb: {
+      header: 'bg-gradient-to-r from-green-100 to-green-200',
+      title: 'text-green-900',
+      description: 'text-green-700',
+      closeBtn: 'bg-green-200 hover:bg-green-300 text-green-900',
+    },
     spice: {
       header: 'bg-gradient-to-r from-amber-100 to-amber-200',
       title: 'text-amber-900',
@@ -61,6 +72,18 @@ const getCategoryClasses = (category: IngredientCategory) => {
       title: 'text-purple-900',
       description: 'text-purple-700',
       closeBtn: 'bg-purple-200 hover:bg-purple-300 text-purple-900',
+    },
+    tea: {
+      header: 'bg-gradient-to-r from-emerald-100 to-emerald-200',
+      title: 'text-emerald-900',
+      description: 'text-emerald-700',
+      closeBtn: 'bg-emerald-200 hover:bg-emerald-300 text-emerald-900',
+    },
+    sweetener: {
+      header: 'bg-gradient-to-r from-yellow-100 to-yellow-200',
+      title: 'text-yellow-900',
+      description: 'text-yellow-700',
+      closeBtn: 'bg-yellow-200 hover:bg-yellow-300 text-yellow-900',
     },
   };
   return classes[category];

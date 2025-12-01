@@ -16,9 +16,18 @@ interface JarCategoryProps {
   onClick: () => void;
 }
 
+// Type for jar class styles
+type JarClassStyles = {
+  body: string;
+  text: string;
+  lid: string;
+  knob: string;
+  glow: string;
+};
+
 // Helper to get category-specific jar classes
-const getJarClasses = (category: IngredientCategory, isOpen: boolean, hasSelections: boolean) => {
-  const colorClasses = {
+const getJarClasses = (category: IngredientCategory, isOpen: boolean, hasSelections: boolean): JarClassStyles => {
+  const colorClasses: Record<IngredientCategory, JarClassStyles> = {
     base: {
       body: isOpen
         ? 'from-emerald-100 to-emerald-200 border-emerald-400'
@@ -108,6 +117,51 @@ const getJarClasses = (category: IngredientCategory, isOpen: boolean, hasSelecti
         : 'from-gray-300 to-gray-400 border-gray-400',
       knob: isOpen ? 'bg-purple-400' : hasSelections ? 'bg-purple-300' : 'bg-gray-400',
       glow: 'bg-purple-400',
+    },
+    herb: {
+      body: isOpen
+        ? 'from-green-100 to-green-200 border-green-400'
+        : hasSelections
+        ? 'from-green-50 to-green-100 border-green-300'
+        : 'from-gray-50 to-gray-100 border-gray-300 group-hover:border-green-200',
+      text: isOpen || hasSelections ? 'text-green-900' : 'text-gray-700',
+      lid: isOpen
+        ? 'from-green-300 to-green-400 border-green-500'
+        : hasSelections
+        ? 'from-green-200 to-green-300 border-green-400'
+        : 'from-gray-300 to-gray-400 border-gray-400',
+      knob: isOpen ? 'bg-green-400' : hasSelections ? 'bg-green-300' : 'bg-gray-400',
+      glow: 'bg-green-400',
+    },
+    tea: {
+      body: isOpen
+        ? 'from-emerald-100 to-emerald-200 border-emerald-400'
+        : hasSelections
+        ? 'from-emerald-50 to-emerald-100 border-emerald-300'
+        : 'from-gray-50 to-gray-100 border-gray-300 group-hover:border-emerald-200',
+      text: isOpen || hasSelections ? 'text-emerald-900' : 'text-gray-700',
+      lid: isOpen
+        ? 'from-emerald-300 to-emerald-400 border-emerald-500'
+        : hasSelections
+        ? 'from-emerald-200 to-emerald-300 border-emerald-400'
+        : 'from-gray-300 to-gray-400 border-gray-400',
+      knob: isOpen ? 'bg-emerald-400' : hasSelections ? 'bg-emerald-300' : 'bg-gray-400',
+      glow: 'bg-emerald-400',
+    },
+    sweetener: {
+      body: isOpen
+        ? 'from-yellow-100 to-yellow-200 border-yellow-400'
+        : hasSelections
+        ? 'from-yellow-50 to-yellow-100 border-yellow-300'
+        : 'from-gray-50 to-gray-100 border-gray-300 group-hover:border-yellow-200',
+      text: isOpen || hasSelections ? 'text-yellow-900' : 'text-gray-700',
+      lid: isOpen
+        ? 'from-yellow-300 to-yellow-400 border-yellow-500'
+        : hasSelections
+        ? 'from-yellow-200 to-yellow-300 border-yellow-400'
+        : 'from-gray-300 to-gray-400 border-gray-400',
+      knob: isOpen ? 'bg-yellow-400' : hasSelections ? 'bg-yellow-300' : 'bg-gray-400',
+      glow: 'bg-yellow-400',
     },
   };
   return colorClasses[category];

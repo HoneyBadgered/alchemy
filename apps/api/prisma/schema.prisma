@@ -166,6 +166,94 @@ model Recipe {
 }
 
 // ============================================
+// Ingredients Management
+// ============================================
+
+model Ingredient {
+  id               String  @id @default(cuid())
+  name             String
+  role             String  @default("addIn") // base, addIn, either
+  category         String // floral, fruit, herb, spice, tea, sweetener, etc.
+  descriptionShort String?
+  descriptionLong  String?
+  image            String?
+
+  // Flavor & Use
+  flavorNotes         String[] @default([])
+  cutOrGrade          String? // whole leaf, pieces, powder, crystals, etc.
+  recommendedUsageMin Decimal? @db.Decimal(10, 4) // minimum percentage
+  recommendedUsageMax Decimal? @db.Decimal(10, 4) // maximum percentage
+
+  // Brewing
+  steepTemperature Int? // in Fahrenheit
+  steepTimeMin     Int? // in seconds
+  steepTimeMax     Int? // in seconds
+  brewNotes        String?
+
+  // Inventory & Costing
+  supplierId        String?
+  supplier          Supplier? @relation(fields: [supplierId], references: [id])
+  costPerOunce      Decimal?  @db.Decimal(10, 4)
+  costPerGram       Decimal?  @db.Decimal(10, 4) // computed from costPerOunce
+  inventoryAmount   Decimal   @default(0) @db.Decimal(10, 2)
+  minimumStockLevel Decimal   @default(0) @db.Decimal(10, 2)
+  status            String    @default("active") // active, archived, outOfStock
+
+  // Safety
+  caffeineLevel String   @default("none") // none, low, medium, high
+  allergens     String[] @default([])
+  internalNotes String?
+
+  // Legacy fields for compatibility with existing core package
+  emoji           String?
+  tags            String[] @default([])
+  badges          String[] @default([])
+  isBase          Boolean  @default(false)
+  baseAmount      Decimal? @db.Decimal(10, 2)
+  incrementAmount Decimal? @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Pairing relations
+  pairsWith IngredientPairing[] @relation("IngredientPairingSource")
+  pairedBy  IngredientPairing[] @relation("IngredientPairingTarget")
+
+  @@index([category])
+  @@index([status])
+  @@index([supplierId])
+  @@map("ingredients")
+}
+
+model IngredientPairing {
+  id                 String     @id @default(cuid())
+  sourceIngredientId String
+  sourceIngredient   Ingredient @relation("IngredientPairingSource", fields: [sourceIngredientId], references: [id], onDelete: Cascade)
+  targetIngredientId String
+  targetIngredient   Ingredient @relation("IngredientPairingTarget", fields: [targetIngredientId], references: [id], onDelete: Cascade)
+  createdAt          DateTime   @default(now())
+
+  @@unique([sourceIngredientId, targetIngredientId])
+  @@map("ingredient_pairings")
+}
+
+model Supplier {
+  id          String       @id @default(cuid())
+  name        String
+  email       String?
+  phone       String?
+  website     String?
+  address     String?
+  notes       String?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  ingredients Ingredient[]
+
+  @@map("suppliers")
+}
+
+// ============================================
 // Products & Orders
 // ============================================
 
@@ -201,10 +289,10 @@ model Product {
 
 model Order {
   id                  String   @id @default(cuid())
-  userId              String?  // Null for guest orders
+  userId              String? // Null for guest orders
   user                User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  guestEmail          String?  // Email for guest checkout
-  sessionId           String?  // Session ID for guest checkout
+  guestEmail          String? // Email for guest checkout
+  sessionId           String? // Session ID for guest checkout
   status              String   @default("pending") // pending, payment_processing, payment_failed, paid, processing, shipped, completed, cancelled
   totalAmount         Decimal  @db.Decimal(10, 2)
   shippingMethod      String?
@@ -460,7 +548,7 @@ model OrderStatusLog {
   order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   fromStatus String?
   toStatus   String
-  changedBy  String?  // Null for guest orders
+  changedBy  String? // Null for guest orders
   user       User?    @relation(fields: [changedBy], references: [id])
   notes      String?
   createdAt  DateTime @default(now())
