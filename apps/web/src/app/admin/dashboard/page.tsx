@@ -35,9 +35,10 @@ interface DashboardStats {
     status: string;
     totalAmount: number;
     createdAt: string;
+    guestEmail?: string | null;
     user: {
       username: string;
-    };
+    } | null;
   }>;
   recentCustomers: Array<{
     id: string;
@@ -199,7 +200,9 @@ export default function AdminDashboardPage() {
               {stats.recentOrders.slice(0, 5).map((order) => (
                 <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex-1">
-                    <div className="text-sm font-medium text-gray-900">{order.user.username}</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {order.user?.username || order.guestEmail || 'Guest'}
+                    </div>
                     <div className="text-xs text-gray-600">
                       {new Date(order.createdAt).toLocaleDateString()}
                     </div>

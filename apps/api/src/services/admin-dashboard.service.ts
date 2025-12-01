@@ -66,7 +66,12 @@ export class AdminDashboardService {
       prisma.order.findMany({
         take: 10,
         orderBy: { createdAt: 'desc' },
-        include: {
+        select: {
+          id: true,
+          status: true,
+          totalAmount: true,
+          createdAt: true,
+          guestEmail: true,
           user: {
             select: {
               id: true,
