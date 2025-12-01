@@ -174,7 +174,7 @@ export default function AdminOrdersPage() {
                         {order.user?.username || order.guestEmail || 'Guest'}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {order.user?.email || (order.guestEmail ? order.guestEmail : 'No email')}
+                        {order.user?.email || order.guestEmail || 'No email'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
