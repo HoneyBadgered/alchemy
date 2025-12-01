@@ -29,32 +29,235 @@ model User {
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt
 
-  profile         UserProfile?
-  playerState     PlayerState?
-  orders          Order[]
-  playerQuests    PlayerQuest[]
-  inventory       PlayerInventory[]
-  cosmetics       PlayerCosmetics?
-  refreshTokens   RefreshToken[]
-  orderStatusLogs OrderStatusLog[]
-  cart            Cart?
-  reviews         Review[]
-  wishlistItems   WishlistItem[]
+  profile                 UserProfile?
+  playerState             PlayerState?
+  orders                  Order[]
+  playerQuests            PlayerQuest[]
+  inventory               PlayerInventory[]
+  cosmetics               PlayerCosmetics?
+  refreshTokens           RefreshToken[]
+  orderStatusLogs         OrderStatusLog[]
+  cart                    Cart?
+  reviews                 Review[]
+  wishlistItems           WishlistItem[]
+  addresses               Address[]
+  paymentMethods          PaymentMethod[]
+  rewardPoints            RewardPoints?
+  rewardHistory           RewardHistory[]
+  subscriptions           Subscription[]
+  notificationPreferences NotificationPreference?
+  achievements            UserAchievement[]
 
   @@map("users")
 }
 
 model UserProfile {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  firstName String?
-  lastName  String?
-  avatarUrl String?
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName          String?
+  lastName           String?
+  avatarUrl          String?
+  // Flavor preferences (floral, fruity, earthy, smoky, sweet, herbal)
+  flavorPreferences  String[] @default([])
+  // Caffeine preference (none, low, medium, high)
+  caffeinePreference String?
+  // Allergy notes
+  allergyNotes       String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("user_profiles")
+}
+
+// ============================================
+// Address Book
+// ============================================
+
+model Address {
+  id           String  @id @default(cuid())
+  userId       String
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label        String? // Home, Work, etc.
+  firstName    String
+  lastName     String
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String
+  zipCode      String
+  country      String
+  phone        String?
+  isDefault    Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("user_profiles")
+  @@index([userId])
+  @@map("addresses")
+}
+
+// ============================================
+// Payment Methods
+// ============================================
+
+model PaymentMethod {
+  id               String  @id @default(cuid())
+  userId           String
+  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripePaymentId  String  @unique // Stripe payment method ID
+  type             String // card, bank_account, etc.
+  last4            String // Last 4 digits
+  brand            String? // Visa, Mastercard, etc.
+  expirationMonth  Int?
+  expirationYear   Int?
+  isDefault        Boolean @default(false)
+  billingAddressId String? // Optional reference to Address
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("payment_methods")
+}
+
+// ============================================
+// Rewards & Loyalty
+// ============================================
+
+model RewardPoints {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance        Int      @default(0)
+  lifetimeEarned Int      @default(0)
+  tier           String   @default("Novice") // Novice, Adept, Alchemist, Master, Grandmaster
+  tierUpdatedAt  DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("reward_points")
+}
+
+model RewardHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String // earned, redeemed, expired, adjusted
+  points      Int // Positive for earned, negative for redeemed/expired
+  description String
+  orderId     String? // Reference to order if applicable
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("reward_history")
+}
+
+model Reward {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  pointsCost    Int
+  discountType  String? // percentage, fixed_amount
+  discountValue Decimal? @db.Decimal(10, 2)
+  productId     String? // For product-specific rewards
+  minimumTier   String   @default("Novice")
+  isActive      Boolean  @default(true)
+  stock         Int? // Null for unlimited
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("rewards")
+}
+
+// ============================================
+// Subscriptions
+// ============================================
+
+model Subscription {
+  id                   String    @id @default(cuid())
+  userId               String
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId            String
+  name                 String
+  frequency            String // weekly, biweekly, monthly, bimonthly
+  quantity             Int       @default(1)
+  price                Decimal   @db.Decimal(10, 2)
+  status               String    @default("active") // active, paused, cancelled
+  nextShipmentDate     DateTime?
+  lastShipmentDate     DateTime?
+  pausedAt             DateTime?
+  cancelledAt          DateTime?
+  skipNextShipment     Boolean   @default(false)
+  stripeSubscriptionId String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+// ============================================
+// Notification Preferences
+// ============================================
+
+model NotificationPreference {
+  id               String  @id @default(cuid())
+  userId           String  @unique
+  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailEnabled     Boolean @default(true)
+  smsEnabled       Boolean @default(false)
+  marketingEnabled Boolean @default(true)
+  orderUpdates     Boolean @default(true)
+  backInStock      Boolean @default(true)
+  announcements    Boolean @default(true)
+  weeklyDigest     Boolean @default(false)
+  phoneNumber      String? // For SMS notifications
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("notification_preferences")
+}
+
+// ============================================
+// Achievements & Badges
+// ============================================
+
+model Achievement {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  description  String
+  iconUrl      String?
+  category     String // purchase, engagement, social, milestone
+  triggerType  String // order_count, total_spent, days_streak, referrals, etc.
+  triggerValue Int // Value needed to unlock
+  xpReward     Int      @default(0)
+  pointsReward Int      @default(0)
+  isActive     Boolean  @default(true)
+  isSecret     Boolean  @default(false) // Hidden until unlocked
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  userAchievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String       @id @default(cuid())
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement  @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  earnedAt      DateTime?    // Null until achievement is earned
+  progress      Int          @default(0) // Current progress toward achievement
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@map("user_achievements")
 }
 
 model RefreshToken {

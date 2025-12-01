@@ -1,0 +1,353 @@
+/**
+ * Achievements Service
+ * Handles user achievements and badges
+ */
+
+import { prisma } from '../utils/prisma';
+import type { Prisma } from '@prisma/client';
+
+export interface AchievementProgress {
+  id: string;
+  name: string;
+  description: string;
+  iconUrl: string | null;
+  category: string;
+  earned: boolean;
+  earnedAt: Date | null;
+  progress: number;
+  targetValue: number;
+  progressPercentage: number;
+  xpReward: number;
+  pointsReward: number;
+  isSecret: boolean;
+}
+
+export class AchievementsService {
+  /**
+   * Get all achievements for a user with their progress
+   */
+  async getAchievements(userId: string): Promise<AchievementProgress[]> {
+    // Get all active achievements
+    const achievements = await prisma.achievement.findMany({
+      where: { isActive: true },
+      orderBy: [
+        { category: 'asc' },
+        { triggerValue: 'asc' },
+      ],
+    });
+
+    // Get user's achievement progress
+    const userAchievements = await prisma.userAchievement.findMany({
+      where: { userId },
+    });
+
+    const userAchievementMap = new Map(
+      userAchievements.map((ua) => [ua.achievementId, ua])
+    );
+
+    return achievements.map((achievement) => {
+      const userAchievement = userAchievementMap.get(achievement.id);
+      const earned = !!userAchievement?.earnedAt;
+      const progress = userAchievement?.progress || 0;
+
+      // Don't show secret achievements unless earned
+      if (achievement.isSecret && !earned) {
+        return {
+          id: achievement.id,
+          name: '???',
+          description: 'A secret achievement awaits...',
+          iconUrl: null,
+          category: achievement.category,
+          earned: false,
+          earnedAt: null,
+          progress: 0,
+          targetValue: achievement.triggerValue,
+          progressPercentage: 0,
+          xpReward: achievement.xpReward,
+          pointsReward: achievement.pointsReward,
+          isSecret: true,
+        };
+      }
+
+      return {
+        id: achievement.id,
+        name: achievement.name,
+        description: achievement.description,
+        iconUrl: achievement.iconUrl,
+        category: achievement.category,
+        earned,
+        earnedAt: userAchievement?.earnedAt || null,
+        progress: earned ? achievement.triggerValue : progress,
+        targetValue: achievement.triggerValue,
+        progressPercentage: earned 
+          ? 100 
+          : Math.min(100, Math.round((progress / achievement.triggerValue) * 100)),
+        xpReward: achievement.xpReward,
+        pointsReward: achievement.pointsReward,
+        isSecret: achievement.isSecret,
+      };
+    });
+  }
+
+  /**
+   * Get earned achievements (badges) for a user
+   */
+  async getEarnedAchievements(userId: string) {
+    const earned = await prisma.userAchievement.findMany({
+      where: {
+        userId,
+        earnedAt: { not: null },
+      },
+      include: {
+        achievement: true,
+      },
+      orderBy: { earnedAt: 'desc' },
+    });
+
+    return earned.map((ua) => ({
+      id: ua.achievement.id,
+      name: ua.achievement.name,
+      description: ua.achievement.description,
+      iconUrl: ua.achievement.iconUrl,
+      category: ua.achievement.category,
+      earnedAt: ua.earnedAt,
+      xpReward: ua.achievement.xpReward,
+      pointsReward: ua.achievement.pointsReward,
+    }));
+  }
+
+  /**
+   * Get achievements in progress (not yet earned)
+   */
+  async getAchievementsInProgress(userId: string) {
+    const achievements = await this.getAchievements(userId);
+    return achievements.filter((a) => !a.earned && a.progressPercentage > 0);
+  }
+
+  /**
+   * Update progress for an achievement
+   */
+  async updateProgress(userId: string, achievementId: string, newProgress: number) {
+    const achievement = await prisma.achievement.findUnique({
+      where: { id: achievementId },
+    });
+
+    if (!achievement || !achievement.isActive) {
+      throw new Error('Achievement not found');
+    }
+
+    const existing = await prisma.userAchievement.findUnique({
+      where: {
+        userId_achievementId: {
+          userId,
+          achievementId,
+        },
+      },
+    });
+
+    // If already earned, don't update
+    if (existing?.earnedAt) {
+      return { alreadyEarned: true };
+    }
+
+    const shouldAward = newProgress >= achievement.triggerValue;
+
+    if (!existing) {
+      // Create new progress record
+      await prisma.userAchievement.create({
+        data: {
+          userId,
+          achievementId,
+          progress: newProgress,
+          earnedAt: shouldAward ? new Date() : null,
+        },
+      });
+    } else {
+      // Update existing progress
+      await prisma.userAchievement.update({
+        where: {
+          userId_achievementId: {
+            userId,
+            achievementId,
+          },
+        },
+        data: {
+          progress: newProgress,
+          earnedAt: shouldAward ? new Date() : null,
+        },
+      });
+    }
+
+    if (shouldAward) {
+      // Award XP and points
+      await this.awardAchievementRewards(userId, achievement);
+      return {
+        earned: true,
+        achievement: {
+          id: achievement.id,
+          name: achievement.name,
+          description: achievement.description,
+          xpReward: achievement.xpReward,
+          pointsReward: achievement.pointsReward,
+        },
+      };
+    }
+
+    return {
+      earned: false,
+      progress: newProgress,
+      targetValue: achievement.triggerValue,
+    };
+  }
+
+  /**
+   * Check and update achievements based on a trigger
+   */
+  async checkAchievements(userId: string, triggerType: string, value: number) {
+    // Get all achievements for this trigger type
+    const achievements = await prisma.achievement.findMany({
+      where: {
+        triggerType,
+        isActive: true,
+      },
+    });
+
+    const results = [];
+
+    for (const achievement of achievements) {
+      const existing = await prisma.userAchievement.findUnique({
+        where: {
+          userId_achievementId: {
+            userId,
+            achievementId: achievement.id,
+          },
+        },
+      });
+
+      // Skip if already earned
+      if (existing?.earnedAt) {
+        continue;
+      }
+
+      const result = await this.updateProgress(userId, achievement.id, value);
+      if (result.earned) {
+        results.push(result);
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Award XP and points for earning an achievement
+   */
+  private async awardAchievementRewards(
+    userId: string,
+    achievement: { id: string; name: string; xpReward: number; pointsReward: number }
+  ) {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      // Award XP
+      if (achievement.xpReward > 0) {
+        await tx.playerState.update({
+          where: { userId },
+          data: {
+            xp: { increment: achievement.xpReward },
+            totalXp: { increment: achievement.xpReward },
+          },
+        });
+      }
+
+      // Award points
+      if (achievement.pointsReward > 0) {
+        const rewardPoints = await tx.rewardPoints.findUnique({
+          where: { userId },
+        });
+
+        if (rewardPoints) {
+          await tx.rewardPoints.update({
+            where: { userId },
+            data: {
+              balance: { increment: achievement.pointsReward },
+              lifetimeEarned: { increment: achievement.pointsReward },
+            },
+          });
+        } else {
+          await tx.rewardPoints.create({
+            data: {
+              userId,
+              balance: achievement.pointsReward,
+              lifetimeEarned: achievement.pointsReward,
+            },
+          });
+        }
+
+        // Record in history
+        await tx.rewardHistory.create({
+          data: {
+            userId,
+            type: 'earned',
+            points: achievement.pointsReward,
+            description: `Achievement unlocked: ${achievement.name}`,
+          },
+        });
+      }
+    });
+  }
+
+  /**
+   * Get achievement statistics for a user
+   */
+  async getAchievementStats(userId: string) {
+    const [totalAchievements, earnedCount, inProgressCount] = await Promise.all([
+      prisma.achievement.count({ where: { isActive: true } }),
+      prisma.userAchievement.count({
+        where: {
+          userId,
+          earnedAt: { not: null },
+        },
+      }),
+      prisma.userAchievement.count({
+        where: {
+          userId,
+          earnedAt: null,
+          progress: { gt: 0 },
+        },
+      }),
+    ]);
+
+    // Get total XP and points earned from achievements
+    const earnedAchievements = await prisma.userAchievement.findMany({
+      where: {
+        userId,
+        earnedAt: { not: null },
+      },
+      include: {
+        achievement: {
+          select: {
+            xpReward: true,
+            pointsReward: true,
+          },
+        },
+      },
+    });
+
+    const totalXpEarned = earnedAchievements.reduce(
+      (sum, ua) => sum + ua.achievement.xpReward,
+      0
+    );
+    const totalPointsEarned = earnedAchievements.reduce(
+      (sum, ua) => sum + ua.achievement.pointsReward,
+      0
+    );
+
+    return {
+      total: totalAchievements,
+      earned: earnedCount,
+      inProgress: inProgressCount,
+      remaining: totalAchievements - earnedCount,
+      completionPercentage: Math.round((earnedCount / totalAchievements) * 100),
+      totalXpEarned,
+      totalPointsEarned,
+    };
+  }
+}
