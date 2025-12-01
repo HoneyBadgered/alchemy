@@ -101,11 +101,12 @@ function SubscriptionsContent() {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleSkipNext = async (_id: string) => {
+  // TODO: Integrate with subscription API to update the next shipment date
+  const handleSkipNext = async (subscriptionId: string) => {
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
-      // In production, this would update the next shipment date using _id
+      // Simulated API call - in production: await subscriptionApi.skipNext(subscriptionId, accessToken);
+      console.log('Skipping next shipment for subscription:', subscriptionId);
       setMessage({ type: 'success', text: 'Next shipment skipped. Your schedule has been adjusted.' });
     } catch {
       setMessage({ type: 'error', text: 'Failed to skip shipment.' });
