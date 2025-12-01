@@ -37,7 +37,7 @@ const createIngredientSchema = z.object({
   category: z.string().min(1, 'Category is required'),
   descriptionShort: z.string().optional(),
   descriptionLong: z.string().optional(),
-  image: z.string().url().optional().or(z.literal('')),
+  image: z.string().url().optional().nullable().transform(val => val || undefined),
   
   // Flavor & Use
   flavorNotes: z.array(z.string()).optional().default([]),

@@ -10,6 +10,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from '@/store/authStore';
 
+// Constants
+const GRAMS_PER_OUNCE = 28.3495;
+
 interface Ingredient {
   id: string;
   name: string;
@@ -566,12 +569,17 @@ export default function AdminIngredientsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex flex-wrap gap-1">
-                        {getStatusBadge(ingredient)}
-                        {getStatusBadge(ingredient).length === 0 && (
-                          <span className="px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">Active</span>
-                        )}
-                      </div>
+                      {(() => {
+                        const statusBadges = getStatusBadge(ingredient);
+                        return (
+                          <div className="flex flex-wrap gap-1">
+                            {statusBadges}
+                            {statusBadges.length === 0 && (
+                              <span className="px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">Active</span>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-900">
                       {ingredient.inventoryAmount !== undefined ? (
@@ -981,7 +989,7 @@ function IngredientModal({
                   />
                   {formData.costPerOunce && (
                     <p className="text-sm text-gray-500 mt-1">
-                      ≈ ${(formData.costPerOunce / 28.3495).toFixed(4)}/gram
+                      ≈ ${(formData.costPerOunce / GRAMS_PER_OUNCE).toFixed(4)}/gram
                     </p>
                   )}
                 </div>

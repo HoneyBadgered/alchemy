@@ -146,18 +146,8 @@ export class AdminIngredientService {
       where.supplierId = supplierId;
     }
 
-    if (lowStock) {
-      // Show items where inventory is at or below minimum stock level
-      where.AND = [
-        {
-          inventoryAmount: {
-            lte: prisma.ingredient.fields.minimumStockLevel,
-          },
-        },
-      ];
-      // Alternative approach since Prisma doesn't support field comparison directly
-      // We'll handle this differently
-    }
+    // Note: lowStock filter is handled after fetching since Prisma doesn't support field comparison
+    // The where clause filtering is done in the post-fetch processing below
 
     // Build orderBy
     let orderBy: Prisma.IngredientOrderByWithRelationInput = {};
@@ -212,11 +202,13 @@ export class AdminIngredientService {
     }
 
     // Transform pairings for easier consumption
-    const transformedIngredients = filteredIngredients.map((ing) => ({
-      ...ing,
-      pairings: ing.pairsWith.map((p) => p.targetIngredient),
-      pairsWith: undefined,
-    }));
+    const transformedIngredients = filteredIngredients.map((ing) => {
+      const { pairsWith, ...rest } = ing;
+      return {
+        ...rest,
+        pairings: pairsWith.map((p) => p.targetIngredient),
+      };
+    });
 
     return {
       ingredients: transformedIngredients,
