@@ -12,10 +12,11 @@ interface Order {
   status: string;
   totalAmount: number;
   createdAt: string;
+  guestEmail?: string | null;
   user: {
     username: string;
     email: string;
-  };
+  } | null;
   items: Array<{
     product: {
       name: string;
@@ -169,8 +170,12 @@ export default function AdminOrdersPage() {
                       {order.id.slice(0, 8)}...
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">{order.user.username}</div>
-                      <div className="text-sm text-gray-500">{order.user.email}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {order.user?.username || order.guestEmail || 'Guest'}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {order.user?.email || (order.guestEmail ? order.guestEmail : 'No email')}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
