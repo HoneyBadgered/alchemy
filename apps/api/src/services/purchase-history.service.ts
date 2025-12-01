@@ -111,9 +111,12 @@ export class PurchaseHistoryService {
     }
 
     // Convert to array and filter by category if needed
+    // Note: Orders are sorted by createdAt desc, so purchaseDates[0] is most recent
     let purchaseHistory: PurchaseHistoryItem[] = Array.from(productPurchases.entries())
       .map(([productId, data]) => {
         const review = reviewMap.get(productId);
+        // purchaseDates are in desc order (newest first) since orders are sorted desc
+        const sortedDates = [...data.purchaseDates].sort((a, b) => a.getTime() - b.getTime());
         return {
           productId,
           name: data.product.name,
@@ -123,8 +126,8 @@ export class PurchaseHistoryService {
           price: Number(data.product.price),
           totalQuantityPurchased: data.totalQuantity,
           totalSpent: data.totalSpent,
-          firstPurchaseDate: data.purchaseDates[data.purchaseDates.length - 1],
-          lastPurchaseDate: data.purchaseDates[0],
+          firstPurchaseDate: sortedDates[0],
+          lastPurchaseDate: sortedDates[sortedDates.length - 1],
           purchaseCount: data.purchaseDates.length,
           averageRating: data.product.averageRating ? Number(data.product.averageRating) : null,
           userReview: review
@@ -342,7 +345,16 @@ export class PurchaseHistoryService {
         status: { in: ['paid', 'processing', 'shipped', 'completed'] },
       },
       include: {
-        items: true,
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                category: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -357,18 +369,15 @@ export class PurchaseHistoryService {
       orders.flatMap((o) => o.items.map((i) => i.productId))
     );
 
-    // Find favorite category
+    // Find favorite category using already-included product data
     const categoryCount = new Map<string, number>();
     for (const order of orders) {
       for (const item of order.items) {
-        const product = await prisma.product.findUnique({
-          where: { id: item.productId },
-          select: { category: true },
-        });
-        if (product?.category) {
+        const category = item.product?.category;
+        if (category) {
           categoryCount.set(
-            product.category,
-            (categoryCount.get(product.category) || 0) + item.quantity
+            category,
+            (categoryCount.get(category) || 0) + item.quantity
           );
         }
       }

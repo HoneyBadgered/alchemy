@@ -369,13 +369,14 @@ export class SubscriptionService {
 
   /**
    * Get monthly multiplier for pricing calculations
+   * Uses approximate values (52 weeks / 12 months ≈ 4.33 weeks per month)
    */
   private getMonthlyMultiplier(frequency: string): number {
     switch (frequency.toLowerCase()) {
       case 'weekly':
-        return 4;
+        return 4.33; // ~4.33 weeks per month on average
       case 'biweekly':
-        return 2;
+        return 2.17; // ~2.17 biweekly periods per month
       case 'monthly':
         return 1;
       case 'bimonthly':
