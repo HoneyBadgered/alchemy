@@ -27,6 +27,14 @@ import { reviewsRoutes } from './routes/reviews.routes';
 import { wishlistRoutes } from './routes/wishlist.routes';
 import { promotionsRoutes } from './routes/promotions.routes';
 import { bundlesRoutes } from './routes/bundles.routes';
+import { userProfileRoutes } from './routes/user-profile.routes';
+import { addressRoutes } from './routes/address.routes';
+import { paymentMethodRoutes } from './routes/payment-method.routes';
+import { rewardsRoutes } from './routes/rewards.routes';
+import { subscriptionRoutes } from './routes/subscription.routes';
+import { notificationPreferencesRoutes } from './routes/notification-preferences.routes';
+import { achievementsRoutes } from './routes/achievements.routes';
+import { purchaseHistoryRoutes } from './routes/purchase-history.routes';
 
 const fastify = Fastify({
   logger: config.isDevelopment,
@@ -79,6 +87,14 @@ fastify.register(reviewsRoutes);
 fastify.register(wishlistRoutes);
 fastify.register(promotionsRoutes);
 fastify.register(bundlesRoutes);
+fastify.register(userProfileRoutes);
+fastify.register(addressRoutes);
+fastify.register(paymentMethodRoutes);
+fastify.register(rewardsRoutes);
+fastify.register(subscriptionRoutes);
+fastify.register(notificationPreferencesRoutes);
+fastify.register(achievementsRoutes);
+fastify.register(purchaseHistoryRoutes);
 
 // Health check
 fastify.get('/health', async () => {
