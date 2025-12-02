@@ -22,4 +22,8 @@ export { CenterScene } from './CenterScene';
 export { AddinsColumn } from './AddinsColumn';
 export { BottomActionBar } from './BottomActionBar';
 export { BlendingPage } from './BlendingPage';
-export { BowlFillVisual } from './BowlFillVisual';
+
+// Collapsible Panel Components
+export { CollapsiblePanel, PanelTrigger } from './CollapsiblePanel';
+export { CollapsibleBaseColumn } from './CollapsibleBaseColumn';
+export { CollapsibleMagicColumn } from './CollapsibleMagicColumn';
