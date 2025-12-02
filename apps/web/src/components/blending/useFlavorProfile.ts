@@ -1,0 +1,158 @@
+/**
+ * useFlavorProfile Hook
+ * 
+ * Aggregates flavor profiles from selected ingredients and derives blend status
+ */
+
+'use client';
+
+import { useMemo } from 'react';
+import type { ExtendedBlendState, FlavorProfile, BlendStatus } from './types';
+import { getBlendingIngredientById } from './mockData';
+
+/**
+ * Empty/default flavor profile
+ */
+const EMPTY_PROFILE: FlavorProfile = {
+  floral: 0,
+  citrus: 0,
+  earthy: 0,
+  sweet: 0,
+  caffeine: 0,
+};
+
+/**
+ * Normalize a flavor profile to 0-100 scale
+ */
+function normalizeProfile(profile: FlavorProfile): FlavorProfile {
+  const max = Math.max(
+    profile.floral,
+    profile.citrus,
+    profile.earthy,
+    profile.sweet,
+    profile.caffeine,
+    1 // Prevent division by zero
+  );
+
+  // If the max is already under 100, just return the profile clamped
+  if (max <= 100) {
+    return {
+      floral: Math.min(100, Math.max(0, profile.floral)),
+      citrus: Math.min(100, Math.max(0, profile.citrus)),
+      earthy: Math.min(100, Math.max(0, profile.earthy)),
+      sweet: Math.min(100, Math.max(0, profile.sweet)),
+      caffeine: Math.min(100, Math.max(0, profile.caffeine)),
+    };
+  }
+
+  // Scale down to fit within 0-100
+  const scale = 100 / max;
+  return {
+    floral: Math.round(profile.floral * scale),
+    citrus: Math.round(profile.citrus * scale),
+    earthy: Math.round(profile.earthy * scale),
+    sweet: Math.round(profile.sweet * scale),
+    caffeine: Math.round(profile.caffeine * scale),
+  };
+}
+
+/**
+ * Derive blend status text from flavor profile
+ */
+function deriveBlendStatus(profile: FlavorProfile): BlendStatus {
+  const { floral, citrus, earthy, sweet, caffeine } = profile;
+
+  // Check for specific combinations
+  if (floral > 50 && citrus > 40) {
+    return { label: 'Bright & Floral', description: 'A vibrant blend with garden freshness' };
+  }
+  if (caffeine > 60 && earthy > 40) {
+    return { label: 'Bold & Energizing', description: 'A powerful morning pick-me-up' };
+  }
+  if (sweet > 60 && floral > 30) {
+    return { label: 'Sweet & Delicate', description: 'A gentle, honeyed infusion' };
+  }
+  if (earthy > 60) {
+    return { label: 'Grounded & Robust', description: 'A rich, full-bodied experience' };
+  }
+  if (citrus > 60) {
+    return { label: 'Citrus Forward', description: 'Zesty and refreshing' };
+  }
+  if (floral > 60) {
+    return { label: 'Floral Fantasy', description: 'A garden in your cup' };
+  }
+  if (sweet > 60) {
+    return { label: 'Sweet Indulgence', description: 'A dessert-like treat' };
+  }
+  if (caffeine > 50) {
+    return { label: 'Energizing', description: 'A caffeinated boost' };
+  }
+
+  // Default balanced status
+  return { label: 'Balanced', description: 'A harmonious blend of flavors' };
+}
+
+/**
+ * Hook for calculating aggregated flavor profile and blend status
+ */
+export function useFlavorProfile(blendState: ExtendedBlendState): {
+  profile: FlavorProfile;
+  normalizedProfile: FlavorProfile;
+  status: BlendStatus;
+} {
+  return useMemo(() => {
+    // Start with empty profile
+    const aggregated: FlavorProfile = { ...EMPTY_PROFILE };
+    let totalWeight = 0;
+
+    // Add base tea contribution (60% of blend typically)
+    if (blendState.baseTeaId) {
+      const base = getBlendingIngredientById(blendState.baseTeaId);
+      if (base?.flavorProfile) {
+        const baseWeight = blendState.size * 0.6;
+        totalWeight += baseWeight;
+        
+        for (const key of Object.keys(aggregated) as Array<keyof FlavorProfile>) {
+          aggregated[key] += base.flavorProfile[key] * baseWeight;
+        }
+      }
+    }
+
+    // Add add-ins contribution
+    for (const addIn of blendState.addIns) {
+      const ingredient = getBlendingIngredientById(addIn.ingredientId);
+      if (ingredient?.flavorProfile) {
+        const weight = addIn.quantity;
+        totalWeight += weight;
+        
+        for (const key of Object.keys(aggregated) as Array<keyof FlavorProfile>) {
+          aggregated[key] += ingredient.flavorProfile[key] * weight;
+        }
+      }
+    }
+
+    // Calculate weighted average
+    if (totalWeight > 0) {
+      for (const key of Object.keys(aggregated) as Array<keyof FlavorProfile>) {
+        aggregated[key] = aggregated[key] / totalWeight;
+      }
+    }
+
+    const normalizedProfile = normalizeProfile(aggregated);
+    const status = deriveBlendStatus(normalizedProfile);
+
+    return {
+      profile: aggregated,
+      normalizedProfile,
+      status,
+    };
+  }, [blendState.baseTeaId, blendState.addIns, blendState.size]);
+}
+
+/**
+ * Default status when no blend is configured
+ */
+export const DEFAULT_STATUS: BlendStatus = {
+  label: 'Start Creating',
+  description: 'Select a base and add ingredients',
+};

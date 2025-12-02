@@ -1,13 +1,12 @@
 'use client';
 
-import BottomNavigation from '@/components/BottomNavigation';
-import { AlchemyTableScene } from '@/components/alchemy-table';
+import { BlendingPage } from '@/components/blending';
 
 export default function TablePage() {
-  return (
-    <div className="min-h-screen">
-      <AlchemyTableScene />
-      <BottomNavigation />
-    </div>
-  );
+  const handleBack = () => {
+    // Navigate back to shop/library
+    window.location.href = '/shop';
+  };
+
+  return <BlendingPage onBack={handleBack} />;
 }
