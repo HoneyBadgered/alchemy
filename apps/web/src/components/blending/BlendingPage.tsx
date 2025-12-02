@@ -157,7 +157,8 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
 
   return (
     <div className="min-h-screen relative">
-      {/* Fixed full-screen background image */}
+      {/* Fixed full-screen background with gradient fallback
+          Optional: Add /alchemy-table-bg.jpg to public folder for custom background image */}
       <div 
         className="fixed inset-0 z-0 bg-gradient-to-br from-slate-900 via-purple-950 to-indigo-950"
         style={{
