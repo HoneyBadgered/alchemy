@@ -102,19 +102,27 @@ function AddressesContent() {
       if (editingId) {
         // Update existing address
         const updatedAddress = await addressApi.updateAddress(editingId, formData, accessToken);
-        setAddresses(prev => prev.map(addr => 
-          addr.id === editingId ? updatedAddress : addr
-        ));
+        // If updated address is now default, update all other addresses to non-default
+        if (updatedAddress.isDefault) {
+          setAddresses(prev => prev.map(addr => 
+            addr.id === editingId ? updatedAddress : { ...addr, isDefault: false }
+          ));
+        } else {
+          setAddresses(prev => prev.map(addr => 
+            addr.id === editingId ? updatedAddress : addr
+          ));
+        }
         setMessage({ type: 'success', text: 'Address updated successfully.' });
       } else {
         // Add new address
         const newAddress = await addressApi.addAddress(formData, accessToken);
-        // If this is the first address or is set as default, update the list properly
-        if (newAddress.isDefault) {
-          setAddresses(prev => prev.map(addr => ({ ...addr, isDefault: false })).concat(newAddress));
-        } else {
-          setAddresses(prev => [...prev, newAddress]);
-        }
+        // Always update list: set other addresses to non-default if new one is default
+        setAddresses(prev => {
+          const updated = newAddress.isDefault 
+            ? prev.map(addr => ({ ...addr, isDefault: false }))
+            : prev;
+          return [...updated, newAddress];
+        });
         setMessage({ type: 'success', text: 'New address added successfully.' });
       }
 

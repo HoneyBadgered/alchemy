@@ -41,6 +41,7 @@ function AccountContent() {
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [profileMessage, setProfileMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [deleteMessage, setDeleteMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   
   // Update form state when user data changes
   useEffect(() => {
@@ -120,13 +121,15 @@ function AccountContent() {
   };
   
   const handleDeleteAccount = async () => {
+    setDeleteMessage(null);
+    
     if (!accessToken) {
-      alert('You must be logged in to delete your account.');
+      setDeleteMessage({ type: 'error', text: 'You must be logged in to delete your account.' });
       return;
     }
     
     if (!deletePassword) {
-      alert('Please enter your password to confirm account deletion.');
+      setDeleteMessage({ type: 'error', text: 'Please enter your password to confirm account deletion.' });
       return;
     }
     
@@ -136,7 +139,7 @@ function AccountContent() {
       await profileApi.deleteAccount(deletePassword, accessToken);
       logout();
     } catch (error) {
-      alert((error as Error).message || 'Failed to delete account. Please try again.');
+      setDeleteMessage({ type: 'error', text: (error as Error).message || 'Failed to delete account. Please try again.' });
       setDeletingAccount(false);
     }
   };
@@ -444,6 +447,11 @@ function AccountContent() {
                   placeholder="Enter your password"
                 />
               </div>
+              {deleteMessage && (
+                <div className="mb-4 p-3 rounded-lg bg-red-900/30 border border-red-600/50 text-red-300">
+                  {deleteMessage.text}
+                </div>
+              )}
               <div className="flex gap-3">
                 <button
                   onClick={handleDeleteAccount}
@@ -456,6 +464,7 @@ function AccountContent() {
                   onClick={() => {
                     setShowDeleteConfirm(false);
                     setDeletePassword('');
+                    setDeleteMessage(null);
                   }}
                   className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-purple-200 rounded-lg font-medium transition-colors"
                 >
