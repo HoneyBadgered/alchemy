@@ -7,21 +7,23 @@
  * with a dark-fairytale aesthetic.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 import BottomNavigation from '@/components/BottomNavigation';
+import { profileApi } from '@/lib/profile-api';
 
 function AccountContent() {
-  const { user, logout } = useAuth();
-  useAuthStore(); // Available for future API integration
+  const { user, logout, refreshAuth } = useAuth();
+  const { accessToken } = useAuthStore();
   
   // Form states
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
   
   // Profile form state
   const [firstName, setFirstName] = useState(user?.profile?.firstName || '');
@@ -36,25 +38,46 @@ function AccountContent() {
   // Status states
   const [profileSaving, setProfileSaving] = useState(false);
   const [passwordSaving, setPasswordSaving] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const [profileMessage, setProfileMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  
+  // Update form state when user data changes
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.profile?.firstName || '');
+      setLastName(user.profile?.lastName || '');
+      setEmail(user.email || '');
+    }
+  }, [user]);
   
   const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setProfileSaving(true);
     setProfileMessage(null);
     
+    if (!accessToken) {
+      setProfileMessage({ type: 'error', text: 'You must be logged in to update your profile.' });
+      setProfileSaving(false);
+      return;
+    }
+    
     try {
-      // In production, this would call an API endpoint
-      // await userApi.updateProfile({ firstName, lastName, email }, accessToken);
+      // Update profile (firstName, lastName)
+      await profileApi.updateProfile({ firstName, lastName }, accessToken);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Update account (email) if changed
+      if (email !== user?.email) {
+        await profileApi.updateAccount({ email }, accessToken);
+      }
+      
+      // Refresh user data to update the UI
+      await refreshAuth();
       
       setProfileMessage({ type: 'success', text: 'Your arcane credentials have been updated successfully.' });
       setIsEditingProfile(false);
-    } catch {
-      setProfileMessage({ type: 'error', text: 'Failed to update profile. Please try again.' });
+    } catch (error) {
+      setProfileMessage({ type: 'error', text: (error as Error).message || 'Failed to update profile. Please try again.' });
     } finally {
       setProfileSaving(false);
     }
@@ -73,39 +96,48 @@ function AccountContent() {
       return;
     }
     
+    if (!accessToken) {
+      setPasswordMessage({ type: 'error', text: 'You must be logged in to change your password.' });
+      return;
+    }
+    
     setPasswordSaving(true);
     setPasswordMessage(null);
     
     try {
-      // In production, this would call an API endpoint
-      // await authApi.changePassword({ currentPassword, newPassword }, accessToken);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await profileApi.updateAccount({ currentPassword, newPassword }, accessToken);
       
       setPasswordMessage({ type: 'success', text: 'Your secret incantation has been changed.' });
       setIsChangingPassword(false);
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } catch {
-      setPasswordMessage({ type: 'error', text: 'Failed to change password. Please verify your current password.' });
+    } catch (error) {
+      setPasswordMessage({ type: 'error', text: (error as Error).message || 'Failed to change password. Please verify your current password.' });
     } finally {
       setPasswordSaving(false);
     }
   };
   
   const handleDeleteAccount = async () => {
+    if (!accessToken) {
+      alert('You must be logged in to delete your account.');
+      return;
+    }
+    
+    if (!deletePassword) {
+      alert('Please enter your password to confirm account deletion.');
+      return;
+    }
+    
+    setDeletingAccount(true);
+    
     try {
-      // In production, this would call an API endpoint
-      // await userApi.deleteAccount(accessToken);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await profileApi.deleteAccount(deletePassword, accessToken);
       logout();
-    } catch {
-      alert('Failed to delete account. Please try again.');
+    } catch (error) {
+      alert((error as Error).message || 'Failed to delete account. Please try again.');
+      setDeletingAccount(false);
     }
   };
 
@@ -400,15 +432,31 @@ function AccountContent() {
               <p className="text-red-200 mb-4">
                 Are you sure you wish to dissolve your account? All your data, orders, and achievements will be lost forever.
               </p>
+              <div className="mb-4">
+                <label className="block text-red-200 text-sm font-medium mb-2">
+                  Enter your password to confirm
+                </label>
+                <input
+                  type="password"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-red-500/30 rounded-lg text-white placeholder-red-300/50 focus:outline-none focus:border-red-400 transition-colors"
+                  placeholder="Enter your password"
+                />
+              </div>
               <div className="flex gap-3">
                 <button
                   onClick={handleDeleteAccount}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-medium transition-colors"
+                  disabled={deletingAccount || !deletePassword}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                 >
-                  Yes, Delete My Account
+                  {deletingAccount ? 'Deleting...' : 'Yes, Delete My Account'}
                 </button>
                 <button
-                  onClick={() => setShowDeleteConfirm(false)}
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setDeletePassword('');
+                  }}
                   className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-purple-200 rounded-lg font-medium transition-colors"
                 >
                   Cancel
