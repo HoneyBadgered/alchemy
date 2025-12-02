@@ -99,4 +99,64 @@ describe('useFlavorProfile', () => {
     expect(normalizedProfile.sweet).toBeGreaterThanOrEqual(0);
     expect(normalizedProfile.caffeine).toBeGreaterThanOrEqual(0);
   });
+
+  it('should keep caffeine independent from add-ins (caffeine does not change with blend composition)', () => {
+    // Base tea only - Moonlit Black has caffeine: 70
+    const baseOnlyState: ExtendedBlendState = {
+      baseTeaId: 'moonlit-black',
+      addIns: [],
+      blendName: 'Test Blend',
+      size: 2,
+    };
+
+    // Base tea with multiple add-ins (none of which have caffeine)
+    const withAddInsState: ExtendedBlendState = {
+      baseTeaId: 'moonlit-black',
+      addIns: [
+        { ingredientId: 'rose-petals', quantity: 1 },
+        { ingredientId: 'lavender-buds', quantity: 1 },
+        { ingredientId: 'vanilla-bean', quantity: 0.5 },
+      ],
+      blendName: 'Test Blend with Add-ins',
+      size: 2,
+    };
+
+    const { result: baseOnlyResult } = renderHook(() => useFlavorProfile(baseOnlyState));
+    const { result: withAddInsResult } = renderHook(() => useFlavorProfile(withAddInsState));
+
+    // Caffeine should remain the same from the base tea regardless of add-ins
+    expect(withAddInsResult.current.normalizedProfile.caffeine).toBe(
+      baseOnlyResult.current.normalizedProfile.caffeine
+    );
+    
+    // But flavor values should change (floral should increase with rose petals and lavender)
+    expect(withAddInsResult.current.normalizedProfile.floral).not.toBe(
+      baseOnlyResult.current.normalizedProfile.floral
+    );
+  });
+
+  it('should use caffeine directly from base tea value', () => {
+    // Moonlit Black has caffeine: 70
+    const blackTeaBlend: ExtendedBlendState = {
+      baseTeaId: 'moonlit-black',
+      addIns: [],
+      blendName: 'Black Tea',
+      size: 2,
+    };
+
+    // Herbal Rooibos has caffeine: 0
+    const herbalBlend: ExtendedBlendState = {
+      baseTeaId: 'herbal-rooibos',
+      addIns: [],
+      blendName: 'Herbal',
+      size: 2,
+    };
+
+    const { result: blackTeaResult } = renderHook(() => useFlavorProfile(blackTeaBlend));
+    const { result: herbalResult } = renderHook(() => useFlavorProfile(herbalBlend));
+
+    // Caffeine should come directly from the base tea
+    expect(blackTeaResult.current.normalizedProfile.caffeine).toBe(70);
+    expect(herbalResult.current.normalizedProfile.caffeine).toBe(0);
+  });
 });

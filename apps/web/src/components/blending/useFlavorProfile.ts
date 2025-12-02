@@ -12,13 +12,13 @@ import { getBlendingIngredientById } from './mockData';
 
 /**
  * Flavor profile keys as a constant array for type-safe iteration
+ * Note: caffeine is excluded as it is handled independently from flavor choices
  */
-const FLAVOR_KEYS: readonly (keyof FlavorProfile)[] = [
+const FLAVOR_KEYS: readonly (keyof Omit<FlavorProfile, 'caffeine'>)[] = [
   'floral',
   'citrus',
   'earthy',
   'sweet',
-  'caffeine',
 ] as const;
 
 /**
@@ -34,6 +34,7 @@ const EMPTY_PROFILE: FlavorProfile = {
 
 /**
  * Helper function to add weighted flavor profile contribution
+ * Note: caffeine is handled separately and not weighted
  */
 function addWeightedProfile(
   target: FlavorProfile,
@@ -47,6 +48,7 @@ function addWeightedProfile(
 
 /**
  * Helper function to divide all profile values by a weight
+ * Note: caffeine is handled separately and not divided
  */
 function divideProfile(target: FlavorProfile, divisor: number): void {
   for (const key of FLAVOR_KEYS) {
@@ -56,36 +58,40 @@ function divideProfile(target: FlavorProfile, divisor: number): void {
 
 /**
  * Normalize a flavor profile to 0-100 scale
+ * Note: caffeine is kept independent and only clamped, not scaled with other flavors
  */
 function normalizeProfile(profile: FlavorProfile): FlavorProfile {
+  // Only consider flavor values (not caffeine) when determining scale
   const max = Math.max(
     profile.floral,
     profile.citrus,
     profile.earthy,
     profile.sweet,
-    profile.caffeine,
     1 // Prevent division by zero
   );
 
-  // If the max is already under 100, just return the profile clamped
+  // Caffeine is clamped independently (0-100)
+  const caffeine = Math.min(100, Math.max(0, profile.caffeine));
+
+  // If the max flavor is already under 100, just return the profile clamped
   if (max <= 100) {
     return {
       floral: Math.min(100, Math.max(0, profile.floral)),
       citrus: Math.min(100, Math.max(0, profile.citrus)),
       earthy: Math.min(100, Math.max(0, profile.earthy)),
       sweet: Math.min(100, Math.max(0, profile.sweet)),
-      caffeine: Math.min(100, Math.max(0, profile.caffeine)),
+      caffeine,
     };
   }
 
-  // Scale down to fit within 0-100
+  // Scale down flavors to fit within 0-100, caffeine stays independent
   const scale = 100 / max;
   return {
     floral: Math.round(profile.floral * scale),
     citrus: Math.round(profile.citrus * scale),
     earthy: Math.round(profile.earthy * scale),
     sweet: Math.round(profile.sweet * scale),
-    caffeine: Math.round(profile.caffeine * scale),
+    caffeine,
   };
 }
 
@@ -127,6 +133,8 @@ function deriveBlendStatus(profile: FlavorProfile): BlendStatus {
 
 /**
  * Hook for calculating aggregated flavor profile and blend status
+ * Note: Caffeine is calculated independently from flavor profiles.
+ *       It comes directly from the base tea and does not change with add-ins.
  */
 export function useFlavorProfile(blendState: ExtendedBlendState): {
   profile: FlavorProfile;
@@ -138,17 +146,22 @@ export function useFlavorProfile(blendState: ExtendedBlendState): {
     const aggregated: FlavorProfile = { ...EMPTY_PROFILE };
     let totalWeight = 0;
 
-    // Add base tea contribution (60% of blend typically)
+    // Get caffeine directly from base tea (caffeine is independent of blend composition)
     if (blendState.baseTeaId) {
       const base = getBlendingIngredientById(blendState.baseTeaId);
       if (base?.flavorProfile) {
+        // Caffeine comes directly from the base tea and is not modified by add-ins
+        // Note: addWeightedProfile and divideProfile only operate on FLAVOR_KEYS (excludes caffeine)
+        aggregated.caffeine = base.flavorProfile.caffeine;
+        
+        // Add base tea flavor contribution (60% of blend typically)
         const baseWeight = blendState.size * 0.6;
         totalWeight += baseWeight;
         addWeightedProfile(aggregated, base.flavorProfile, baseWeight);
       }
     }
 
-    // Add add-ins contribution
+    // Add add-ins contribution (only flavors, not caffeine)
     for (const addIn of blendState.addIns) {
       const ingredient = getBlendingIngredientById(addIn.ingredientId);
       if (ingredient?.flavorProfile) {
@@ -158,7 +171,7 @@ export function useFlavorProfile(blendState: ExtendedBlendState): {
       }
     }
 
-    // Calculate weighted average
+    // Calculate weighted average for flavors only
     if (totalWeight > 0) {
       divideProfile(aggregated, totalWeight);
     }
