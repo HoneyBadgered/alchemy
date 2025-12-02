@@ -145,14 +145,22 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
     if (onBack) {
       onBack();
     } else {
-      // TODO: Wire to React Router navigation
-      window.history.back();
+      // TODO: Replace with React Router navigation when router is integrated
+      // Using window.history.back() as a fallback since this component may be used
+      // before full router integration is complete
+      if (typeof window !== 'undefined' && window.history.length > 1) {
+        window.history.back();
+      }
     }
   };
 
   const handleCartClick = () => {
-    // TODO: Navigate to cart
-    window.location.href = '/cart';
+    // TODO: Replace with React Router navigation (e.g., router.push('/cart'))
+    // Using window.location.href temporarily since this component may be used
+    // before full router integration is complete
+    if (typeof window !== 'undefined') {
+      window.location.href = '/cart';
+    }
   };
 
   return (

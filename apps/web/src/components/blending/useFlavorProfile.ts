@@ -11,6 +11,17 @@ import type { ExtendedBlendState, FlavorProfile, BlendStatus } from './types';
 import { getBlendingIngredientById } from './mockData';
 
 /**
+ * Flavor profile keys as a constant array for type-safe iteration
+ */
+const FLAVOR_KEYS: readonly (keyof FlavorProfile)[] = [
+  'floral',
+  'citrus',
+  'earthy',
+  'sweet',
+  'caffeine',
+] as const;
+
+/**
  * Empty/default flavor profile
  */
 const EMPTY_PROFILE: FlavorProfile = {
@@ -20,6 +31,28 @@ const EMPTY_PROFILE: FlavorProfile = {
   sweet: 0,
   caffeine: 0,
 };
+
+/**
+ * Helper function to add weighted flavor profile contribution
+ */
+function addWeightedProfile(
+  target: FlavorProfile,
+  source: FlavorProfile,
+  weight: number
+): void {
+  for (const key of FLAVOR_KEYS) {
+    target[key] += source[key] * weight;
+  }
+}
+
+/**
+ * Helper function to divide all profile values by a weight
+ */
+function divideProfile(target: FlavorProfile, divisor: number): void {
+  for (const key of FLAVOR_KEYS) {
+    target[key] = target[key] / divisor;
+  }
+}
 
 /**
  * Normalize a flavor profile to 0-100 scale
@@ -111,10 +144,7 @@ export function useFlavorProfile(blendState: ExtendedBlendState): {
       if (base?.flavorProfile) {
         const baseWeight = blendState.size * 0.6;
         totalWeight += baseWeight;
-        
-        for (const key of Object.keys(aggregated) as Array<keyof FlavorProfile>) {
-          aggregated[key] += base.flavorProfile[key] * baseWeight;
-        }
+        addWeightedProfile(aggregated, base.flavorProfile, baseWeight);
       }
     }
 
@@ -124,18 +154,13 @@ export function useFlavorProfile(blendState: ExtendedBlendState): {
       if (ingredient?.flavorProfile) {
         const weight = addIn.quantity;
         totalWeight += weight;
-        
-        for (const key of Object.keys(aggregated) as Array<keyof FlavorProfile>) {
-          aggregated[key] += ingredient.flavorProfile[key] * weight;
-        }
+        addWeightedProfile(aggregated, ingredient.flavorProfile, weight);
       }
     }
 
     // Calculate weighted average
     if (totalWeight > 0) {
-      for (const key of Object.keys(aggregated) as Array<keyof FlavorProfile>) {
-        aggregated[key] = aggregated[key] / totalWeight;
-      }
+      divideProfile(aggregated, totalWeight);
     }
 
     const normalizedProfile = normalizeProfile(aggregated);
