@@ -9,6 +9,7 @@
 import React from 'react';
 import type { ExtendedBlendState, FlavorProfile, BlendSize, BlendBreakdownItem } from './types';
 import { getBlendingIngredientById } from './mockData';
+import { BowlFillVisual } from './BowlFillVisual';
 
 interface CenterSceneProps {
   /** Current blend state */
@@ -85,35 +86,7 @@ const PriceEstimateChip: React.FC<PriceEstimateChipProps> = ({ price }) => {
   );
 };
 
-const TableVisual: React.FC = () => {
-  return (
-    <div className="relative w-full aspect-square max-w-md mx-auto">
-      {/* TODO: Replace with actual table artwork/animations */}
-      {/* Outer table glow */}
-      <div className="absolute inset-0 bg-gradient-radial from-purple-500/20 via-transparent to-transparent rounded-full" />
-      
-      {/* Table surface */}
-      <div className="absolute inset-4 bg-gradient-to-br from-amber-800 via-amber-900 to-amber-950 rounded-full shadow-2xl border-4 border-amber-700/50" />
-      
-      {/* Inner bowl area */}
-      <div className="absolute inset-12 bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 rounded-full shadow-inner border-2 border-slate-600/50" />
-      
-      {/* Central brewing bowl */}
-      <div className="absolute inset-20 bg-gradient-to-br from-purple-900/80 via-indigo-900/80 to-purple-950/80 rounded-full shadow-inner flex items-center justify-center">
-        {/* Magical shimmer effect */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-purple-400/10 via-white/5 to-transparent animate-pulse" />
-        
-        {/* Bowl contents indicator */}
-        <div className="text-4xl">🫖</div>
-      </div>
-
-      {/* Floating particles placeholder */}
-      <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-purple-400/60 rounded-full animate-float" />
-      <div className="absolute top-1/3 right-1/4 w-1.5 h-1.5 bg-pink-400/60 rounded-full animate-float-delayed" />
-      <div className="absolute bottom-1/3 left-1/3 w-2 h-2 bg-indigo-400/60 rounded-full animate-float" />
-    </div>
-  );
-};
+// TableVisual has been replaced by BowlFillVisual component
 
 interface BlendStatsPanelProps {
   profile: FlavorProfile;
@@ -274,8 +247,8 @@ export const CenterScene: React.FC<CenterSceneProps> = ({
         </div>
       </div>
 
-      {/* Table Visual */}
-      <TableVisual />
+      {/* Bowl Fill Visual */}
+      <BowlFillVisual blendState={blendState} />
 
       {/* Bottom Panels: Stats and Breakdown */}
       <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
