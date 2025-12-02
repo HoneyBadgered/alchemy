@@ -9,7 +9,7 @@ import { getStockStatus, calculateDiscountPercent } from '@/lib/stock-utils';
 import { useCart } from '@/contexts/CartContext';
 import BottomNavigation from '@/components/BottomNavigation';
 import { StarRating, StockStatusBadge, SaleBadge } from '@/components/shop';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function WishlistPage() {
   const router = useRouter();
@@ -18,12 +18,7 @@ export default function WishlistPage() {
   const { addToCart } = useCart();
   const [movingToCart, setMovingToCart] = useState<Set<string>>(new Set());
 
-  // Redirect if not authenticated
-  if (!isAuthenticated) {
-    router.push('/login?redirect=/wishlist');
-    return null;
-  }
-
+  // All hooks must be called before any conditional returns
   const { data, isLoading, error } = useQuery<WishlistResponse>({
     queryKey: ['wishlist'],
     queryFn: () => catalogApi.getWishlist(accessToken!),
@@ -54,6 +49,18 @@ export default function WishlistPage() {
       });
     }
   };
+
+  // Redirect if not authenticated (must be in useEffect to avoid state updates during render)
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/login?redirect=/wishlist');
+    }
+  }, [isAuthenticated, router]);
+
+  // Return null after all hooks are called if not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-100 to-blue-100 pb-20">
