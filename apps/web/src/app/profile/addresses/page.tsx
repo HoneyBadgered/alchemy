@@ -6,55 +6,17 @@
  * Add, edit, delete shipping addresses with dark-fairytale aesthetic.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 import BottomNavigation from '@/components/BottomNavigation';
-
-interface Address {
-  id: string;
-  firstName: string;
-  lastName: string;
-  addressLine1: string;
-  addressLine2?: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
-  phone?: string;
-  isDefault: boolean;
-}
-
-// Mock addresses for demonstration
-const mockAddresses: Address[] = [
-  {
-    id: '1',
-    firstName: 'Archibald',
-    lastName: 'Thornwood',
-    addressLine1: '123 Mystic Lane',
-    addressLine2: 'Suite 7',
-    city: 'Shadowmere',
-    state: 'OR',
-    zipCode: '97201',
-    country: 'United States',
-    phone: '(503) 555-0123',
-    isDefault: true,
-  },
-  {
-    id: '2',
-    firstName: 'Archibald',
-    lastName: 'Thornwood',
-    addressLine1: '456 Enchanted Forest Rd',
-    city: 'Willowbrook',
-    state: 'WA',
-    zipCode: '98101',
-    country: 'United States',
-    isDefault: false,
-  },
-];
+import { addressApi, Address, CreateAddressInput } from '@/lib/profile-api';
 
 function AddressesContent() {
-  const [addresses, setAddresses] = useState<Address[]>(mockAddresses);
+  const { accessToken } = useAuthStore();
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -62,7 +24,7 @@ function AddressesContent() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Form state
-  const [formData, setFormData] = useState<Omit<Address, 'id' | 'isDefault'>>({
+  const [formData, setFormData] = useState<Omit<CreateAddressInput, 'isDefault'>>({
     firstName: '',
     lastName: '',
     addressLine1: '',
@@ -73,6 +35,27 @@ function AddressesContent() {
     country: 'United States',
     phone: '',
   });
+  
+  // Fetch addresses on mount
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      if (!accessToken) {
+        setIsLoading(false);
+        return;
+      }
+      
+      try {
+        const response = await addressApi.getAddresses(accessToken);
+        setAddresses(response.addresses);
+      } catch (error) {
+        setMessage({ type: 'error', text: (error as Error).message || 'Failed to fetch addresses.' });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchAddresses();
+  }, [accessToken]);
 
   const resetForm = () => {
     setFormData({
@@ -108,63 +91,82 @@ function AddressesContent() {
     e.preventDefault();
     setSaving(true);
     setMessage(null);
+    
+    if (!accessToken) {
+      setMessage({ type: 'error', text: 'You must be logged in to save addresses.' });
+      setSaving(false);
+      return;
+    }
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
       if (editingId) {
         // Update existing address
-        setAddresses(prev => prev.map(addr => 
-          addr.id === editingId 
-            ? { ...addr, ...formData }
-            : addr
-        ));
+        const updatedAddress = await addressApi.updateAddress(editingId, formData, accessToken);
+        // If updated address is now default, update all other addresses to non-default
+        if (updatedAddress.isDefault) {
+          setAddresses(prev => prev.map(addr => 
+            addr.id === editingId ? updatedAddress : { ...addr, isDefault: false }
+          ));
+        } else {
+          setAddresses(prev => prev.map(addr => 
+            addr.id === editingId ? updatedAddress : addr
+          ));
+        }
         setMessage({ type: 'success', text: 'Address updated successfully.' });
       } else {
         // Add new address
-        const newAddress: Address = {
-          id: Date.now().toString(),
-          ...formData,
-          isDefault: addresses.length === 0,
-        };
-        setAddresses(prev => [...prev, newAddress]);
+        const newAddress = await addressApi.addAddress(formData, accessToken);
+        // Always update list: set other addresses to non-default if new one is default
+        setAddresses(prev => {
+          const updated = newAddress.isDefault 
+            ? prev.map(addr => ({ ...addr, isDefault: false }))
+            : prev;
+          return [...updated, newAddress];
+        });
         setMessage({ type: 'success', text: 'New address added successfully.' });
       }
 
       resetForm();
       setIsAddingNew(false);
       setEditingId(null);
-    } catch {
-      setMessage({ type: 'error', text: 'Failed to save address. Please try again.' });
+    } catch (error) {
+      setMessage({ type: 'error', text: (error as Error).message || 'Failed to save address. Please try again.' });
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
+    if (!accessToken) {
+      setMessage({ type: 'error', text: 'You must be logged in to delete addresses.' });
+      return;
+    }
+    
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await addressApi.deleteAddress(id, accessToken);
       setAddresses(prev => prev.filter(addr => addr.id !== id));
       setDeleteConfirmId(null);
       setMessage({ type: 'success', text: 'Address removed from your records.' });
-    } catch {
-      setMessage({ type: 'error', text: 'Failed to delete address.' });
+    } catch (error) {
+      setMessage({ type: 'error', text: (error as Error).message || 'Failed to delete address.' });
     }
   };
 
   const handleSetDefault = async (id: string) => {
+    if (!accessToken) {
+      setMessage({ type: 'error', text: 'You must be logged in to set default address.' });
+      return;
+    }
+    
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await addressApi.setDefaultAddress(id, accessToken);
       setAddresses(prev => prev.map(addr => ({
         ...addr,
         isDefault: addr.id === id,
       })));
       setMessage({ type: 'success', text: 'Default delivery location updated.' });
-    } catch {
-      setMessage({ type: 'error', text: 'Failed to set default address.' });
+    } catch (error) {
+      setMessage({ type: 'error', text: (error as Error).message || 'Failed to set default address.' });
     }
   };
 
@@ -197,6 +199,14 @@ function AddressesContent() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 relative z-10 space-y-6">
+        {/* Loading State */}
+        {isLoading && (
+          <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-8 text-center border border-purple-500/20">
+            <span className="text-4xl mb-4 block animate-pulse">🔮</span>
+            <p className="text-purple-300">Loading your addresses...</p>
+          </div>
+        )}
+        
         {/* Message */}
         {message && (
           <div className={`p-4 rounded-lg ${
@@ -209,7 +219,7 @@ function AddressesContent() {
         )}
 
         {/* Add New Button */}
-        {!isAddingNew && !editingId && (
+        {!isLoading && !isAddingNew && !editingId && (
           <button
             onClick={() => {
               resetForm();
@@ -381,7 +391,7 @@ function AddressesContent() {
         )}
 
         {/* Address List */}
-        {addresses.length > 0 && !isAddingNew && !editingId && (
+        {!isLoading && addresses.length > 0 && !isAddingNew && !editingId && (
           <div className="space-y-4">
             {addresses.map((address) => (
               <div
@@ -465,7 +475,7 @@ function AddressesContent() {
         )}
 
         {/* Empty State */}
-        {addresses.length === 0 && !isAddingNew && (
+        {!isLoading && addresses.length === 0 && !isAddingNew && (
           <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-8 text-center border border-purple-500/20">
             <span className="text-6xl mb-4 block">🏠</span>
             <h2 className="text-xl font-bold text-white mb-2">No Addresses Yet</h2>

@@ -7,10 +7,13 @@
  * with dark-fairytale aesthetic.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { useAuthStore } from '@/store/authStore';
+import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import BottomNavigation from '@/components/BottomNavigation';
+import { profileApi } from '@/lib/profile-api';
 
 const flavorNotes = [
   { id: 'floral', label: 'Floral', icon: '🌸', description: 'Rose, jasmine, lavender' },
@@ -28,9 +31,8 @@ const flavorNotes = [
 const caffeineOptions = [
   { id: 'none', label: 'Caffeine-Free', icon: '😴', description: 'Herbal & decaf only' },
   { id: 'low', label: 'Low Caffeine', icon: '🌙', description: 'White & green teas' },
-  { id: 'moderate', label: 'Moderate', icon: '☀️', description: 'Oolong & light black' },
+  { id: 'medium', label: 'Moderate', icon: '☀️', description: 'Oolong & light black' },
   { id: 'high', label: 'High Caffeine', icon: '⚡', description: 'Bold black & matcha' },
-  { id: 'any', label: 'Any Level', icon: '🌈', description: 'Surprise me!' },
 ];
 
 const dietaryOptions = [
@@ -43,13 +45,41 @@ const dietaryOptions = [
 ];
 
 function FlavorProfileContent() {
-  const [selectedFlavors, setSelectedFlavors] = useState<string[]>(['floral', 'sweet', 'herbal']);
-  const [caffeineLevel, setCaffeineLevel] = useState<string>('moderate');
-  const [dietaryRestrictions, setDietaryRestrictions] = useState<string[]>(['vegan']);
-  const [additionalNotes, setAdditionalNotes] = useState('');
+  const { accessToken } = useAuthStore();
+  const { refreshAuth } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
+  const [caffeineLevel, setCaffeineLevel] = useState<string>('');
+  const [dietaryRestrictions, setDietaryRestrictions] = useState<string[]>([]);
+  const [allergyNotes, setAllergyNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showRecommendations, setShowRecommendations] = useState(false);
+  
+  // Load user's flavor preferences on mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!accessToken) {
+        setIsLoading(false);
+        return;
+      }
+      
+      try {
+        const profile = await profileApi.getProfile(accessToken);
+        if (profile.profile) {
+          setSelectedFlavors(profile.profile.flavorPreferences || []);
+          setCaffeineLevel(profile.profile.caffeinePreference || '');
+          setAllergyNotes(profile.profile.allergyNotes || '');
+        }
+      } catch (error) {
+        console.error('Failed to load profile:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadProfile();
+  }, [accessToken]);
 
   const toggleFlavor = (id: string) => {
     setSelectedFlavors(prev => 
@@ -70,12 +100,25 @@ function FlavorProfileContent() {
   };
 
   const handleSave = async () => {
+    if (!accessToken) {
+      setMessage({ type: 'error', text: 'You must be logged in to save preferences.' });
+      return;
+    }
+    
     setSaving(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await profileApi.updateProfile({
+        flavorPreferences: selectedFlavors,
+        caffeinePreference: caffeineLevel || null,
+        allergyNotes: allergyNotes || null,
+      }, accessToken);
+      
+      // Refresh user data to update the context
+      await refreshAuth();
+      
       setMessage({ type: 'success', text: 'Your flavor profile has been saved. Recommendations updated!' });
-    } catch {
-      setMessage({ type: 'error', text: 'Failed to save preferences. Please try again.' });
+    } catch (error) {
+      setMessage({ type: 'error', text: (error as Error).message || 'Failed to save preferences. Please try again.' });
     } finally {
       setSaving(false);
     }
@@ -117,6 +160,14 @@ function FlavorProfileContent() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 relative z-10 space-y-6">
+        {/* Loading State */}
+        {isLoading && (
+          <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-8 text-center border border-purple-500/20">
+            <span className="text-4xl mb-4 block animate-pulse">🧪</span>
+            <p className="text-purple-300">Loading your flavor preferences...</p>
+          </div>
+        )}
+        
         {/* Message */}
         {message && (
           <div className={`p-4 rounded-lg ${
@@ -129,6 +180,8 @@ function FlavorProfileContent() {
         )}
 
         {/* Flavor Notes */}
+        {!isLoading && (
+        <>
         <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20">
           <h2 className="text-lg font-semibold text-white mb-2">Preferred Flavor Notes</h2>
           <p className="text-purple-300/60 text-sm mb-4">Select the flavors that speak to your soul</p>
@@ -208,14 +261,14 @@ function FlavorProfileContent() {
           </div>
         </div>
 
-        {/* Additional Notes */}
+        {/* Additional Notes / Allergy Notes */}
         <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20">
-          <h2 className="text-lg font-semibold text-white mb-2">Additional Notes</h2>
-          <p className="text-purple-300/60 text-sm mb-4">Anything else we should know?</p>
+          <h2 className="text-lg font-semibold text-white mb-2">Allergy & Dietary Notes</h2>
+          <p className="text-purple-300/60 text-sm mb-4">Tell us about specific allergies, dislikes, or preferences</p>
           <textarea
-            value={additionalNotes}
-            onChange={(e) => setAdditionalNotes(e.target.value)}
-            placeholder="Tell us about specific allergies, dislikes, or preferences..."
+            value={allergyNotes}
+            onChange={(e) => setAllergyNotes(e.target.value)}
+            placeholder="E.g., allergic to nuts, prefer no artificial sweeteners..."
             className="w-full px-4 py-3 bg-slate-700/50 border border-purple-500/30 rounded-lg text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-400 transition-colors resize-none h-24"
           />
         </div>
@@ -224,7 +277,7 @@ function FlavorProfileContent() {
         <div className="flex flex-col sm:flex-row gap-4">
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || isLoading}
             className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Save Preferences'}
@@ -291,6 +344,8 @@ function FlavorProfileContent() {
             </div>
           </div>
         </div>
+        </>
+        )}
       </div>
 
       <BottomNavigation />
