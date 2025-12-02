@@ -17,6 +17,7 @@ import { BaseColumn } from './BaseColumn';
 import { CenterScene } from './CenterScene';
 import { AddinsColumn } from './AddinsColumn';
 import { BottomActionBar } from './BottomActionBar';
+import { BowlFillVisual } from './BowlFillVisual';
 import { useCart } from '@/contexts/CartContext';
 
 interface BlendingPageProps {
@@ -241,14 +242,10 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
               </div>
             </div>
 
-            {/* Table Visual (simplified for mobile) */}
+            {/* Bowl Visual (for mobile) */}
             <div className="bg-gradient-to-br from-purple-900/90 via-indigo-900/90 to-purple-950/90 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/30">
-              <div className="relative w-48 h-48 mx-auto">
-                <div className="absolute inset-0 bg-gradient-radial from-purple-500/20 via-transparent to-transparent rounded-full" />
-                <div className="absolute inset-2 bg-gradient-to-br from-amber-800 via-amber-900 to-amber-950 rounded-full shadow-2xl border-4 border-amber-700/50" />
-                <div className="absolute inset-8 bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 rounded-full shadow-inner border-2 border-slate-600/50 flex items-center justify-center">
-                  <span className="text-3xl">🫖</span>
-                </div>
+              <div className="w-48 h-48 mx-auto">
+                <BowlFillVisual blendState={blendState} />
               </div>
             </div>
 

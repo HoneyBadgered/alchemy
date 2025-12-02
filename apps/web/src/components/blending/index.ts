@@ -22,3 +22,4 @@ export { CenterScene } from './CenterScene';
 export { AddinsColumn } from './AddinsColumn';
 export { BottomActionBar } from './BottomActionBar';
 export { BlendingPage } from './BlendingPage';
+export { BowlFillVisual } from './BowlFillVisual';
