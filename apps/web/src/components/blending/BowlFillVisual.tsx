@@ -12,6 +12,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { ExtendedBlendState } from './types';
 import { getBlendingIngredientById } from './mockData';
 
+// Bowl fill configuration constants
+/** Maximum bowl capacity in ounces (4 oz = 100% fill) */
+const MAX_BOWL_CAPACITY_OZ = 4;
+/** Base tea fills 60% of the total capacity relative to blend size */
+const BASE_TEA_PROPORTION = 0.6;
+/** Minimum visible height for ingredient layers in pixels */
+const MIN_LAYER_HEIGHT_PX = '8px';
+/** Steam wisp counts based on fill intensity */
+const STEAM_COUNT_HIGH = 5;
+const STEAM_COUNT_MEDIUM = 3;
+const STEAM_COUNT_LOW = 1;
+
 interface BowlFillVisualProps {
   /** Current blend state */
   blendState: ExtendedBlendState;
@@ -58,8 +70,8 @@ export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState }) =>
     if (blendState.baseTeaId) {
       const base = getBlendingIngredientById(blendState.baseTeaId);
       if (base) {
-        // Base fills proportionally to size (60% of total capacity)
-        const baseQuantity = blendState.size * 0.6;
+        // Base fills proportionally to size
+        const baseQuantity = blendState.size * BASE_TEA_PROPORTION;
         totalQuantity += baseQuantity;
         ingredientLayers.push({
           id: base.id,
@@ -92,9 +104,8 @@ export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState }) =>
       }
     }
 
-    // Calculate max fill based on size (max 4oz = 100% fill)
-    const maxCapacity = 4;
-    const fillPercentage = Math.min((totalQuantity / maxCapacity) * 100, 100);
+    // Calculate max fill based on size
+    const fillPercentage = Math.min((totalQuantity / MAX_BOWL_CAPACITY_OZ) * 100, 100);
 
     // Calculate proportional heights for each layer
     let currentStart = 0;
@@ -210,7 +221,7 @@ export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState }) =>
                     ${layer.color}
                   `}
                   style={{
-                    minHeight: layer.heightPercentage > 0 ? '8px' : '0',
+                    minHeight: layer.heightPercentage > 0 ? MIN_LAYER_HEIGHT_PX : '0',
                   }}
                 >
                   {/* Texture overlay */}
@@ -281,7 +292,7 @@ export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState }) =>
         {totalFillPercentage > 20 && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             {/* Steam wisps */}
-            {[...Array(steamIntensity === 'high' ? 5 : steamIntensity === 'medium' ? 3 : 1)].map((_, i) => (
+            {[...Array(steamIntensity === 'high' ? STEAM_COUNT_HIGH : steamIntensity === 'medium' ? STEAM_COUNT_MEDIUM : STEAM_COUNT_LOW)].map((_, i) => (
               <motion.div
                 key={`steam-${i}`}
                 className="absolute w-8 h-16 opacity-30"
