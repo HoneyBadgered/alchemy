@@ -7,6 +7,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import type { ExtendedBlendState, BlendSize } from './types';
 import { MOCK_BASES, getBlendingIngredientById } from './mockData';
 import { useBlendPricing } from './useBlendPricing';
@@ -29,6 +30,8 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
   onBack,
   onContinue,
 }) => {
+  const router = useRouter();
+  
   // Extended blend state
   const [blendState, setBlendState] = useState<ExtendedBlendState>({
     baseTeaId: undefined,
@@ -133,9 +136,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
     } else {
       // Store blend state in sessionStorage and navigate to review page
       sessionStorage.setItem('pendingBlend', JSON.stringify(blendState));
-      if (typeof window !== 'undefined') {
-        window.location.href = '/table/review';
-      }
+      router.push('/table/review');
     }
     
     setIsProcessing(false);
@@ -145,22 +146,12 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
     if (onBack) {
       onBack();
     } else {
-      // TODO: Replace with React Router navigation when router is integrated
-      // Using window.history.back() as a fallback since this component may be used
-      // before full router integration is complete
-      if (typeof window !== 'undefined' && window.history.length > 1) {
-        window.history.back();
-      }
+      router.back();
     }
   };
 
   const handleCartClick = () => {
-    // TODO: Replace with React Router navigation (e.g., router.push('/cart'))
-    // Using window.location.href temporarily since this component may be used
-    // before full router integration is complete
-    if (typeof window !== 'undefined') {
-      window.location.href = '/cart';
-    }
+    router.push('/cart');
   };
 
   return (

@@ -8,6 +8,14 @@ import type { ExtendedBlendState } from '@/components/blending/types';
 import { useBlendPricing } from '@/components/blending/useBlendPricing';
 import BottomNavigation from '@/components/BottomNavigation';
 
+// Default empty blend state for pricing calculation
+const EMPTY_BLEND_STATE: ExtendedBlendState = {
+  baseTeaId: undefined,
+  addIns: [],
+  blendName: '',
+  size: 2,
+};
+
 export default function BlendReviewPage() {
   const router = useRouter();
   const { addBlendToCart, isLoading } = useCart();
@@ -31,7 +39,7 @@ export default function BlendReviewPage() {
     }
   }, []);
 
-  const pricing = useBlendPricing(blendState || { baseTeaId: undefined, addIns: [], blendName: '', size: 2 });
+  const pricing = useBlendPricing(blendState || EMPTY_BLEND_STATE);
 
   const baseTea = blendState?.baseTeaId ? getBlendingIngredientById(blendState.baseTeaId) : null;
 
@@ -45,6 +53,7 @@ export default function BlendReviewPage() {
     setError(null);
 
     try {
+      // baseTeaId is guaranteed to be defined after the guard above
       await addBlendToCart(blendState.baseTeaId, blendState.addIns);
       // Clear the pending blend from storage
       sessionStorage.removeItem('pendingBlend');
