@@ -128,14 +128,14 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
 
     setIsProcessing(true);
     
-    // TODO: Integrate with actual navigation/checkout
-    // For now, just call the callback or show an alert
     if (onContinue) {
       onContinue(blendState);
     } else {
-      // Demo behavior
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      alert(`✨ Blend "${blendState.blendName || 'Custom Blend'}" is ready for review!\nEstimated price: $${pricing.price}`);
+      // Store blend state in sessionStorage and navigate to review page
+      sessionStorage.setItem('pendingBlend', JSON.stringify(blendState));
+      if (typeof window !== 'undefined') {
+        window.location.href = '/table/review';
+      }
     }
     
     setIsProcessing(false);
