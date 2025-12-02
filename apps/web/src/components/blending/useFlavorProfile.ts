@@ -150,7 +150,8 @@ export function useFlavorProfile(blendState: ExtendedBlendState): {
     if (blendState.baseTeaId) {
       const base = getBlendingIngredientById(blendState.baseTeaId);
       if (base?.flavorProfile) {
-        // Caffeine comes directly from the base tea
+        // Caffeine comes directly from the base tea and is not modified by add-ins
+        // Note: addWeightedProfile and divideProfile only operate on FLAVOR_KEYS (excludes caffeine)
         aggregated.caffeine = base.flavorProfile.caffeine;
         
         // Add base tea flavor contribution (60% of blend typically)
