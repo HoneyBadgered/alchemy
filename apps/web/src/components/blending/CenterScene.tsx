@@ -120,19 +120,18 @@ interface BlendStatsPanelProps {
 }
 
 const BlendStatsPanel: React.FC<BlendStatsPanelProps> = ({ profile }) => {
-  const stats = [
+  const flavorStats = [
     { label: 'Floral', value: profile.floral, color: 'bg-pink-400' },
     { label: 'Citrus', value: profile.citrus, color: 'bg-orange-400' },
     { label: 'Earthy', value: profile.earthy, color: 'bg-amber-600' },
     { label: 'Sweet', value: profile.sweet, color: 'bg-yellow-400' },
-    { label: 'Caffeine', value: profile.caffeine, color: 'bg-green-500' },
   ];
 
   return (
     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
       <h3 className="text-white/80 text-sm font-medium mb-3">Flavor Profile</h3>
       <div className="space-y-2">
-        {stats.map((stat) => (
+        {flavorStats.map((stat) => (
           <div key={stat.label} className="flex items-center gap-2">
             <span className="text-white/60 text-xs w-16">{stat.label}</span>
             <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
@@ -144,6 +143,21 @@ const BlendStatsPanel: React.FC<BlendStatsPanelProps> = ({ profile }) => {
             <span className="text-white/60 text-xs w-8 text-right">{Math.round(stat.value)}</span>
           </div>
         ))}
+      </div>
+
+      {/* Caffeine Level - Separated from flavor profile */}
+      <div className="mt-4 pt-3 border-t border-white/10">
+        <h4 className="text-white/80 text-sm font-medium mb-2">Caffeine Level</h4>
+        <div className="flex items-center gap-2">
+          <span className="text-white/60 text-xs w-16">Caffeine</span>
+          <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-green-500 rounded-full transition-all duration-500"
+              style={{ width: `${profile.caffeine}%` }}
+            />
+          </div>
+          <span className="text-white/60 text-xs w-8 text-right">{Math.round(profile.caffeine)}</span>
+        </div>
       </div>
     </div>
   );
