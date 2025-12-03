@@ -1,28 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@300;400;600;700&display=swap');
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ========================================
+   VERDANT ELIXIR BOTANICAL NOIR (Default)
+   ======================================== */
+:root,
+[data-theme="verdant"] {
+  --primary: #14513A;
+  --primary-hover: #163E33;
+  --secondary: #0f2b26;
+  --background: #070709;
+  --surface: #0f2b26;
+  --text-base: #E3DFE6;
+  --text-muted: #9AA49B;
+  --accent: #F3B84A;
+  --accent-hover: #d4a042;
 }
 
+/* ========================================
+   PURPLE MAGICAL (Original Theme)
+   ======================================== */
+[data-theme="purple"] {
+  --primary: #9333ea;
+  --primary-hover: #7c3aed;
+  --secondary: #4c1d95;
+  --background: #1e1b4b;
+  --surface: #312e81;
+  --text-base: #e9d5ff;
+  --text-muted: #c4b5fd;
+  --accent: #fbbf24;
+  --accent-hover: #f59e0b;
+}
+
+/* ========================================
+   CRIMSON RITUAL
+   ======================================== */
+[data-theme="crimson"] {
+  --primary: #7f1d1d;
+  --primary-hover: #991b1b;
+  --secondary: #450a0a;
+  --background: #0c0a09;
+  --surface: #1c1917;
+  --text-base: #fef2f2;
+  --text-muted: #a8a29e;
+  --accent: #fbbf24;
+  --accent-hover: #f59e0b;
+}
+
+/* ========================================
+   TAILWIND THEME MAPPING
+   ======================================== */
 @theme inline {
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-secondary: var(--secondary);
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-surface: var(--surface);
+  --color-text-base: var(--text-base);
+  --color-text-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  
+  --font-serif: "Cormorant Garamond", serif;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(180deg, var(--background) 0%, var(--surface) 100%);
+  color: var(--text-base);
+  font-family: var(--font-sans);
 }
 
 @keyframes slideUp {
@@ -85,4 +131,30 @@ body {
 /* Radial gradient utility for table visual */
 .bg-gradient-radial {
   background: radial-gradient(circle, var(--tw-gradient-stops));
+}
+
+/* ========================================
+   CUSTOM BOTANICAL EFFECTS
+   ======================================== */
+
+/* Vignette overlay for hero sections */
+.vignette-overlay {
+  background: linear-gradient(180deg, 
+    rgba(4, 8, 6, 0.55) 0%, 
+    rgba(3, 6, 5, 0.8) 60%
+  );
+}
+
+/* Botanical glow effect */
+.botanical-glow {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45),
+              inset 0 -2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* Verdant gradient background */
+.verdant-gradient {
+  background: linear-gradient(180deg, 
+    rgba(5, 20, 16, 0.85), 
+    rgba(5, 20, 16, 0.6)
+  );
 }

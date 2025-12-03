@@ -31,7 +31,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-purple-900 text-white" role="contentinfo">
+    <footer className="bg-gradient-to-t from-background/95 to-secondary/80 text-text-base" role="contentinfo">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Shop */}
@@ -42,7 +42,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-purple-200 hover:text-white transition-colors"
+                    className="text-text-muted hover:text-accent transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -59,7 +59,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-purple-200 hover:text-white transition-colors"
+                    className="text-text-muted hover:text-accent transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -76,7 +76,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-purple-200 hover:text-white transition-colors"
+                    className="text-text-muted hover:text-accent transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -93,7 +93,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-purple-200 hover:text-white transition-colors"
+                    className="text-text-muted hover:text-accent transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -104,13 +104,13 @@ export default function Footer() {
         </div>
 
         {/* Divider */}
-        <div className="border-t border-purple-800 mt-8 pt-8">
+        <div className="border-t border-text-base/10 mt-8 pt-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Logo and Tagline */}
             <div className="flex items-center gap-2">
               <span className="text-2xl" aria-hidden="true">🧪</span>
-              <span className="font-bold">The Alchemy Table</span>
-              <span className="text-purple-300 hidden sm:inline">— Craft Your Perfect Blend</span>
+              <span className="font-bold font-serif">The Alchemy Table</span>
+              <span className="text-text-muted hidden sm:inline">— Craft Your Perfect Blend</span>
             </div>
 
             {/* Social Links */}
@@ -119,7 +119,7 @@ export default function Footer() {
                 href="https://instagram.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-purple-200 hover:text-white transition-colors"
+                className="text-text-muted hover:text-accent transition-colors"
                 aria-label="Instagram"
               >
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -130,7 +130,7 @@ export default function Footer() {
                 href="https://twitter.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-purple-200 hover:text-white transition-colors"
+                className="text-text-muted hover:text-accent transition-colors"
                 aria-label="Twitter"
               >
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -141,7 +141,7 @@ export default function Footer() {
                 href="https://facebook.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-purple-200 hover:text-white transition-colors"
+                className="text-text-muted hover:text-accent transition-colors"
                 aria-label="Facebook"
               >
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">

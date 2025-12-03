@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { THEMES } from '@/lib/themes';
 import SearchModal from './SearchModal';
 
 /**
@@ -13,6 +15,7 @@ import SearchModal from './SearchModal';
 export default function Header() {
   const { itemCount } = useCart();
   const { isAuthenticated } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -25,13 +28,13 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+      <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-sm border-b border-text-base/10">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link 
               href="/" 
-              className="flex items-center gap-2 text-xl font-bold text-purple-900 hover:text-purple-700 transition-colors"
+              className="flex items-center gap-2 text-xl font-bold font-serif text-text-base hover:text-accent transition-colors"
               aria-label="The Alchemy Table - Home"
             >
               <span className="text-2xl" aria-hidden="true">🧪</span>
@@ -44,7 +47,7 @@ export default function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
+                  className="text-text-base/90 hover:text-accent font-medium transition-colors"
                 >
                   {link.label}
                 </Link>
@@ -53,10 +56,24 @@ export default function Header() {
 
             {/* Icon Actions */}
             <div className="flex items-center gap-4">
+              {/* Theme Switcher */}
+              <select
+                value={theme}
+                onChange={(e) => setTheme(e.target.value as any)}
+                className="hidden md:block px-3 py-1.5 bg-secondary border border-text-base/10 text-text-base text-sm rounded-lg hover:border-accent/50 transition-colors cursor-pointer"
+                aria-label="Select theme"
+              >
+                {THEMES.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.emoji} {t.name}
+                  </option>
+                ))}
+              </select>
+
               {/* Search */}
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className="p-2 text-gray-700 hover:text-purple-600 transition-colors"
+                className="p-2 text-text-base/80 hover:text-accent transition-colors"
                 aria-label="Open search"
                 aria-expanded={isSearchOpen}
               >
@@ -68,7 +85,7 @@ export default function Header() {
               {/* Account */}
               <Link
                 href={isAuthenticated ? '/profile' : '/account'}
-                className="p-2 text-gray-700 hover:text-purple-600 transition-colors"
+                className="p-2 text-text-base/80 hover:text-accent transition-colors"
                 aria-label="Account"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -79,14 +96,14 @@ export default function Header() {
               {/* Cart */}
               <Link
                 href="/cart"
-                className="relative p-2 text-gray-700 hover:text-purple-600 transition-colors"
+                className="relative p-2 text-text-base/80 hover:text-accent transition-colors"
                 aria-label={`Shopping cart${itemCount > 0 ? `, ${itemCount} items` : ''}`}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
                 {itemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-accent text-background text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                     {itemCount > 9 ? '9+' : itemCount}
                   </span>
                 )}
@@ -95,7 +112,7 @@ export default function Header() {
               {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 text-gray-700 hover:text-purple-600 transition-colors"
+                className="md:hidden p-2 text-text-base/80 hover:text-accent transition-colors"
                 aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
                 aria-expanded={isMobileMenuOpen}
               >
@@ -112,13 +129,13 @@ export default function Header() {
 
           {/* Mobile Navigation Menu */}
           {isMobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-gray-200">
+            <div className="md:hidden py-4 border-t border-text-base/10">
               <div className="flex flex-col gap-2">
                 {navLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="px-3 py-2 text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg font-medium transition-colors"
+                    className="px-3 py-2 text-text-base hover:text-accent hover:bg-primary/10 rounded-lg font-medium transition-colors"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {link.label}

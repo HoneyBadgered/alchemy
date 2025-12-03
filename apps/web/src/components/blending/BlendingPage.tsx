@@ -176,7 +176,13 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
       <div className="relative z-10">
         {/* Immersive Header */}
         <ImmersiveHeader
-          onBack={handleBack}
+          onBack={() => {
+        if (window.history.length > 1) {
+          router.back();             // Go back to wherever user came from
+        } else {
+          router.push("/l");   // Fallback if no history (page opened fresh)
+        }
+      }}
           cartItemCount={itemCount}
           stepIndicator={getStepIndicator()}
           onCartClick={handleCartClick}

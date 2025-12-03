@@ -37,7 +37,7 @@ export const ImmersiveHeader: React.FC<ImmersiveHeaderProps> = ({
               <button
                 onClick={onBack}
                 className="flex items-center gap-2 text-white/80 hover:text-white transition-colors group"
-                aria-label="Back to Library"
+                aria-label="Go Back"
               >
                 <svg
                   className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform"
@@ -52,7 +52,7 @@ export const ImmersiveHeader: React.FC<ImmersiveHeaderProps> = ({
                     d="M15 19l-7-7 7-7"
                   />
                 </svg>
-                <span className="text-sm font-medium hidden sm:inline">Back to Library</span>
+                <span className="text-sm font-medium hidden sm:inline">Go Back</span>
               </button>
             </div>
 
