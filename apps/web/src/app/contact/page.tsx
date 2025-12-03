@@ -68,8 +68,6 @@ export default function ContactPage() {
     setSubmitStatus('idle');
     
     try {
-      // Stub API endpoint - in production this would send to a real endpoint
-      // TODO: Replace with actual API call to /api/contact
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
@@ -78,20 +76,19 @@ export default function ContactPage() {
         body: JSON.stringify(formData),
       });
       
-      // For now, simulate success since endpoint is stubbed
-      // In production, check response.ok
-      if (!response.ok) {
-        // Fallback to simulated success for stub
-        console.log('Contact form submitted (stub):', formData);
+      if (response.ok) {
+        setSubmitStatus('success');
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        // API returned an error response
+        const data = await response.json().catch(() => ({}));
+        console.error('Contact form error:', data.error || 'Unknown error');
+        setSubmitStatus('error');
       }
-      
-      setSubmitStatus('success');
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    } catch {
-      // Simulate success for stub endpoint
-      console.log('Contact form submitted (stub):', formData);
-      setSubmitStatus('success');
-      setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch (error) {
+      // Network error or other failure
+      console.error('Failed to submit contact form:', error);
+      setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
     }
