@@ -11,6 +11,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuthStore } from '@/store/authStore';
+import { useTheme } from '@/contexts/ThemeContext';
+import { THEMES } from '@/lib/themes';
 import Link from 'next/link';
 import BottomNavigation from '@/components/BottomNavigation';
 import { profileApi } from '@/lib/profile-api';
@@ -18,6 +20,7 @@ import { profileApi } from '@/lib/profile-api';
 function AccountContent() {
   const { user, logout, refreshAuth } = useAuth();
   const { accessToken } = useAuthStore();
+  const { theme, setTheme } = useTheme();
   
   // Form states
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -197,6 +200,53 @@ function AccountContent() {
                   Choose Avatar
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Theme Preferences Section */}
+        <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20">
+          <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <span>🎨</span>
+            Theme Preferences
+          </h2>
+          <p className="text-purple-200/70 text-sm mb-4">
+            Customize the visual aesthetic of your alchemical workspace.
+          </p>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="theme-select" className="block text-purple-200 text-sm font-medium mb-2">
+                Select Theme
+              </label>
+              <select
+                id="theme-select"
+                value={theme}
+                onChange={(e) => setTheme(e.target.value as any)}
+                className="w-full md:w-auto px-4 py-2.5 bg-slate-700/80 border border-purple-500/30 text-white rounded-lg hover:border-purple-400/50 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-colors cursor-pointer"
+              >
+                {THEMES.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.emoji} {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex gap-3 pt-2">
+              {THEMES.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setTheme(t.id as any)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    theme === t.id
+                      ? 'bg-purple-600 text-white ring-2 ring-purple-400'
+                      : 'bg-slate-700 text-purple-200 hover:bg-slate-600'
+                  }`}
+                  title={t.description}
+                >
+                  <span className="mr-2">{t.emoji}</span>
+                  {t.name}
+                </button>
+              ))}
             </div>
           </div>
         </div>

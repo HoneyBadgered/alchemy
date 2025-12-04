@@ -23,7 +23,6 @@ export default function Header() {
     { href: '/shop', label: 'Shop' },
     { href: '/table', label: 'Create Your Blend' },
     { href: '/library', label: 'Library' },
-    { href: '/about', label: 'About' },
   ];
 
   return (
@@ -56,20 +55,6 @@ export default function Header() {
 
             {/* Icon Actions */}
             <div className="flex items-center gap-4">
-              {/* Theme Switcher */}
-              <select
-                value={theme}
-                onChange={(e) => setTheme(e.target.value as any)}
-                className="hidden md:block px-3 py-1.5 bg-secondary border border-text-base/10 text-text-base text-sm rounded-lg hover:border-accent/50 transition-colors cursor-pointer"
-                aria-label="Select theme"
-              >
-                {THEMES.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.emoji} {t.name}
-                  </option>
-                ))}
-              </select>
-
               {/* Search */}
               <button
                 onClick={() => setIsSearchOpen(true)}

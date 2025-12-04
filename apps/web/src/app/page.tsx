@@ -36,16 +36,16 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center max-w-2xl mx-auto">
                 <Link
                   href="/shop"
-                  className="inline-flex items-center justify-center px-8 py-4 bg-accent text-white font-bold text-base rounded-full hover:bg-accent/90 hover:scale-105 transition-all duration-200 shadow-xl hover:shadow-accent/50 w-full sm:w-auto"
+                  className="ornate-button inline-flex items-center justify-center px-10 py-4 text-[#1a1a1a] font-bold text-lg tracking-wide w-full sm:w-auto"
+                  style={{ clipPath: 'polygon(12px 0%, calc(100% - 12px) 0%, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0% calc(100% - 12px), 0% 12px)' }}
                 >
-                  <span className="mr-2 text-lg" aria-hidden="true">🛒</span>
                   Shop Now
                 </Link>
                 <Link
                   href="/table"
-                  className="inline-flex items-center justify-center px-8 py-4 bg-transparent border-2 border-accent text-accent font-bold text-base rounded-full hover:bg-accent/20 hover:scale-105 transition-all duration-200 shadow-xl hover:shadow-accent/50 w-full sm:w-auto"
+                  className="ornate-button-outline inline-flex items-center justify-center px-10 py-4 text-[#D4AF37] font-bold text-lg tracking-wide w-full sm:w-auto"
+                  style={{ clipPath: 'polygon(12px 0%, calc(100% - 12px) 0%, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0% calc(100% - 12px), 0% 12px)' }}
                 >
-                  <span className="mr-2 text-lg" aria-hidden="true">✨</span>
                   Create Your Blend
                 </Link>
               </div>
@@ -53,11 +53,11 @@ export default function HomePage() {
           </div>
 
           {/* Scroll indicator */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce" aria-hidden="true">
+          {/* <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce" aria-hidden="true">
             <svg className="w-8 h-8 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
-          </div>
+          </div> */}
         </section>
 
         {/* Intro Section - Below Hero */}
