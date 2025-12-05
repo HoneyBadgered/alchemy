@@ -43,4 +43,4 @@ Thumbs.db
 # Misc
 .cache/
 *.tsbuildinfo
-apps/web/public/images
+apps/web/public/images/
