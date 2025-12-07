@@ -11,7 +11,7 @@ import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import type { ExtendedBlendState, BlendSize } from './types';
-import { MOCK_BASES, getBlendingIngredientById } from './mockData';
+import { useIngredients, getIngredientById } from '@/hooks/useIngredients';
 import { useBlendPricing } from './useBlendPricing';
 import { useFlavorProfile, DEFAULT_STATUS } from './useFlavorProfile';
 import { ImmersiveHeader } from './ImmersiveHeader';
@@ -34,6 +34,9 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
   onContinue,
 }) => {
   const router = useRouter();
+  
+  // Fetch ingredients from API
+  const { bases, addIns, isLoading, error } = useIngredients();
   
   // Extended blend state
   const [blendState, setBlendState] = useState<ExtendedBlendState>({
@@ -103,7 +106,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
         };
       } else {
         // Add add-in with default quantity
-        const ingredient = getBlendingIngredientById(ingredientId);
+        const ingredient = getIngredientById(ingredientId, bases, addIns);
         const defaultQuantity = ingredient?.baseAmount || 0.25;
         return {
           ...prev,
@@ -111,7 +114,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
         };
       }
     });
-  }, []);
+  }, [bases, addIns]);
 
   const handleQuantityChange = useCallback((ingredientId: string, quantity: number) => {
     setBlendState(prev => ({
@@ -157,6 +160,33 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
     router.push('/cart');
   };
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-cover bg-center bg-fixed relative" style={{ backgroundImage: `url(${BRANDING.IMAGE_BASE_PATH}/background-image.png)` }}>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-white text-xl">Loading ingredients...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-cover bg-center bg-fixed relative" style={{ backgroundImage: `url(${BRANDING.IMAGE_BASE_PATH}/background-image.png)` }}>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-white text-center">
+            <p className="text-xl mb-2">Error loading ingredients</p>
+            <p className="text-sm opacity-70">{error.message}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen relative">
       {/* Fixed full-screen background with custom image */}
@@ -195,7 +225,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
               <div className="lg:col-span-3">
                 <div className="sticky top-24">
                   <CollapsibleBaseColumn
-                    bases={MOCK_BASES}
+                    bases={bases}
                     selectedBaseId={blendState.baseTeaId}
                     onSelectBase={handleSelectBase}
                   />
@@ -211,6 +241,8 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
                   price={pricing.price}
                   flavorProfile={normalizedProfile}
                   onRemoveIngredient={handleRemoveIngredient}
+                  bases={bases}
+                  addInsData={addIns}
                 />
               </div>
 
@@ -221,6 +253,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
                     selectedAddIns={blendState.addIns}
                     onToggleAddIn={handleToggleAddIn}
                     onQuantityChange={handleQuantityChange}
+                    addInsData={addIns}
                   />
                 </div>
               </div>
@@ -280,7 +313,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
               <div className="flex gap-4 justify-center">
                 {/* Base Selection Trigger */}
                 <CollapsibleBaseColumn
-                  bases={MOCK_BASES}
+                  bases={bases}
                   selectedBaseId={blendState.baseTeaId}
                   onSelectBase={handleSelectBase}
                 />
@@ -290,6 +323,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
                   selectedAddIns={blendState.addIns}
                   onToggleAddIn={handleToggleAddIn}
                   onQuantityChange={handleQuantityChange}
+                  addInsData={addIns}
                 />
               </div>
 
@@ -300,15 +334,15 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
                   <div className="space-y-2">
                     {blendState.baseTeaId && (
                       <div className="flex items-center gap-2 bg-white/20 p-2 rounded-lg">
-                        <span>{getBlendingIngredientById(blendState.baseTeaId)?.emoji}</span>
+                        <span>{getIngredientById(blendState.baseTeaId, bases, addIns)?.emoji}</span>
                         <span className="flex-1 text-sm font-medium text-white">
-                          {getBlendingIngredientById(blendState.baseTeaId)?.name}
+                          {getIngredientById(blendState.baseTeaId, bases, addIns)?.name}
                         </span>
                         <span className="text-xs text-purple-300">Base</span>
                       </div>
                     )}
                     {blendState.addIns.map((addIn) => {
-                      const ing = getBlendingIngredientById(addIn.ingredientId);
+                      const ing = getIngredientById(addIn.ingredientId, bases, addIns);
                       if (!ing) return null;
                       return (
                         <div key={addIn.ingredientId} className="flex items-center gap-2 bg-white/10 p-2 rounded-lg">

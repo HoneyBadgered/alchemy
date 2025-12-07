@@ -98,6 +98,31 @@ export interface LabelGenerationRequest {
 
 export interface LabelDesign {
   id: string;
+}
+
+// Blending Ingredient Types
+export interface BlendingIngredient {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  shortTags: string[];
+  emoji: string;
+  isBase: boolean;
+  costPerOz: number;
+  tier: 'standard' | 'premium';
+  flavorProfile: {
+    floral: number;
+    citrus: number;
+    earthy: number;
+    sweet: number;
+    caffeine: number;
+  };
+  caffeineLevel: 'none' | 'low' | 'medium' | 'high';
+  baseAmount?: number;
+  incrementAmount?: number;
+}
+
   orderId: string;
   name: string;
   tagline: string;

@@ -15,7 +15,6 @@ import Image from 'next/image';
 import { BRANDING } from '@/config/branding';
 import type { AddInCategoryTab } from './types';
 import type { BlendingIngredient } from './mockData';
-import { getAddInsByTab } from './mockData';
 
 interface CollapsibleMagicColumnProps {
   /** Selected add-in IDs with quantities */
@@ -24,6 +23,12 @@ interface CollapsibleMagicColumnProps {
   onToggleAddIn: (ingredientId: string) => void;
   /** Callback when add-in quantity is changed */
   onQuantityChange: (ingredientId: string, quantity: number) => void;
+  /** Add-ins data from API */
+  addInsData: {
+    addIns: BlendingIngredient[];
+    botanicals: BlendingIngredient[];
+    premium: BlendingIngredient[];
+  };
 }
 
 interface IngredientItemProps {
@@ -244,6 +249,7 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
   selectedAddIns,
   onToggleAddIn,
   onQuantityChange,
+  addInsData,
 }) => {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   
@@ -337,8 +343,9 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
 
               {/* All Ingredients in Grid */}
               <div className="grid grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto pr-1">
-                {['addIns', 'botanicals', 'premium'].flatMap((categoryId) =>
-                  getAddInsByTab(categoryId as AddInCategoryTab).map((ingredient) => {
+                {['addIns', 'botanicals', 'premium'].flatMap((categoryId) => {
+                  const categoryKey = categoryId as keyof typeof addInsData;
+                  return addInsData[categoryKey].map((ingredient) => {
                     const isSelected = selectedAddIns.some(a => a.ingredientId === ingredient.id);
                     const quantity = selectedAddIns.find(a => a.ingredientId === ingredient.id)?.quantity || ingredient.baseAmount || 0.25;
                     return (
@@ -351,8 +358,8 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
                         onQuantityChange={(q) => onQuantityChange(ingredient.id, q)}
                       />
                     );
-                  })
-                )}
+                  });
+                })}
               </div>
             </div>
           </motion.div>

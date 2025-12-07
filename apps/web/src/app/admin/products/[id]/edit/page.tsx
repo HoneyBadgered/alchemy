@@ -55,7 +55,8 @@ export default function EditProductPage({
 
   const fetchProduct = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/admin/products/${id}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${apiUrl}/admin/products/${id}`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
         },
@@ -104,7 +105,8 @@ export default function EditProductPage({
         .map(tag => tag.trim())
         .filter(tag => tag.length > 0);
 
-      const response = await fetch(`http://localhost:3000/admin/products/${id}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${apiUrl}/admin/products/${id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${accessToken}`,

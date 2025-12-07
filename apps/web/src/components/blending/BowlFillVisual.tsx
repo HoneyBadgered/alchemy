@@ -11,7 +11,8 @@ import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import type { ExtendedBlendState } from './types';
-import { getBlendingIngredientById } from './mockData';
+import type { BlendingIngredient } from './mockData';
+import { getIngredientById } from '@/hooks/useIngredients';
 import { BRANDING } from '@/config/branding';
 
 // Bowl fill configuration constants
@@ -29,6 +30,14 @@ const STEAM_COUNT_LOW = 1;
 interface BowlFillVisualProps {
   /** Current blend state */
   blendState: ExtendedBlendState;
+  /** Base teas from API */
+  bases: BlendingIngredient[];
+  /** Add-ins data from API */
+  addInsData: {
+    addIns: BlendingIngredient[];
+    botanicals: BlendingIngredient[];
+    premium: BlendingIngredient[];
+  };
 }
 
 interface IngredientLayer {
@@ -62,7 +71,10 @@ const CATEGORY_PATTERNS: Record<string, string> = {
   special: 'bg-gradient-to-b',
 };
 
-export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState }) => {
+export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState, bases, addInsData }) => {
+  // Helper to get ingredient by ID
+  const getIngredient = (id: string) => getIngredientById(id, bases, addInsData);
+
   // Calculate ingredient layers with their positions and heights
   const { layers, totalFillPercentage } = useMemo(() => {
     const ingredientLayers: IngredientLayer[] = [];
@@ -70,7 +82,7 @@ export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState }) =>
 
     // Add base tea if selected
     if (blendState.baseTeaId) {
-      const base = getBlendingIngredientById(blendState.baseTeaId);
+      const base = getIngredient(blendState.baseTeaId);
       if (base) {
         // Base fills proportionally to size
         const baseQuantity = blendState.size * BASE_TEA_PROPORTION;
@@ -90,7 +102,7 @@ export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState }) =>
 
     // Add add-ins
     for (const addIn of blendState.addIns) {
-      const ingredient = getBlendingIngredientById(addIn.ingredientId);
+      const ingredient = getIngredient(addIn.ingredientId);
       if (ingredient) {
         totalQuantity += addIn.quantity;
         ingredientLayers.push({

@@ -120,7 +120,8 @@ export default function AdminIngredientsPage() {
       if (filterLowStock) params.set('lowStock', 'true');
       if (filterSupplierId) params.set('supplierId', filterSupplierId);
       
-      const response = await fetch(`http://localhost:3000/admin/ingredients?${params}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${apiUrl}/admin/ingredients?${params}`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
         },
@@ -147,7 +148,8 @@ export default function AdminIngredientsPage() {
     if (!accessToken) return;
     
     try {
-      const response = await fetch('http://localhost:3000/admin/ingredients/categories', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${apiUrl}/admin/ingredients/categories`, {
         headers: { 'Authorization': `Bearer ${accessToken}` },
       });
       if (response.ok) {
@@ -163,7 +165,8 @@ export default function AdminIngredientsPage() {
     if (!accessToken) return;
     
     try {
-      const response = await fetch('http://localhost:3000/admin/ingredients/suppliers', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${apiUrl}/admin/ingredients/suppliers`, {
         headers: { 'Authorization': `Bearer ${accessToken}` },
       });
       if (response.ok) {
@@ -191,7 +194,8 @@ export default function AdminIngredientsPage() {
 
     try {
       setSaving(true);
-      const response = await fetch('http://localhost:3000/admin/ingredients', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${apiUrl}/admin/ingredients`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -221,13 +225,94 @@ export default function AdminIngredientsPage() {
 
     try {
       setSaving(true);
-      const response = await fetch(`http://localhost:3000/admin/ingredients/${selectedIngredient.id}`, {
+      
+      // Transform formData to match API schema types
+      const payload: any = {};
+      
+      if (formData.name) payload.name = formData.name;
+      if (formData.category) payload.category = formData.category;
+      if (formData.descriptionShort) payload.descriptionShort = formData.descriptionShort;
+      if (formData.descriptionLong) payload.descriptionLong = formData.descriptionLong;
+      if (formData.image) payload.image = formData.image;
+      if (formData.emoji) payload.emoji = formData.emoji;
+      if (formData.cutOrGrade) payload.cutOrGrade = formData.cutOrGrade;
+      if (formData.brewNotes) payload.brewNotes = formData.brewNotes;
+      if (formData.internalNotes) payload.internalNotes = formData.internalNotes;
+      if (formData.supplierId) payload.supplierId = formData.supplierId;
+      if (formData.status) payload.status = formData.status;
+      if (formData.caffeineLevel) payload.caffeineLevel = formData.caffeineLevel;
+      if (formData.role) payload.role = formData.role;
+      
+      // Handle boolean
+      if (typeof formData.isBase === 'boolean') payload.isBase = formData.isBase;
+      
+      // Handle numbers
+      if (formData.costPerOunce !== undefined && formData.costPerOunce !== null) {
+        payload.costPerOunce = typeof formData.costPerOunce === 'string' 
+          ? parseFloat(formData.costPerOunce) 
+          : formData.costPerOunce;
+      }
+      if (formData.inventoryAmount !== undefined && formData.inventoryAmount !== null) {
+        payload.inventoryAmount = typeof formData.inventoryAmount === 'string'
+          ? parseFloat(formData.inventoryAmount)
+          : formData.inventoryAmount;
+      }
+      if (formData.minimumStockLevel !== undefined && formData.minimumStockLevel !== null) {
+        payload.minimumStockLevel = typeof formData.minimumStockLevel === 'string'
+          ? parseFloat(formData.minimumStockLevel)
+          : formData.minimumStockLevel;
+      }
+      if (formData.steepTemperature !== undefined && formData.steepTemperature !== null) {
+        payload.steepTemperature = typeof formData.steepTemperature === 'string'
+          ? parseFloat(formData.steepTemperature)
+          : formData.steepTemperature;
+      }
+      if (formData.steepTimeMin !== undefined && formData.steepTimeMin !== null) {
+        payload.steepTimeMin = typeof formData.steepTimeMin === 'string'
+          ? parseFloat(formData.steepTimeMin)
+          : formData.steepTimeMin;
+      }
+      if (formData.steepTimeMax !== undefined && formData.steepTimeMax !== null) {
+        payload.steepTimeMax = typeof formData.steepTimeMax === 'string'
+          ? parseFloat(formData.steepTimeMax)
+          : formData.steepTimeMax;
+      }
+      if (formData.recommendedUsageMin !== undefined && formData.recommendedUsageMin !== null) {
+        payload.recommendedUsageMin = typeof formData.recommendedUsageMin === 'string'
+          ? parseFloat(formData.recommendedUsageMin)
+          : formData.recommendedUsageMin;
+      }
+      if (formData.recommendedUsageMax !== undefined && formData.recommendedUsageMax !== null) {
+        payload.recommendedUsageMax = typeof formData.recommendedUsageMax === 'string'
+          ? parseFloat(formData.recommendedUsageMax)
+          : formData.recommendedUsageMax;
+      }
+      if (formData.baseAmount !== undefined && formData.baseAmount !== null) {
+        payload.baseAmount = typeof formData.baseAmount === 'string'
+          ? parseFloat(formData.baseAmount)
+          : formData.baseAmount;
+      }
+      if (formData.incrementAmount !== undefined && formData.incrementAmount !== null) {
+        payload.incrementAmount = typeof formData.incrementAmount === 'string'
+          ? parseFloat(formData.incrementAmount)
+          : formData.incrementAmount;
+      }
+      
+      // Handle arrays
+      if (formData.flavorNotes) payload.flavorNotes = formData.flavorNotes;
+      if (formData.pairings) payload.pairings = formData.pairings;
+      if (formData.allergens) payload.allergens = formData.allergens;
+      if (formData.tags) payload.tags = formData.tags;
+      if (formData.badges) payload.badges = formData.badges;
+      
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${apiUrl}/admin/ingredients/${selectedIngredient.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -251,7 +336,8 @@ export default function AdminIngredientsPage() {
     if (!confirm('Archive this ingredient? It can be restored later.')) return;
 
     try {
-      const response = await fetch(`http://localhost:3000/admin/ingredients/${id}/archive`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${apiUrl}/admin/ingredients/${id}/archive`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${accessToken}` },
       });
@@ -267,7 +353,8 @@ export default function AdminIngredientsPage() {
 
   const handleUnarchive = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/admin/ingredients/${id}/unarchive`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${apiUrl}/admin/ingredients/${id}/unarchive`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${accessToken}` },
       });

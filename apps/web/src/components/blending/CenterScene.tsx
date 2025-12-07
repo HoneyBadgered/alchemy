@@ -8,8 +8,9 @@
 
 import React from 'react';
 import type { ExtendedBlendState, FlavorProfile, BlendSize, BlendBreakdownItem } from './types';
-import { getBlendingIngredientById } from './mockData';
+import type { BlendingIngredient } from './mockData';
 import { BowlFillVisual } from './BowlFillVisual';
+import { getIngredientById } from '@/hooks/useIngredients';
 
 interface CenterSceneProps {
   /** Current blend state */
@@ -24,6 +25,14 @@ interface CenterSceneProps {
   flavorProfile: FlavorProfile;
   /** Callback when an ingredient is removed from the breakdown */
   onRemoveIngredient: (ingredientId: string) => void;
+  /** Base teas from API */
+  bases: BlendingIngredient[];
+  /** Add-ins data from API */
+  addInsData: {
+    addIns: BlendingIngredient[];
+    botanicals: BlendingIngredient[];
+    premium: BlendingIngredient[];
+  };
 }
 
 interface BlendNameFieldProps {
@@ -154,7 +163,7 @@ const BlendBreakdownList: React.FC<BlendBreakdownListProps> = ({
   const items: BlendBreakdownItem[] = [];
 
   if (blendState.baseTeaId) {
-    const base = getBlendingIngredientById(blendState.baseTeaId);
+    const base = getIngredient(blendState.baseTeaId);
     if (base) {
       items.push({
         ingredient: base,
@@ -165,7 +174,7 @@ const BlendBreakdownList: React.FC<BlendBreakdownListProps> = ({
   }
 
   for (const addIn of blendState.addIns) {
-    const ingredient = getBlendingIngredientById(addIn.ingredientId);
+    const ingredient = getIngredient(addIn.ingredientId);
     if (ingredient) {
       items.push({
         ingredient,
@@ -228,12 +237,20 @@ export const CenterScene: React.FC<CenterSceneProps> = ({
   price,
   flavorProfile,
   onRemoveIngredient,
+  bases,
+  addInsData,
 }) => {
+  // Helper to get ingredient by ID
+  const getIngredient = (id: string) => getIngredientById(id, bases, addInsData);
   return (
     <div className="flex flex-col h-full">
       {/* Just the Bowl - Positioned to sit on the table */}
       <div className="flex items-end justify-center pt-[25vh]">
-        <BowlFillVisual blendState={blendState} />
+        <BowlFillVisual 
+          blendState={blendState}
+          bases={bases}
+          addInsData={addInsData}
+        />
       </div>
 
       {/* Bottom Panels: Flavor Profile (left) and Ingredients (right) */}

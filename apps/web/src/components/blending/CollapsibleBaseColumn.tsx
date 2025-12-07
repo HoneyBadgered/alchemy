@@ -12,7 +12,6 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import type { BlendingIngredient } from './mockData';
-import { getBlendingIngredientById } from './mockData';
 import { BRANDING } from '@/config/branding';
 
 interface CollapsibleBaseColumnProps {
@@ -102,7 +101,7 @@ export const CollapsibleBaseColumn: React.FC<CollapsibleBaseColumnProps> = ({
     // Auto-close is handled by the useEffect above
   }, [onSelectBase]);
 
-  const selectedBase = selectedBaseId ? getBlendingIngredientById(selectedBaseId) : null;
+  const selectedBase = selectedBaseId ? bases.find(b => b.id === selectedBaseId) : null;
 
   return (
     <div className="relative" data-testid="collapsible-base-panel">
