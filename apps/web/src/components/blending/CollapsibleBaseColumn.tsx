@@ -10,8 +10,10 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import type { BlendingIngredient } from './mockData';
 import { getBlendingIngredientById } from './mockData';
+import { BRANDING } from '@/config/branding';
 
 interface CollapsibleBaseColumnProps {
   /** Available base teas */
@@ -32,52 +34,45 @@ const BaseJarItem: React.FC<BaseJarItemProps> = ({ base, isSelected, onSelect })
   return (
     <button
       onClick={onSelect}
-      className={`
-        w-full p-3 rounded-xl border-2 transition-all duration-200
-        flex flex-col items-center text-center
-        hover:scale-[1.02] active:scale-[0.98]
-        ${isSelected
-          ? 'bg-purple-100 border-purple-400 shadow-lg shadow-purple-200/50'
-          : 'bg-white/60 border-white/40 hover:border-purple-200 hover:bg-white/80'
-        }
-      `}
+      className="relative group w-full p-2 transition-all duration-200 flex flex-col items-center text-center gap-2 hover:scale-105 active:scale-95"
       aria-pressed={isSelected}
       aria-label={`Select ${base.name} as base tea`}
     >
-      {/* Jar Icon / Thumbnail Placeholder */}
-      <div className={`
-        w-14 h-14 rounded-xl flex items-center justify-center text-3xl mb-2
-        ${isSelected ? 'bg-purple-200' : 'bg-gradient-to-br from-amber-100 to-amber-200'}
-      `}>
-        {base.emoji}
+      {/* Hover Tooltip */}
+      <div className="absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+        <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
+          {base.shortTags?.join(' · ') || base.description}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1">
+            <div className="border-4 border-transparent border-t-gray-900"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tea Bottle Image */}
+      <div className="relative w-16 h-20">
+        <Image
+          src={`${BRANDING.IMAGE_BASE_PATH}/tea-bottle.png`}
+          alt={base.name}
+          fill
+          className="object-contain"
+        />
+        {isSelected && (
+          <div className="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center shadow-lg">
+            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+        )}
       </div>
 
       {/* Name */}
-      <h4 className={`
-        font-semibold text-sm
-        ${isSelected ? 'text-purple-900' : 'text-gray-800'}
-      `}>
+      <h4 className={`font-semibold text-sm ${isSelected ? 'text-purple-300' : 'text-white'}`}>
         {base.name}
       </h4>
-
-      {/* Short Tags */}
-      <p className="text-xs text-gray-500 mt-1 leading-tight">
-        {base.shortTags?.join(' · ') || base.description}
-      </p>
-
-      {/* Selection Indicator */}
-      {isSelected && (
-        <div className="mt-2 flex items-center gap-1 text-purple-600">
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <span className="text-xs font-medium">Selected</span>
-        </div>
-      )}
     </button>
   );
 };
@@ -111,7 +106,7 @@ export const CollapsibleBaseColumn: React.FC<CollapsibleBaseColumnProps> = ({
 
   return (
     <div className="relative" data-testid="collapsible-base-panel">
-      {/* Collapsed Trigger */}
+      {/* Collapsed Trigger - Tea Bottle Image */}
       <AnimatePresence mode="wait">
         {!isOpen && (
           <motion.div
@@ -119,60 +114,28 @@ export const CollapsibleBaseColumn: React.FC<CollapsibleBaseColumnProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.2 }}
-            className="cursor-pointer"
+            className="cursor-pointer pt-[25vh]"
             onClick={handleToggle}
             data-testid="base-trigger"
           >
-            <div
-              className={`
-                group flex flex-col items-center gap-2 p-4
-                bg-white/20 backdrop-blur-sm rounded-2xl
-                border-2 hover:border-purple-400/50
-                shadow-lg hover:shadow-xl
-                transition-all duration-200
-                ${selectedBaseId ? 'border-purple-400/50 ring-2 ring-purple-400/30' : 'border-white/30'}
-              `}
-            >
-              {/* Icon with selection indicator */}
-              <div className="relative">
-                <span className="text-5xl group-hover:scale-110 transition-transform duration-200 block">
-                  {selectedBase?.emoji || '🍵'}
-                </span>
-                {selectedBaseId && (
-                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
-                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                )}
-              </div>
-              
-              {/* Label */}
-              <span className="text-white font-semibold text-center">
-                {selectedBase ? selectedBase.name : 'Choose Your Base'}
-              </span>
-              
-              {/* Subtitle */}
-              {selectedBase ? (
-                <span className="text-purple-300 text-xs text-center">
-                  Tap to change
-                </span>
-              ) : (
-                <span className="text-white/60 text-xs text-center">
-                  Tap to select
-                </span>
+            <div className="relative w-96 h-112 group">
+              <Image
+                src={`${BRANDING.IMAGE_BASE_PATH}/tea-bottle.png`}
+                alt="Choose your base"
+                fill
+                className="object-contain group-hover:scale-110 transition-transform duration-200"
+              />
+              {selectedBaseId && (
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center shadow-lg">
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
               )}
-              
-              {/* Expand indicator */}
-              <div className="flex items-center gap-1 text-white/50 group-hover:text-white/80 transition-colors mt-1">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
             </div>
           </motion.div>
         )}
@@ -189,7 +152,10 @@ export const CollapsibleBaseColumn: React.FC<CollapsibleBaseColumnProps> = ({
             className="relative"
             data-testid="base-panel-expanded"
           >
-            <div className="bg-white/30 backdrop-blur-md rounded-2xl p-4 border border-white/40 shadow-xl">
+            <div 
+              className="rounded-2xl p-4 shadow-xl relative bg-cover bg-center"
+              style={{ backgroundImage: `url(${BRANDING.IMAGE_BASE_PATH}/background-scroll.png)` }}
+            >
               {/* Header with close button */}
               <div className="flex items-center justify-between mb-4">
                 <div>

@@ -267,7 +267,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
               <div className="rounded-2xl p-6">
                 <div className="relative w-48 h-48 mx-auto">
                   <Image
-                    src={`${BRANDING.IMAGE_BASE_PATH}/bowl.png`}
+                    src={`${BRANDING.IMAGE_BASE_PATH}/glass-bowl.png`}
                     alt="Empty bowl"
                     fill
                     className="object-contain"

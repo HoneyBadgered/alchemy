@@ -11,6 +11,8 @@
 
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
+import { BRANDING } from '@/config/branding';
 import type { AddInCategoryTab } from './types';
 import type { BlendingIngredient } from './mockData';
 import { getAddInsByTab } from './mockData';
@@ -57,97 +59,81 @@ const IngredientItem: React.FC<IngredientItemProps> = ({
     }
   };
 
+  const tooltipText = [
+    ingredient.shortTags?.join(' · ') || ingredient.description,
+    ingredient.tier === 'premium' ? 'Premium' : ''
+  ].filter(Boolean).join(' · ');
+
   return (
-    <div
-      className={`
-        rounded-xl border-2 transition-all duration-200
-        ${isSelected
-          ? 'bg-purple-50 border-purple-300 shadow-md'
-          : 'bg-white/60 border-white/40 hover:border-purple-200'
-        }
-      `}
-    >
+    <div className="relative group">
       <button
         onClick={onToggle}
-        className="w-full p-3 flex items-start gap-3 text-left"
+        className="relative w-full p-2 transition-all duration-200 flex flex-col items-center text-center gap-2 hover:scale-105 active:scale-95"
         aria-pressed={isSelected}
       >
-        {/* Thumbnail */}
-        <div className={`
-          w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0
-          ${isSelected ? 'bg-purple-200' : 'bg-gray-100'}
-        `}>
-          {ingredient.emoji}
-        </div>
-
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h4 className={`
-              font-medium text-sm
-              ${isSelected ? 'text-purple-900' : 'text-gray-800'}
-            `}>
-              {ingredient.name}
-            </h4>
-            {ingredient.tier === 'premium' && (
-              <span className="text-xs px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-medium">
-                Premium
-              </span>
-            )}
+        {/* Hover Tooltip */}
+        <div className="absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+          <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
+            {tooltipText}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1">
+              <div className="border-4 border-transparent border-t-gray-900"></div>
+            </div>
           </div>
-          <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
-            {ingredient.shortTags?.join(' · ') || ingredient.description}
-          </p>
         </div>
 
-        {/* Selection Indicator */}
-        <div className={`
-          w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0
-          ${isSelected
-            ? 'bg-purple-500 border-purple-500'
-            : 'border-gray-300'
-          }
-        `}>
+        {/* Rose Bottle Image */}
+        <div className="relative w-16 h-20">
+          <Image
+            src={`${BRANDING.IMAGE_BASE_PATH}/rose-bottle.png`}
+            alt={ingredient.name}
+            fill
+            className="object-contain"
+          />
           {isSelected && (
-            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <div className="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center shadow-lg">
+              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
           )}
         </div>
+
+        {/* Name */}
+        <h4 className={`font-semibold text-sm ${isSelected ? 'text-purple-300' : 'text-white'}`}>
+          {ingredient.name}
+        </h4>
       </button>
 
       {/* Quantity Controls (when selected) */}
       {isSelected && (
-        <div className="px-3 pb-3">
-          <div className="flex items-center justify-between bg-white rounded-lg border border-purple-200 p-2">
-            <button
-              onClick={handleDecrement}
-              disabled={quantity <= minQuantity}
-              className="w-8 h-8 rounded-lg bg-purple-100 hover:bg-purple-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
-              aria-label="Decrease quantity"
-            >
-              <svg className="w-4 h-4 text-purple-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-              </svg>
-            </button>
-            <span className="font-semibold text-purple-900">
-              {quantity.toFixed(2)} oz
-            </span>
-            <button
-              onClick={handleIncrement}
-              disabled={quantity >= maxQuantity}
-              className="w-8 h-8 rounded-lg bg-purple-100 hover:bg-purple-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
-              aria-label="Increase quantity"
-            >
-              <svg className="w-4 h-4 text-purple-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </button>
-          </div>
+        <div className="mt-1 flex items-center justify-center gap-2">
+          <button
+            onClick={handleDecrement}
+            disabled={quantity <= minQuantity}
+            className="w-6 h-6 rounded-full bg-purple-500 hover:bg-purple-600 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+            aria-label="Decrease quantity"
+          >
+            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+            </svg>
+          </button>
+          <span className="font-semibold text-white text-xs min-w-[3rem] text-center">
+            {quantity.toFixed(2)} oz
+          </span>
+          <button
+            onClick={handleIncrement}
+            disabled={quantity >= maxQuantity}
+            className="w-6 h-6 rounded-full bg-purple-500 hover:bg-purple-600 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+            aria-label="Increase quantity"
+          >
+            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
         </div>
       )}
     </div>
@@ -291,54 +277,22 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.2 }}
-            className="cursor-pointer"
+            className="cursor-pointer pt-[35vh]"
             onClick={handleTogglePanel}
             data-testid="magic-trigger"
           >
-            <div
-              className={`
-                group flex flex-col items-center gap-2 p-4
-                bg-white/20 backdrop-blur-sm rounded-2xl
-                border-2 hover:border-purple-400/50
-                shadow-lg hover:shadow-xl
-                transition-all duration-200
-                ${totalSelectedCount > 0 ? 'border-purple-400/50 ring-2 ring-purple-400/30' : 'border-white/30'}
-              `}
-            >
-              {/* Icon with selection indicator */}
-              <div className="relative">
-                <span className="text-5xl group-hover:scale-110 transition-transform duration-200 block">
-                  🪄
-                </span>
-                {totalSelectedCount > 0 && (
-                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">{totalSelectedCount}</span>
-                  </div>
-                )}
-              </div>
-              
-              {/* Label */}
-              <span className="text-white font-semibold text-center">
-                Add Your Magic
-              </span>
-              
-              {/* Subtitle */}
-              {totalSelectedCount > 0 ? (
-                <span className="text-purple-300 text-xs text-center">
-                  {totalSelectedCount} ingredient{totalSelectedCount > 1 ? 's' : ''} selected
-                </span>
-              ) : (
-                <span className="text-white/60 text-xs text-center">
-                  Tap to add ingredients
-                </span>
+            <div className="relative w-98 h-112 group">
+              <Image
+                src={`${BRANDING.IMAGE_BASE_PATH}/rose-bottle.png`}
+                alt="Add your magic"
+                fill
+                className="object-contain group-hover:scale-110 transition-transform duration-200"
+              />
+              {totalSelectedCount > 0 && (
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center shadow-lg">
+                  <span className="text-white text-xs font-bold">{totalSelectedCount}</span>
+                </div>
               )}
-              
-              {/* Expand indicator */}
-              <div className="flex items-center gap-1 text-white/50 group-hover:text-white/80 transition-colors mt-1">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
             </div>
           </motion.div>
         )}
@@ -355,7 +309,10 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
             className="relative"
             data-testid="magic-panel-expanded"
           >
-            <div className="bg-white/30 backdrop-blur-md rounded-2xl p-4 border border-white/40 shadow-xl">
+            <div 
+              className="rounded-2xl p-4 shadow-xl relative bg-cover bg-center"
+              style={{ backgroundImage: `url(${BRANDING.IMAGE_BASE_PATH}/background-scroll.png)` }}
+            >
               {/* Header with close button */}
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -378,32 +335,24 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
                 </button>
               </div>
 
-              {/* Category Sections - Each independently collapsible */}
-              <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-                {CATEGORIES.map((category) => (
-                  <CategorySection
-                    key={category.id}
-                    id={category.id}
-                    label={category.label}
-                    emoji={category.emoji}
-                    isExpanded={expandedCategories[category.id]}
-                    onToggle={() => handleToggleCategory(category.id)}
-                    ingredients={getAddInsByTab(category.id)}
-                    selectedAddIns={selectedAddIns}
-                    onToggleAddIn={onToggleAddIn}
-                    onQuantityChange={onQuantityChange}
-                  />
-                ))}
-              </div>
-
-              {/* Done button */}
-              <div className="mt-4 pt-3 border-t border-white/20">
-                <button
-                  onClick={handleTogglePanel}
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-2.5 rounded-lg transition-all shadow-lg"
-                >
-                  Done
-                </button>
+              {/* All Ingredients in Grid */}
+              <div className="grid grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto pr-1">
+                {['addIns', 'botanicals', 'premium'].flatMap((categoryId) =>
+                  getAddInsByTab(categoryId as AddInCategoryTab).map((ingredient) => {
+                    const isSelected = selectedAddIns.some(a => a.ingredientId === ingredient.id);
+                    const quantity = selectedAddIns.find(a => a.ingredientId === ingredient.id)?.quantity || ingredient.baseAmount || 0.25;
+                    return (
+                      <IngredientItem
+                        key={`${categoryId}-${ingredient.id}`}
+                        ingredient={ingredient}
+                        quantity={quantity}
+                        isSelected={isSelected}
+                        onToggle={() => onToggleAddIn(ingredient.id)}
+                        onQuantityChange={(q) => onQuantityChange(ingredient.id, q)}
+                      />
+                    );
+                  })
+                )}
               </div>
             </div>
           </motion.div>

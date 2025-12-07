@@ -232,7 +232,7 @@ export const CenterScene: React.FC<CenterSceneProps> = ({
   return (
     <div className="flex flex-col h-full">
       {/* Just the Bowl - Positioned to sit on the table */}
-      <div className="flex-1 flex items-end justify-center pb-[20vh] sticky top-20">
+      <div className="flex items-end justify-center pt-[25vh]">
         <BowlFillVisual blendState={blendState} />
       </div>
 

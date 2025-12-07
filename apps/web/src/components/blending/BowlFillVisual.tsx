@@ -125,7 +125,7 @@ export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState }) =>
   const steamIntensity = totalFillPercentage > 70 ? 'high' : totalFillPercentage > 40 ? 'medium' : 'low';
 
   return (
-    <div className="relative w-full aspect-square max-w-md mx-auto mt-12">
+    <div className="relative w-full aspect-square max-w-sm mx-auto mt-12">
       {/* Outer glow effect */}
       <div className="absolute inset-0 bg-gradient-radial from-purple-500/20 via-transparent to-transparent rounded-full animate-pulse" />
       
