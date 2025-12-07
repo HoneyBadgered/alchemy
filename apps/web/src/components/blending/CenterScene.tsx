@@ -230,33 +230,27 @@ export const CenterScene: React.FC<CenterSceneProps> = ({
   onRemoveIngredient,
 }) => {
   return (
-    <div className="bg-gradient-to-br from-purple-900/90 via-indigo-900/90 to-purple-950/90 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/30 shadow-2xl">
-      {/* Top Controls: Blend Name, Size, Price */}
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-end gap-4 mb-4">
-          <div className="flex-1">
-            <BlendNameField
-              value={blendState.blendName}
-              onChange={onBlendNameChange}
-            />
-          </div>
-          <PriceEstimateChip price={price} />
-        </div>
-        <div className="flex items-center justify-between">
-          <SizeSelector value={blendState.size} onChange={onSizeChange} />
-        </div>
+    <div className="flex flex-col h-full">
+      {/* Just the Bowl - Positioned to sit on the table */}
+      <div className="flex-1 flex items-end justify-center pb-[20vh] sticky top-20">
+        <BowlFillVisual blendState={blendState} />
       </div>
 
-      {/* Bowl Fill Visual */}
-      <BowlFillVisual blendState={blendState} />
-
-      {/* Bottom Panels: Stats and Breakdown */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <BlendStatsPanel profile={flavorProfile} />
-        <BlendBreakdownList
-          blendState={blendState}
-          onRemoveIngredient={onRemoveIngredient}
-        />
+      {/* Bottom Panels: Flavor Profile (left) and Ingredients (right) */}
+      <div className="fixed bottom-20 left-0 right-0 z-20 pointer-events-none">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-between gap-4 pointer-events-auto">
+            <div className="w-72">
+              <BlendStatsPanel profile={flavorProfile} />
+            </div>
+            <div className="w-72">
+              <BlendBreakdownList
+                blendState={blendState}
+                onRemoveIngredient={onRemoveIngredient}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

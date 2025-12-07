@@ -9,8 +9,10 @@
 
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import type { ExtendedBlendState } from './types';
 import { getBlendingIngredientById } from './mockData';
+import { BRANDING } from '@/config/branding';
 
 // Bowl fill configuration constants
 /** Maximum bowl capacity in ounces (4 oz = 100% fill) */
@@ -123,7 +125,7 @@ export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState }) =>
   const steamIntensity = totalFillPercentage > 70 ? 'high' : totalFillPercentage > 40 ? 'medium' : 'low';
 
   return (
-    <div className="relative w-full aspect-square max-w-md mx-auto">
+    <div className="relative w-full aspect-square max-w-md mx-auto mt-12">
       {/* Outer glow effect */}
       <div className="absolute inset-0 bg-gradient-radial from-purple-500/20 via-transparent to-transparent rounded-full animate-pulse" />
       
@@ -132,65 +134,16 @@ export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState }) =>
         {/* Bowl shadow */}
         <div className="absolute inset-0 translate-y-2 bg-gradient-radial from-black/30 to-transparent rounded-[50%] blur-xl" />
         
-        {/* Ceramic bowl SVG - top-down view */}
-        <svg
-          viewBox="0 0 200 200"
-          className="absolute inset-0 w-full h-full"
-          aria-label="Ceramic bowl"
-        >
-          {/* Define clip path for fill masking */}
-          <defs>
-            <clipPath id="bowlInteriorClip">
-              <ellipse cx="100" cy="100" rx="65" ry="55" />
-            </clipPath>
-            {/* Gradient for bowl rim */}
-            <linearGradient id="bowlRimGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#f5f0e8" />
-              <stop offset="30%" stopColor="#e8e0d4" />
-              <stop offset="70%" stopColor="#d4c8b8" />
-              <stop offset="100%" stopColor="#c4b8a8" />
-            </linearGradient>
-            {/* Inner bowl shadow gradient */}
-            <radialGradient id="bowlInnerShadow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#f8f4ec" stopOpacity="0.2" />
-              <stop offset="60%" stopColor="#e0d4c4" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#b8a898" stopOpacity="1" />
-            </radialGradient>
-          </defs>
-          
-          {/* Bowl outer edge */}
-          <ellipse
-            cx="100"
-            cy="100"
-            rx="85"
-            ry="75"
-            fill="url(#bowlRimGradient)"
-            stroke="#a89888"
-            strokeWidth="2"
+        {/* Empty Bowl Image */}
+        <div className="absolute inset-0 w-full h-full flex items-center justify-center">
+          <Image
+            src={`${BRANDING.IMAGE_BASE_PATH}/empty-bowl.png`}
+            alt="Empty bowl"
+            fill
+            className="object-contain"
+            priority
           />
-          
-          {/* Bowl inner edge/rim */}
-          <ellipse
-            cx="100"
-            cy="100"
-            rx="75"
-            ry="65"
-            fill="url(#bowlInnerShadow)"
-            stroke="#c4b8a8"
-            strokeWidth="1"
-          />
-          
-          {/* Bowl interior base (empty state) */}
-          <ellipse
-            cx="100"
-            cy="100"
-            rx="65"
-            ry="55"
-            fill="#2a2520"
-            stroke="#3a3530"
-            strokeWidth="1"
-          />
-        </svg>
+        </div>
         
         {/* Fill container - masked to bowl interior */}
         <div 
@@ -369,19 +322,6 @@ export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState }) =>
           ease: 'easeInOut',
         }}
       />
-      
-      {/* Empty state message */}
-      {totalFillPercentage === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-4xl"
-          >
-            🫖
-          </motion.div>
-        </div>
-      )}
     </div>
   );
 };

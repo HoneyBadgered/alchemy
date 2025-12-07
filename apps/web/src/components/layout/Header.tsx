@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { THEMES } from '@/lib/themes';
 import SearchModal from './SearchModal';
+import { BRANDING } from '@/config/branding';
 
 /**
  * Main site header component with navigation, search, account, and cart icons.
@@ -36,8 +38,8 @@ export default function Header() {
               className="flex items-center gap-2 text-xl font-bold font-serif text-text-base hover:text-accent transition-colors"
               aria-label="The Alchemy Table - Home"
             >
-              <span className="text-2xl" aria-hidden="true">🧪</span>
-              <span className="hidden sm:inline">The Alchemy Table</span>
+              <Image src={BRANDING.LOGO_PATH} alt="Logo" width={50} height={50} className="rounded-lg" />
+              <span className="hidden sm:inline">{BRANDING.SITE_NAME}</span>
             </Link>
 
             {/* Desktop Navigation */}

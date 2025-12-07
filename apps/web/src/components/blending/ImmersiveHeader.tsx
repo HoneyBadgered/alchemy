@@ -8,6 +8,8 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
+import { BRANDING } from '@/config/branding';
 
 interface ImmersiveHeaderProps {
   /** Callback when back button is clicked */
@@ -30,7 +32,7 @@ export const ImmersiveHeader: React.FC<ImmersiveHeaderProps> = ({
     <header className="fixed top-0 left-0 right-0 z-50">
       {/* Semi-transparent frosted glass effect */}
       <div className="bg-gradient-to-r from-purple-900/80 via-indigo-900/80 to-purple-900/80 backdrop-blur-md border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 py-3">
+        <div className="max-w-7xl mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
             {/* Left: Back Button */}
             <div className="flex-1 flex justify-start">
@@ -56,18 +58,17 @@ export const ImmersiveHeader: React.FC<ImmersiveHeaderProps> = ({
               </button>
             </div>
 
-            {/* Center: Brand/Session Title */}
-            <div className="flex-1 flex flex-col items-center">
-              <h1 className="text-lg sm:text-xl font-bold text-white tracking-wide">
-                <span className="text-purple-300">✨</span> The Alchemy Table
+            {/* Center: Brand Title */}
+            <div className="flex-1 flex items-center justify-center gap-2">
+              {/* Logo */}
+              <Image src={BRANDING.LOGO_PATH} alt="Logo" width={40} height={40} className="rounded-lg" />
+              <h1 className="text-base sm:text-lg font-bold text-white tracking-wide">
+                {BRANDING.SITE_NAME}
               </h1>
-              <p className="text-xs sm:text-sm text-purple-300/80 font-medium">
-                Custom Blend Session
-              </p>
               {stepIndicator && (
-                <p className="text-xs text-white/60 mt-0.5 hidden sm:block">
+                <span className="text-xs text-white/60 ml-2 hidden sm:inline">
                   {stepIndicator}
-                </p>
+                </span>
               )}
             </div>
 

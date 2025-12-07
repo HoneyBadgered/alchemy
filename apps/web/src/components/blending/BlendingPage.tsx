@@ -9,6 +9,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import type { ExtendedBlendState, BlendSize } from './types';
 import { MOCK_BASES, getBlendingIngredientById } from './mockData';
 import { useBlendPricing } from './useBlendPricing';
@@ -19,6 +20,7 @@ import { BottomActionBar } from './BottomActionBar';
 import { CollapsibleBaseColumn } from './CollapsibleBaseColumn';
 import { CollapsibleMagicColumn } from './CollapsibleMagicColumn';
 import { useCart } from '@/contexts/CartContext';
+import { BRANDING } from '@/config/branding';
 
 interface BlendingPageProps {
   /** Callback for navigation back */
@@ -157,20 +159,16 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
 
   return (
     <div className="min-h-screen relative">
-      {/* Fixed full-screen background with gradient fallback
-          Optional: Add /alchemy-table-bg.jpg to public folder for custom background image */}
+      {/* Fixed full-screen background with custom image */}
       <div 
         className="fixed inset-0 z-0 bg-gradient-to-br from-slate-900 via-purple-950 to-indigo-950"
         style={{
-          backgroundImage: 'url(/alchemy-table-bg.jpg)',
+          backgroundImage: `url(${BRANDING.IMAGE_BASE_PATH}/background-table.png)`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed',
         }}
-      >
-        {/* Dark overlay for readability */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-purple-950/70 to-indigo-950/80" />
-      </div>
+      />
 
       {/* Content layer */}
       <div className="relative z-10">
@@ -231,7 +229,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
             {/* Mobile: Stacked Layout */}
             <div className="lg:hidden space-y-6">
               {/* Blend Controls at Top */}
-              <div className="bg-white/20 backdrop-blur-md rounded-2xl p-4 border border-white/30 shadow-xl">
+              <div className="rounded-2xl p-4">
                 <div className="flex items-center justify-between gap-4 mb-3">
                   <input
                     type="text"
@@ -265,14 +263,16 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
                 </div>
               </div>
 
-              {/* Table Visual (simplified for mobile) */}
-              <div className="bg-white/20 backdrop-blur-md rounded-2xl p-6 border border-white/30 shadow-xl">
+              {/* Bowl Visual (simplified for mobile) */}
+              <div className="rounded-2xl p-6">
                 <div className="relative w-48 h-48 mx-auto">
-                  <div className="absolute inset-0 bg-gradient-radial from-purple-500/20 via-transparent to-transparent rounded-full" />
-                  <div className="absolute inset-2 bg-gradient-to-br from-amber-800 via-amber-900 to-amber-950 rounded-full shadow-2xl border-4 border-amber-700/50" />
-                  <div className="absolute inset-8 bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 rounded-full shadow-inner border-2 border-slate-600/50 flex items-center justify-center">
-                    <span className="text-3xl">🫖</span>
-                  </div>
+                  <Image
+                    src={`${BRANDING.IMAGE_BASE_PATH}/bowl.png`}
+                    alt="Empty bowl"
+                    fill
+                    className="object-contain"
+                    priority
+                  />
                 </div>
               </div>
 
@@ -294,7 +294,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
               </div>
 
               {/* Blend Breakdown */}
-              <div className="bg-white/20 backdrop-blur-md rounded-2xl p-4 border border-white/30 shadow-xl">
+              <div className="rounded-2xl p-4">
                 <h3 className="text-lg font-bold text-white mb-3">Your Blend</h3>
                 {blendState.baseTeaId || blendState.addIns.length > 0 ? (
                   <div className="space-y-2">
