@@ -33,6 +33,8 @@ interface CenterSceneProps {
     botanicals: BlendingIngredient[];
     premium: BlendingIngredient[];
   };
+  /** Whether the base panel is open */
+  isBasePanelOpen?: boolean;
 }
 
 interface BlendNameFieldProps {
@@ -148,11 +150,19 @@ const BlendStatsPanel: React.FC<BlendStatsPanelProps> = ({ profile }) => {
 interface BlendBreakdownListProps {
   blendState: ExtendedBlendState;
   onRemoveIngredient: (ingredientId: string) => void;
+  bases: BlendingIngredient[];
+  addInsData: {
+    addIns: BlendingIngredient[];
+    botanicals: BlendingIngredient[];
+    premium: BlendingIngredient[];
+  };
 }
 
 const BlendBreakdownList: React.FC<BlendBreakdownListProps> = ({
   blendState,
   onRemoveIngredient,
+  bases,
+  addInsData,
 }) => {
   // Calculate total weight
   const baseWeight = blendState.baseTeaId ? blendState.size * 0.6 : 0;
@@ -163,7 +173,7 @@ const BlendBreakdownList: React.FC<BlendBreakdownListProps> = ({
   const items: BlendBreakdownItem[] = [];
 
   if (blendState.baseTeaId) {
-    const base = getIngredient(blendState.baseTeaId);
+    const base = getIngredientById(blendState.baseTeaId, bases, addInsData);
     if (base) {
       items.push({
         ingredient: base,
@@ -174,7 +184,7 @@ const BlendBreakdownList: React.FC<BlendBreakdownListProps> = ({
   }
 
   for (const addIn of blendState.addIns) {
-    const ingredient = getIngredient(addIn.ingredientId);
+    const ingredient = getIngredientById(addIn.ingredientId, bases, addInsData);
     if (ingredient) {
       items.push({
         ingredient,
@@ -239,11 +249,19 @@ export const CenterScene: React.FC<CenterSceneProps> = ({
   onRemoveIngredient,
   bases,
   addInsData,
+  isBasePanelOpen = false,
 }) => {
-  // Helper to get ingredient by ID
-  const getIngredient = (id: string) => getIngredientById(id, bases, addInsData);
   return (
     <div className="flex flex-col h-full">
+      {/* Flavor Profile - Top Left, hidden when base panel is open */}
+      {!isBasePanelOpen && (
+        <div className="fixed top-24 left-4 z-20 pointer-events-auto">
+          <div className="w-72">
+            <BlendStatsPanel profile={flavorProfile} />
+          </div>
+        </div>
+      )}
+
       {/* Just the Bowl - Positioned to sit on the table */}
       <div className="flex items-end justify-center pt-[25vh]">
         <BowlFillVisual 
@@ -253,20 +271,15 @@ export const CenterScene: React.FC<CenterSceneProps> = ({
         />
       </div>
 
-      {/* Bottom Panels: Flavor Profile (left) and Ingredients (right) */}
-      <div className="fixed bottom-20 left-0 right-0 z-20 pointer-events-none">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between gap-4 pointer-events-auto">
-            <div className="w-72">
-              <BlendStatsPanel profile={flavorProfile} />
-            </div>
-            <div className="w-72">
-              <BlendBreakdownList
-                blendState={blendState}
-                onRemoveIngredient={onRemoveIngredient}
-              />
-            </div>
-          </div>
+      {/* Bottom Right: Ingredients Breakdown */}
+      <div className="fixed bottom-20 right-4 z-20 pointer-events-auto">
+        <div className="w-72">
+          <BlendBreakdownList
+            blendState={blendState}
+            onRemoveIngredient={onRemoveIngredient}
+            bases={bases}
+            addInsData={addInsData}
+          />
         </div>
       </div>
     </div>

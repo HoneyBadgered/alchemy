@@ -13,6 +13,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import type { BlendingIngredient } from './mockData';
 import { BRANDING } from '@/config/branding';
+import { useDeviceType } from '@/hooks/useDeviceType';
+import { IngredientDetailsSheet } from './IngredientDetailsSheet';
 
 interface CollapsibleBaseColumnProps {
   /** Available base teas */
@@ -21,31 +23,58 @@ interface CollapsibleBaseColumnProps {
   selectedBaseId?: string;
   /** Callback when a base is selected */
   onSelectBase: (baseId: string) => void;
+  /** Callback when panel open state changes */
+  onOpenChange?: (isOpen: boolean) => void;
 }
 
 interface BaseJarItemProps {
   base: BlendingIngredient;
   isSelected: boolean;
   onSelect: () => void;
+  useMobileBehavior: boolean;
+  onOpenDetails?: () => void;
 }
 
-const BaseJarItem: React.FC<BaseJarItemProps> = ({ base, isSelected, onSelect }) => {
+const BaseJarItem: React.FC<BaseJarItemProps> = ({ 
+  base, 
+  isSelected, 
+  onSelect,
+  useMobileBehavior,
+  onOpenDetails,
+}) => {
+  const handleClick = () => {
+    if (useMobileBehavior && onOpenDetails) {
+      // On mobile: tap opens details sheet
+      onOpenDetails();
+    } else {
+      // On desktop: click selects
+      onSelect();
+    }
+  };
+
+  const handleSecondaryAction = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSelect();
+  };
+
   return (
     <button
-      onClick={onSelect}
+      onClick={handleClick}
       className="relative group w-full p-2 transition-all duration-200 flex flex-col items-center text-center gap-2 hover:scale-105 active:scale-95"
       aria-pressed={isSelected}
-      aria-label={`Select ${base.name} as base tea`}
+      aria-label={`${useMobileBehavior ? 'View details for' : 'Select'} ${base.name} as base tea`}
     >
-      {/* Hover Tooltip */}
-      <div className="absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-        <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
-          {base.shortTags?.join(' · ') || base.description}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1">
-            <div className="border-4 border-transparent border-t-gray-900"></div>
+      {/* Desktop Hover Tooltip - hidden on mobile */}
+      {!useMobileBehavior && (
+        <div className="absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+          <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
+            {base.shortTags?.join(' · ') || base.description}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1">
+              <div className="border-4 border-transparent border-t-gray-900"></div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Tea Bottle Image */}
       <div className="relative w-16 h-20">
@@ -72,6 +101,16 @@ const BaseJarItem: React.FC<BaseJarItemProps> = ({ base, isSelected, onSelect })
       <h4 className={`font-semibold text-sm ${isSelected ? 'text-purple-300' : 'text-white'}`}>
         {base.name}
       </h4>
+
+      {/* Mobile: Show select button when details sheet is used */}
+      {useMobileBehavior && !isSelected && (
+        <button
+          onClick={handleSecondaryAction}
+          className="mt-1 px-3 py-1 bg-purple-500 hover:bg-purple-600 text-white text-xs rounded-full transition-colors"
+        >
+          Select
+        </button>
+      )}
     </button>
   );
 };
@@ -80,9 +119,12 @@ export const CollapsibleBaseColumn: React.FC<CollapsibleBaseColumnProps> = ({
   bases,
   selectedBaseId,
   onSelectBase,
+  onOpenChange,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [detailsIngredient, setDetailsIngredient] = useState<BlendingIngredient | null>(null);
   const prevSelectedRef = useRef(selectedBaseId);
+  const { useMobileBehavior } = useDeviceType();
 
   // Auto-collapse when a new base is selected
   useEffect(() => {
@@ -92,14 +134,27 @@ export const CollapsibleBaseColumn: React.FC<CollapsibleBaseColumnProps> = ({
     prevSelectedRef.current = selectedBaseId;
   }, [selectedBaseId, isOpen]);
 
+  // Notify parent when open state changes
+  useEffect(() => {
+    onOpenChange?.(isOpen);
+  }, [isOpen, onOpenChange]);
+
   const handleToggle = useCallback(() => {
     setIsOpen(prev => !prev);
   }, []);
 
   const handleSelectBase = useCallback((baseId: string) => {
     onSelectBase(baseId);
-    // Auto-close is handled by the useEffect above
+    setDetailsIngredient(null); // Close details sheet after selection
   }, [onSelectBase]);
+
+  const handleOpenDetails = useCallback((base: BlendingIngredient) => {
+    setDetailsIngredient(base);
+  }, []);
+
+  const handleCloseDetails = useCallback(() => {
+    setDetailsIngredient(null);
+  }, []);
 
   const selectedBase = selectedBaseId ? bases.find(b => b.id === selectedBaseId) : null;
 
@@ -148,12 +203,17 @@ export const CollapsibleBaseColumn: React.FC<CollapsibleBaseColumnProps> = ({
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -20, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="relative"
+            className="relative overflow-x-hidden max-w-md"
             data-testid="base-panel-expanded"
           >
             <div 
-              className="rounded-2xl p-4 shadow-xl relative bg-cover bg-center"
-              style={{ backgroundImage: `url(${BRANDING.IMAGE_BASE_PATH}/background-scroll.png)` }}
+              className="rounded-2xl pt-6 px-6 pb-12 shadow-xl relative w-full max-w-md overflow-x-hidden"
+              style={{ 
+                backgroundImage: `url(${BRANDING.IMAGE_BASE_PATH}/background-scroll.png)`,
+                backgroundSize: '100% 100%',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center'
+              }}
             >
               {/* Header with close button */}
               <div className="flex items-center justify-between mb-4">
@@ -185,6 +245,8 @@ export const CollapsibleBaseColumn: React.FC<CollapsibleBaseColumnProps> = ({
                     base={base}
                     isSelected={selectedBaseId === base.id}
                     onSelect={() => handleSelectBase(base.id)}
+                    useMobileBehavior={useMobileBehavior}
+                    onOpenDetails={() => handleOpenDetails(base)}
                   />
                 ))}
               </div>
@@ -192,6 +254,13 @@ export const CollapsibleBaseColumn: React.FC<CollapsibleBaseColumnProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Mobile Details Sheet */}
+      <IngredientDetailsSheet
+        ingredient={detailsIngredient}
+        isOpen={detailsIngredient !== null}
+        onClose={handleCloseDetails}
+      />
     </div>
   );
 };

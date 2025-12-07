@@ -15,6 +15,8 @@ import Image from 'next/image';
 import { BRANDING } from '@/config/branding';
 import type { AddInCategoryTab } from './types';
 import type { BlendingIngredient } from './mockData';
+import { useDeviceType } from '@/hooks/useDeviceType';
+import { IngredientDetailsSheet } from './IngredientDetailsSheet';
 
 interface CollapsibleMagicColumnProps {
   /** Selected add-in IDs with quantities */
@@ -37,6 +39,8 @@ interface IngredientItemProps {
   isSelected: boolean;
   onToggle: () => void;
   onQuantityChange: (quantity: number) => void;
+  useMobileBehavior: boolean;
+  onOpenDetails?: () => void;
 }
 
 const IngredientItem: React.FC<IngredientItemProps> = ({
@@ -45,10 +49,22 @@ const IngredientItem: React.FC<IngredientItemProps> = ({
   isSelected,
   onToggle,
   onQuantityChange,
+  useMobileBehavior,
+  onOpenDetails,
 }) => {
   const incrementAmount = ingredient.incrementAmount || 0.25;
   const minQuantity = ingredient.baseAmount || 0.25;
   const maxQuantity = 2; // Max 2 oz per add-in
+
+  const handleClick = () => {
+    if (useMobileBehavior && onOpenDetails) {
+      // On mobile: tap opens details sheet
+      onOpenDetails();
+    } else {
+      // On desktop: click toggles selection
+      onToggle();
+    }
+  };
 
   const handleIncrement = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -72,19 +88,21 @@ const IngredientItem: React.FC<IngredientItemProps> = ({
   return (
     <div className="relative group">
       <button
-        onClick={onToggle}
+        onClick={handleClick}
         className="relative w-full p-2 transition-all duration-200 flex flex-col items-center text-center gap-2 hover:scale-105 active:scale-95"
         aria-pressed={isSelected}
       >
-        {/* Hover Tooltip */}
-        <div className="absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-          <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
-            {tooltipText}
-            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1">
-              <div className="border-4 border-transparent border-t-gray-900"></div>
+        {/* Desktop Hover Tooltip - hidden on mobile */}
+        {!useMobileBehavior && (
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+            <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
+              {tooltipText}
+              <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1">
+                <div className="border-4 border-transparent border-t-gray-900"></div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Rose Bottle Image */}
         <div className="relative w-16 h-20">
@@ -141,6 +159,20 @@ const IngredientItem: React.FC<IngredientItemProps> = ({
           </button>
         </div>
       )}
+
+      {/* Mobile: Show select/unselect button when details sheet is used */}
+      {useMobileBehavior && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggle(); }}
+          className={`mt-1 px-3 py-1 text-white text-xs rounded-full transition-colors ${
+            isSelected 
+              ? 'bg-red-500 hover:bg-red-600' 
+              : 'bg-purple-500 hover:bg-purple-600'
+          }`}
+        >
+          {isSelected ? 'Remove' : 'Add'}
+        </button>
+      )}
     </div>
   );
 };
@@ -155,6 +187,8 @@ interface CategorySectionProps {
   selectedAddIns: Array<{ ingredientId: string; quantity: number }>;
   onToggleAddIn: (ingredientId: string) => void;
   onQuantityChange: (ingredientId: string, quantity: number) => void;
+  useMobileBehavior: boolean;
+  onOpenDetails: (ingredient: BlendingIngredient) => void;
 }
 
 const CategorySection: React.FC<CategorySectionProps> = ({
@@ -167,6 +201,8 @@ const CategorySection: React.FC<CategorySectionProps> = ({
   selectedAddIns,
   onToggleAddIn,
   onQuantityChange,
+  useMobileBehavior,
+  onOpenDetails,
 }) => {
   const getSelectedQuantity = (ingredientId: string): number => {
     const addIn = selectedAddIns.find(a => a.ingredientId === ingredientId);
@@ -228,6 +264,8 @@ const CategorySection: React.FC<CategorySectionProps> = ({
                     isSelected={isSelected}
                     onToggle={() => onToggleAddIn(ingredient.id)}
                     onQuantityChange={(q) => onQuantityChange(ingredient.id, q)}
+                    useMobileBehavior={useMobileBehavior}
+                    onOpenDetails={() => onOpenDetails(ingredient)}
                   />
                 );
               })}
@@ -252,6 +290,8 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
   addInsData,
 }) => {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [detailsIngredient, setDetailsIngredient] = useState<BlendingIngredient | null>(null);
+  const { useMobileBehavior } = useDeviceType();
   
   // Independent expanded state for each category section
   const [expandedCategories, setExpandedCategories] = useState<Record<AddInCategoryTab, boolean>>({
@@ -269,6 +309,14 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
       ...prev,
       [categoryId]: !prev[categoryId],
     }));
+  }, []);
+
+  const handleOpenDetails = useCallback((ingredient: BlendingIngredient) => {
+    setDetailsIngredient(ingredient);
+  }, []);
+
+  const handleCloseDetails = useCallback(() => {
+    setDetailsIngredient(null);
   }, []);
 
   const totalSelectedCount = selectedAddIns.length;
@@ -312,12 +360,17 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 20, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="relative"
+            className="relative overflow-x-hidden max-w-lg"
             data-testid="magic-panel-expanded"
           >
             <div 
-              className="rounded-2xl p-4 shadow-xl relative bg-cover bg-center"
-              style={{ backgroundImage: `url(${BRANDING.IMAGE_BASE_PATH}/background-scroll.png)` }}
+              className="rounded-2xl pt-6 px-6 pb-12 shadow-xl relative w-full max-w-lg overflow-x-hidden"
+              style={{ 
+                backgroundImage: `url(${BRANDING.IMAGE_BASE_PATH}/background-wide-scroll-2.png)`,
+                backgroundSize: '100% 100%',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center'
+              }}
             >
               {/* Header with close button */}
               <div className="flex items-center justify-between mb-4">
@@ -342,7 +395,7 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
               </div>
 
               {/* All Ingredients in Grid */}
-              <div className="grid grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto pr-1">
+              <div className="grid grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto pr-1">
                 {['addIns', 'botanicals', 'premium'].flatMap((categoryId) => {
                   const categoryKey = categoryId as keyof typeof addInsData;
                   return addInsData[categoryKey].map((ingredient) => {
@@ -356,6 +409,8 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
                         isSelected={isSelected}
                         onToggle={() => onToggleAddIn(ingredient.id)}
                         onQuantityChange={(q) => onQuantityChange(ingredient.id, q)}
+                        useMobileBehavior={useMobileBehavior}
+                        onOpenDetails={() => handleOpenDetails(ingredient)}
                       />
                     );
                   });
@@ -365,6 +420,13 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Mobile Details Sheet */}
+      <IngredientDetailsSheet
+        ingredient={detailsIngredient}
+        isOpen={detailsIngredient !== null}
+        onClose={handleCloseDetails}
+      />
     </div>
   );
 };

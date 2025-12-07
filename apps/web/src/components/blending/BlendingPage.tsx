@@ -47,6 +47,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
   });
 
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isBasePanelOpen, setIsBasePanelOpen] = useState(false);
 
   // Get cart item count for header
   const { itemCount } = useCart();
@@ -228,6 +229,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
                     bases={bases}
                     selectedBaseId={blendState.baseTeaId}
                     onSelectBase={handleSelectBase}
+                    onOpenChange={setIsBasePanelOpen}
                   />
                 </div>
               </div>
@@ -243,6 +245,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
                   onRemoveIngredient={handleRemoveIngredient}
                   bases={bases}
                   addInsData={addIns}
+                  isBasePanelOpen={isBasePanelOpen}
                 />
               </div>
 
