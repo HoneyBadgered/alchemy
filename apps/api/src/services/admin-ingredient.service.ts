@@ -288,10 +288,14 @@ export class AdminIngredientService {
     const minimumStockLevel = data.minimumStockLevel ?? 0;
     const calculatedStatus = data.status || calculateInventoryStatus(inventoryAmount, minimumStockLevel);
 
+    // Automatically set isBase based on role if not explicitly provided
+    const role = data.role || 'addIn';
+    const isBase = data.isBase ?? (role === 'base' || role === 'either');
+
     const ingredient = await prisma.ingredient.create({
       data: {
         name: data.name,
-        role: data.role || 'addIn',
+        role,
         category: data.category,
         descriptionShort: data.descriptionShort,
         descriptionLong: data.descriptionLong,
@@ -321,7 +325,7 @@ export class AdminIngredientService {
         emoji: data.emoji,
         tags: data.tags || [],
         badges: data.badges || [],
-        isBase: data.isBase ?? false,
+        isBase,
         baseAmount: data.baseAmount,
         incrementAmount: data.incrementAmount,
       },
@@ -375,10 +379,16 @@ export class AdminIngredientService {
     // Build update data, excluding pairings (handled separately)
     const { pairings, ...updateData } = data;
     
+    // Automatically set isBase based on role if role is being updated
+    const finalUpdateData = { ...updateData };
+    if (data.role !== undefined && data.isBase === undefined) {
+      finalUpdateData.isBase = data.role === 'base' || data.role === 'either';
+    }
+    
     const ingredient = await prisma.ingredient.update({
       where: { id },
       data: {
-        ...updateData,
+        ...finalUpdateData,
         ...(costPerGram !== undefined && { costPerGram }),
         ...(calculatedStatus && { status: calculatedStatus }),
       },

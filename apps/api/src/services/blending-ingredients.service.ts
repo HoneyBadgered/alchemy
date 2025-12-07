@@ -202,7 +202,7 @@ export class BlendingIngredientsService {
   async getBaseTeas(): Promise<BlendingIngredient[]> {
     const bases = await prisma.ingredient.findMany({
       where: {
-        isBase: true,
+        role: { in: ['base', 'either'] },
         status: 'active',
       },
       orderBy: { name: 'asc' },
@@ -221,7 +221,7 @@ export class BlendingIngredientsService {
   }> {
     const allAddIns = await prisma.ingredient.findMany({
       where: {
-        isBase: false,
+        role: { in: ['addIn', 'either'] },
         status: 'active',
       },
       orderBy: { name: 'asc' },

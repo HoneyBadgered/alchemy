@@ -1,6 +1,3 @@
-// This is your Prisma schema file for The Alchemy Table
-// Learn more: https://pris.ly/d/prisma-schema
-
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-3.0.x", "linux-arm64-openssl-3.0.x"]
@@ -11,74 +8,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================
-// User & Authentication
-// ============================================
-
-model User {
-  id                       String    @id @default(cuid())
-  email                    String    @unique
-  password                 String
-  username                 String    @unique
-  role                     String    @default("user") // user, admin
-  emailVerified            Boolean   @default(false)
-  emailVerificationToken   String?
-  emailVerificationExpires DateTime?
-  passwordResetToken       String?
-  passwordResetExpires     DateTime?
-  createdAt                DateTime  @default(now())
-  updatedAt                DateTime  @updatedAt
-
-  profile                 UserProfile?
-  playerState             PlayerState?
-  orders                  Order[]
-  playerQuests            PlayerQuest[]
-  inventory               PlayerInventory[]
-  cosmetics               PlayerCosmetics?
-  refreshTokens           RefreshToken[]
-  orderStatusLogs         OrderStatusLog[]
-  cart                    Cart?
-  reviews                 Review[]
-  wishlistItems           WishlistItem[]
-  addresses               Address[]
-  paymentMethods          PaymentMethod[]
-  rewardPoints            RewardPoints?
-  rewardHistory           RewardHistory[]
-  subscriptions           Subscription[]
-  notificationPreferences NotificationPreference?
-  achievements            UserAchievement[]
-
-  @@map("users")
+model achievements {
+  id                String              @id
+  name              String              @unique
+  description       String
+  iconUrl           String?
+  category          String
+  triggerType       String
+  triggerValue      Int
+  xpReward          Int                 @default(0)
+  pointsReward      Int                 @default(0)
+  isActive          Boolean             @default(true)
+  isSecret          Boolean             @default(false)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime
+  user_achievements user_achievements[]
 }
 
-model UserProfile {
-  id                 String   @id @default(cuid())
-  userId             String   @unique
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  firstName          String?
-  lastName           String?
-  avatarUrl          String?
-  // Flavor preferences (floral, fruity, earthy, smoky, sweet, herbal)
-  flavorPreferences  String[] @default([])
-  // Caffeine preference (none, low, medium, high)
-  caffeinePreference String?
-  // Allergy notes
-  allergyNotes       String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  @@map("user_profiles")
-}
-
-// ============================================
-// Address Book
-// ============================================
-
-model Address {
-  id           String  @id @default(cuid())
+model addresses {
+  id           String   @id
   userId       String
-  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  label        String? // Home, Work, etc.
+  label        String?
   firstName    String
   lastName     String
   addressLine1 String
@@ -88,715 +38,53 @@ model Address {
   zipCode      String
   country      String
   phone        String?
-  isDefault    Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([userId])
-  @@map("addresses")
-}
-
-// ============================================
-// Payment Methods
-// ============================================
-
-model PaymentMethod {
-  id               String  @id @default(cuid())
-  userId           String
-  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stripePaymentId  String  @unique // Stripe payment method ID
-  type             String // card, bank_account, etc.
-  last4            String // Last 4 digits
-  brand            String? // Visa, Mastercard, etc.
-  expirationMonth  Int?
-  expirationYear   Int?
-  isDefault        Boolean @default(false)
-  billingAddressId String? // Optional reference to Address
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([userId])
-  @@map("payment_methods")
-}
-
-// ============================================
-// Rewards & Loyalty
-// ============================================
-
-model RewardPoints {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  balance        Int      @default(0)
-  lifetimeEarned Int      @default(0)
-  tier           String   @default("Novice") // Novice, Adept, Alchemist, Master, Grandmaster
-  tierUpdatedAt  DateTime @default(now())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  @@map("reward_points")
-}
-
-model RewardHistory {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type        String // earned, redeemed, expired, adjusted
-  points      Int // Positive for earned, negative for redeemed/expired
-  description String
-  orderId     String? // Reference to order if applicable
-  createdAt   DateTime @default(now())
-
-  @@index([userId])
-  @@index([createdAt])
-  @@map("reward_history")
-}
-
-model Reward {
-  id            String   @id @default(cuid())
-  name          String
-  description   String?
-  pointsCost    Int
-  discountType  String? // percentage, fixed_amount
-  discountValue Decimal? @db.Decimal(10, 2)
-  productId     String? // For product-specific rewards
-  minimumTier   String   @default("Novice")
-  isActive      Boolean  @default(true)
-  stock         Int? // Null for unlimited
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@map("rewards")
-}
-
-// ============================================
-// Subscriptions
-// ============================================
-
-model Subscription {
-  id                   String    @id @default(cuid())
-  userId               String
-  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  productId            String
-  name                 String
-  frequency            String // weekly, biweekly, monthly, bimonthly
-  quantity             Int       @default(1)
-  price                Decimal   @db.Decimal(10, 2)
-  status               String    @default("active") // active, paused, cancelled
-  nextShipmentDate     DateTime?
-  lastShipmentDate     DateTime?
-  pausedAt             DateTime?
-  cancelledAt          DateTime?
-  skipNextShipment     Boolean   @default(false)
-  stripeSubscriptionId String?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-
-  @@index([userId])
-  @@index([status])
-  @@map("subscriptions")
-}
-
-// ============================================
-// Notification Preferences
-// ============================================
-
-model NotificationPreference {
-  id               String  @id @default(cuid())
-  userId           String  @unique
-  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  emailEnabled     Boolean @default(true)
-  smsEnabled       Boolean @default(false)
-  marketingEnabled Boolean @default(true)
-  orderUpdates     Boolean @default(true)
-  backInStock      Boolean @default(true)
-  announcements    Boolean @default(true)
-  weeklyDigest     Boolean @default(false)
-  phoneNumber      String? // For SMS notifications
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("notification_preferences")
-}
-
-// ============================================
-// Achievements & Badges
-// ============================================
-
-model Achievement {
-  id           String   @id @default(cuid())
-  name         String   @unique
-  description  String
-  iconUrl      String?
-  category     String // purchase, engagement, social, milestone
-  triggerType  String // order_count, total_spent, days_streak, referrals, etc.
-  triggerValue Int // Value needed to unlock
-  xpReward     Int      @default(0)
-  pointsReward Int      @default(0)
-  isActive     Boolean  @default(true)
-  isSecret     Boolean  @default(false) // Hidden until unlocked
+  isDefault    Boolean  @default(false)
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  userAchievements UserAchievement[]
-
-  @@map("achievements")
-}
-
-model UserAchievement {
-  id            String       @id @default(cuid())
-  userId        String
-  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  achievementId String
-  achievement   Achievement  @relation(fields: [achievementId], references: [id], onDelete: Cascade)
-  earnedAt      DateTime?    // Null until achievement is earned
-  progress      Int          @default(0) // Current progress toward achievement
-
-  @@unique([userId, achievementId])
-  @@index([userId])
-  @@map("user_achievements")
-}
-
-model RefreshToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  updatedAt    DateTime
+  users        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@map("refresh_tokens")
 }
 
-// ============================================
-// Player Progression
-// ============================================
-
-model PlayerState {
-  id                String    @id @default(cuid())
-  userId            String    @unique
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  level             Int       @default(1)
-  xp                Int       @default(0)
-  totalXp           Int       @default(0)
-  currentStreak     Int       @default(0)
-  longestStreak     Int       @default(0)
-  lastLoginAt       DateTime  @default(now())
-  lastDailyRewardAt DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-
-  @@map("player_states")
-}
-
-// ============================================
-// Quests
-// ============================================
-
-model Quest {
-  id                String   @id @default(cuid())
-  name              String
-  description       String
-  questType         String // daily, weekly, achievement, story
-  requiredLevel     Int      @default(1)
-  xpReward          Int      @default(0)
-  ingredientRewards Json? // Array of {ingredientId, quantity}
-  cosmeticRewards   Json? // Array of cosmetic IDs
-  isActive          Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  playerQuests PlayerQuest[]
-
-  @@map("quests")
-}
-
-model PlayerQuest {
-  id          String    @id @default(cuid())
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  questId     String
-  quest       Quest     @relation(fields: [questId], references: [id], onDelete: Cascade)
-  status      String    @default("active") // active, completed, claimed
-  progress    Int       @default(0)
-  startedAt   DateTime  @default(now())
-  completedAt DateTime?
-  claimedAt   DateTime?
-
-  @@unique([userId, questId])
-  @@map("player_quests")
-}
-
-// ============================================
-// Inventory & Items
-// ============================================
-
-model PlayerInventory {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  itemId    String
-  itemType  String // ingredient, blend, consumable
-  quantity  Int      @default(1)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([userId, itemId])
-  @@map("player_inventory")
-}
-
-// ============================================
-// Recipes & Crafting
-// ============================================
-
-model Recipe {
-  id            String   @id @default(cuid())
-  name          String
-  description   String?
-  requiredLevel Int      @default(1)
-  ingredients   Json // Array of {ingredientId, quantity}
-  resultItemId  String
-  xpGained      Int      @default(0)
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@map("recipes")
-}
-
-// ============================================
-// Ingredients Management
-// ============================================
-
-model Ingredient {
-  id               String  @id @default(cuid())
-  name             String
-  role             String  @default("addIn") // base, addIn, either
-  category         String // floral, fruit, herb, spice, tea, sweetener, etc.
-  descriptionShort String?
-  descriptionLong  String?
-  image            String?
-
-  // Flavor & Use
-  flavorNotes         String[] @default([])
-  cutOrGrade          String? // whole leaf, pieces, powder, crystals, etc.
-  recommendedUsageMin Decimal? @db.Decimal(10, 4) // minimum percentage
-  recommendedUsageMax Decimal? @db.Decimal(10, 4) // maximum percentage
-
-  // Brewing
-  steepTemperature Int? // in Fahrenheit
-  steepTimeMin     Int? // in seconds
-  steepTimeMax     Int? // in seconds
-  brewNotes        String?
-
-  // Inventory & Costing
-  supplierId        String?
-  supplier          Supplier? @relation(fields: [supplierId], references: [id])
-  costPerOunce      Decimal?  @db.Decimal(10, 4)
-  costPerGram       Decimal?  @db.Decimal(10, 4) // computed from costPerOunce
-  inventoryAmount   Decimal   @default(0) @db.Decimal(10, 2)
-  minimumStockLevel Decimal   @default(0) @db.Decimal(10, 2)
-  status            String    @default("active") // active, archived, outOfStock
-
-  // Safety
-  caffeineLevel String   @default("none") // none, low, medium, high
-  allergens     String[] @default([])
-  internalNotes String?
-
-  // Legacy fields for compatibility with existing core package
-  emoji           String?
-  tags            String[] @default([])
-  badges          String[] @default([])
-  isBase          Boolean  @default(false)
-  baseAmount      Decimal? @db.Decimal(10, 2)
-  incrementAmount Decimal? @db.Decimal(10, 2)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Pairing relations
-  pairsWith IngredientPairing[] @relation("IngredientPairingSource")
-  pairedBy  IngredientPairing[] @relation("IngredientPairingTarget")
-
-  @@index([category])
-  @@index([status])
-  @@index([supplierId])
-  @@map("ingredients")
-}
-
-model IngredientPairing {
-  id                 String     @id @default(cuid())
-  sourceIngredientId String
-  sourceIngredient   Ingredient @relation("IngredientPairingSource", fields: [sourceIngredientId], references: [id], onDelete: Cascade)
-  targetIngredientId String
-  targetIngredient   Ingredient @relation("IngredientPairingTarget", fields: [targetIngredientId], references: [id], onDelete: Cascade)
-  createdAt          DateTime   @default(now())
-
-  @@unique([sourceIngredientId, targetIngredientId])
-  @@map("ingredient_pairings")
-}
-
-model Supplier {
-  id          String       @id @default(cuid())
-  name        String
-  email       String?
-  phone       String?
-  website     String?
-  address     String?
-  notes       String?
-  isActive    Boolean      @default(true)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  ingredients Ingredient[]
-
-  @@map("suppliers")
-}
-
-// ============================================
-// Products & Orders
-// ============================================
-
-model Product {
-  id                String   @id @default(cuid())
-  name              String
-  description       String
-  price             Decimal  @db.Decimal(10, 2)
-  compareAtPrice    Decimal? @db.Decimal(10, 2) // Original price for sale items
-  imageUrl          String?
-  images            String[] @default([])
-  category          String?
-  tags              String[] @default([])
-  isActive          Boolean  @default(true)
-  stock             Int      @default(0)
-  lowStockThreshold Int      @default(5) // Threshold for "Low Stock" status
-  trackInventory    Boolean  @default(true)
-  averageRating     Decimal? @db.Decimal(2, 1) // Cached average rating (e.g., 4.5)
-  reviewCount       Int      @default(0) // Cached review count
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  orderItems      OrderItem[]
-  cartItems       CartItem[]
-  reviews         Review[]
-  wishlistItems   WishlistItem[]
-  relatedProducts ProductRelation[] @relation("SourceProduct")
-  relatedBy       ProductRelation[] @relation("RelatedProduct")
-  bundleItems     BundleItem[]
-
-  @@map("products")
-}
-
-model Order {
-  id                  String   @id @default(cuid())
-  userId              String? // Null for guest orders
-  user                User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  guestEmail          String? // Email for guest checkout
-  sessionId           String? // Session ID for guest checkout
-  status              String   @default("pending") // pending, payment_processing, payment_failed, paid, processing, shipped, completed, cancelled
-  totalAmount         Decimal  @db.Decimal(10, 2)
-  shippingMethod      String?
-  shippingCost        Decimal? @db.Decimal(10, 2)
-  taxAmount           Decimal? @db.Decimal(10, 2)
-  discountCode        String?
-  discountAmount      Decimal? @db.Decimal(10, 2)
-  customerNotes       String?
-  stripePaymentId     String?  @unique // Stripe PaymentIntent ID
-  stripePaymentStatus String? // requires_payment_method, requires_confirmation, requires_action, processing, succeeded, canceled
-  stripeClientSecret  String? // For frontend Stripe Elements
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  items      OrderItem[]
-  labels     LabelDesign[]
-  statusLogs OrderStatusLog[]
-
-  @@map("orders")
-}
-
-model OrderItem {
-  id        String   @id @default(cuid())
-  orderId   String
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
-  quantity  Int      @default(1)
-  price     Decimal  @db.Decimal(10, 2)
-  createdAt DateTime @default(now())
-
-  @@map("order_items")
-}
-
-// ============================================
-// Reviews & Ratings
-// ============================================
-
-model Review {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  productId  String
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  rating     Int // 1-5 stars
-  title      String?
-  content    String?
-  isVerified Boolean  @default(false) // Verified purchase
-  isApproved Boolean  @default(true) // For moderation
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@unique([userId, productId]) // One review per user per product
-  @@index([productId])
-  @@map("reviews")
-}
-
-// ============================================
-// Wishlist
-// ============================================
-
-model WishlistItem {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-
-  @@unique([userId, productId])
-  @@index([userId])
-  @@map("wishlist_items")
-}
-
-// ============================================
-// Product Bundles & Upsells
-// ============================================
-
-model ProductBundle {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  discount    Decimal  @db.Decimal(5, 2) // Percentage discount for buying bundle
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  items BundleItem[]
-
-  @@map("product_bundles")
-}
-
-model BundleItem {
-  id        String        @id @default(cuid())
-  bundleId  String
-  bundle    ProductBundle @relation(fields: [bundleId], references: [id], onDelete: Cascade)
-  productId String
-  product   Product       @relation(fields: [productId], references: [id])
-  quantity  Int           @default(1)
+model bundle_items {
+  id              String          @id
+  bundleId        String
+  productId       String
+  quantity        Int             @default(1)
+  product_bundles product_bundles @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  products        products        @relation(fields: [productId], references: [id])
 
   @@unique([bundleId, productId])
-  @@map("bundle_items")
 }
 
-model ProductRelation {
-  id               String   @id @default(cuid())
-  sourceProductId  String
-  sourceProduct    Product  @relation("SourceProduct", fields: [sourceProductId], references: [id], onDelete: Cascade)
-  relatedProductId String
-  relatedProduct   Product  @relation("RelatedProduct", fields: [relatedProductId], references: [id], onDelete: Cascade)
-  relationType     String // "upsell", "cross-sell", "recommendation"
-  sortOrder        Int      @default(0)
-  createdAt        DateTime @default(now())
-
-  @@unique([sourceProductId, relatedProductId])
-  @@index([sourceProductId])
-  @@map("product_relations")
-}
-
-// ============================================
-// Shopping Cart
-// ============================================
-
-model Cart {
-  id        String   @id @default(cuid())
-  userId    String?  @unique // Null for guest carts
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sessionId String?  @unique // For guest cart identification
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  items CartItem[]
-
-  @@map("carts")
-}
-
-model CartItem {
-  id        String   @id @default(cuid())
+model cart_items {
+  id        String   @id
   cartId    String
-  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
   productId String
-  product   Product  @relation(fields: [productId], references: [id])
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime
+  carts     carts    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  products  products @relation(fields: [productId], references: [id])
 
   @@unique([cartId, productId])
-  @@map("cart_items")
 }
 
-// ============================================
-// Cosmetics (Themes & Skins)
-// ============================================
-
-model Theme {
-  id              String   @id @default(cuid())
-  name            String   @unique
-  description     String?
-  backgroundUrl   String?
-  colorPalette    Json? // Color scheme JSON
-  requiredLevel   Int      @default(1)
-  requiredQuestId String?
-  isPremium       Boolean  @default(false)
-  price           Decimal? @db.Decimal(10, 2)
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  tableSkins TableSkin[]
-
-  @@map("themes")
+model carts {
+  id         String       @id
+  userId     String?      @unique
+  sessionId  String?      @unique
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime
+  cart_items cart_items[]
+  users      users?       @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model TableSkin {
-  id              String   @id @default(cuid())
-  name            String   @unique
-  description     String?
-  themeId         String
-  theme           Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
-  imageUrl        String?
-  requiredLevel   Int      @default(1)
-  requiredQuestId String?
-  isPremium       Boolean  @default(false)
-  price           Decimal? @db.Decimal(10, 2)
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@map("table_skins")
-}
-
-model PlayerCosmetics {
-  id                String   @id @default(cuid())
-  userId            String   @unique
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  unlockedThemes    String[] // Array of theme IDs
-  unlockedSkins     String[] // Array of table skin IDs
-  activeThemeId     String?
-  activeTableSkinId String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  @@map("player_cosmetics")
-}
-
-// ============================================
-// AI-Generated Labels
-// ============================================
-
-model LabelDesign {
-  id            String   @id @default(cuid())
-  orderId       String
-  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  name          String
-  tagline       String
-  description   String
-  stylePreset   String?
-  tonePreset    String?
-  artworkPrompt String?
-  artworkUrl    String?
-  status        String   @default("draft") // draft, approved
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@map("label_designs")
-}
-
-// ============================================
-// Events & Analytics
-// ============================================
-
-model Event {
-  id          String    @id @default(cuid())
-  eventType   String // USER_REGISTERED, LEVEL_UP, ORDER_PAID, etc.
-  userId      String?
-  payload     Json
-  processedAt DateTime?
-  createdAt   DateTime  @default(now())
-
-  @@index([eventType])
-  @@index([userId])
-  @@index([createdAt])
-  @@map("events")
-}
-
-// ============================================
-// Admin - Order Management
-// ============================================
-
-model OrderStatusLog {
-  id         String   @id @default(cuid())
-  orderId    String
-  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  fromStatus String?
-  toStatus   String
-  changedBy  String? // Null for guest orders
-  user       User?    @relation(fields: [changedBy], references: [id])
-  notes      String?
-  createdAt  DateTime @default(now())
-
-  @@index([orderId])
-  @@index([changedBy])
-  @@map("order_status_logs")
-}
-
-// ============================================
-// Admin - Site Configuration
-// ============================================
-
-model ShippingMethod {
-  id            String   @id @default(cuid())
-  name          String   @unique
-  description   String?
-  price         Decimal  @db.Decimal(10, 2)
-  estimatedDays String?
-  isActive      Boolean  @default(true)
-  sortOrder     Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@map("shipping_methods")
-}
-
-model TaxRate {
-  id        String   @id @default(cuid())
-  name      String
-  region    String // State, Country, or "Global"
-  rate      Decimal  @db.Decimal(5, 4) // e.g., 0.0825 for 8.25%
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([region])
-  @@map("tax_rates")
-}
-
-model DiscountCode {
-  id             String    @id @default(cuid())
+model discount_codes {
+  id             String    @id
   code           String    @unique
   description    String?
-  discountType   String // percentage, fixed_amount
+  discountType   String
   discountValue  Decimal   @db.Decimal(10, 2)
   minOrderAmount Decimal?  @db.Decimal(10, 2)
   maxUses        Int?
@@ -805,51 +93,574 @@ model DiscountCode {
   validUntil     DateTime?
   isActive       Boolean   @default(true)
   createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
-  @@map("discount_codes")
+  updatedAt      DateTime
 }
 
-model EmailTemplate {
-  id        String   @id @default(cuid())
-  name      String   @unique // order_confirmation, shipping_notification, etc.
+model email_templates {
+  id        String   @id
+  name      String   @unique
   subject   String
   bodyHtml  String
   bodyText  String?
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("email_templates")
+  updatedAt DateTime
 }
 
-model SiteSettings {
-  id          String   @id @default(cuid())
-  key         String   @unique // hero_title, hero_subtitle, footer_text, etc.
+model events {
+  id          String    @id
+  eventType   String
+  userId      String?
+  payload     Json
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([createdAt])
+  @@index([eventType])
+  @@index([userId])
+}
+
+model ingredient_pairings {
+  id                                                              String      @id
+  sourceIngredientId                                              String
+  targetIngredientId                                              String
+  createdAt                                                       DateTime    @default(now())
+  ingredients_ingredient_pairings_sourceIngredientIdToingredients ingredients @relation("ingredient_pairings_sourceIngredientIdToingredients", fields: [sourceIngredientId], references: [id], onDelete: Cascade)
+  ingredients_ingredient_pairings_targetIngredientIdToingredients ingredients @relation("ingredient_pairings_targetIngredientIdToingredients", fields: [targetIngredientId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceIngredientId, targetIngredientId])
+}
+
+model ingredients {
+  id                                                                      String                @id
+  name                                                                    String
+  role                                                                    String                @default("addIn")
+  category                                                                String
+  descriptionShort                                                        String?
+  descriptionLong                                                         String?
+  image                                                                   String?
+  flavorNotes                                                             String[]              @default([])
+  cutOrGrade                                                              String?
+  recommendedUsageMin                                                     Decimal?              @db.Decimal(10, 4)
+  recommendedUsageMax                                                     Decimal?              @db.Decimal(10, 4)
+  steepTemperature                                                        Int?
+  steepTimeMin                                                            Int?
+  steepTimeMax                                                            Int?
+  brewNotes                                                               String?
+  supplierId                                                              String?
+  costPerOunce                                                            Decimal?              @db.Decimal(10, 4)
+  costPerGram                                                             Decimal?              @db.Decimal(10, 4)
+  inventoryAmount                                                         Decimal               @default(0) @db.Decimal(10, 2)
+  minimumStockLevel                                                       Decimal               @default(0) @db.Decimal(10, 2)
+  status                                                                  String                @default("active")
+  caffeineLevel                                                           String                @default("none")
+  allergens                                                               String[]              @default([])
+  internalNotes                                                           String?
+  emoji                                                                   String?
+  tags                                                                    String[]              @default([])
+  badges                                                                  String[]              @default([])
+  isBase                                                                  Boolean               @default(false)
+  baseAmount                                                              Decimal?              @db.Decimal(10, 2)
+  incrementAmount                                                         Decimal?              @db.Decimal(10, 2)
+  createdAt                                                               DateTime              @default(now())
+  updatedAt                                                               DateTime
+  ingredient_pairings_ingredient_pairings_sourceIngredientIdToingredients ingredient_pairings[] @relation("ingredient_pairings_sourceIngredientIdToingredients")
+  ingredient_pairings_ingredient_pairings_targetIngredientIdToingredients ingredient_pairings[] @relation("ingredient_pairings_targetIngredientIdToingredients")
+  suppliers                                                               suppliers?            @relation(fields: [supplierId], references: [id])
+
+  @@index([category])
+  @@index([status])
+  @@index([supplierId])
+}
+
+model label_designs {
+  id            String   @id
+  orderId       String
+  name          String
+  tagline       String
+  description   String
+  stylePreset   String?
+  tonePreset    String?
+  artworkPrompt String?
+  artworkUrl    String?
+  status        String   @default("draft")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime
+  orders        orders   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model notification_preferences {
+  id               String   @id
+  userId           String   @unique
+  emailEnabled     Boolean  @default(true)
+  smsEnabled       Boolean  @default(false)
+  marketingEnabled Boolean  @default(true)
+  orderUpdates     Boolean  @default(true)
+  backInStock      Boolean  @default(true)
+  announcements    Boolean  @default(true)
+  weeklyDigest     Boolean  @default(false)
+  phoneNumber      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime
+  users            users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model order_items {
+  id        String   @id
+  orderId   String
+  productId String
+  quantity  Int      @default(1)
+  price     Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  orders    orders   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  products  products @relation(fields: [productId], references: [id])
+}
+
+model order_status_logs {
+  id         String   @id
+  orderId    String
+  fromStatus String?
+  toStatus   String
+  changedBy  String?
+  notes      String?
+  createdAt  DateTime @default(now())
+  users      users?   @relation(fields: [changedBy], references: [id])
+  orders     orders   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([changedBy])
+  @@index([orderId])
+}
+
+model orders {
+  id                  String              @id
+  userId              String?
+  status              String              @default("pending")
+  totalAmount         Decimal             @db.Decimal(10, 2)
+  shippingMethod      String?
+  shippingCost        Decimal?            @db.Decimal(10, 2)
+  taxAmount           Decimal?            @db.Decimal(10, 2)
+  discountCode        String?
+  discountAmount      Decimal?            @db.Decimal(10, 2)
+  customerNotes       String?
+  stripePaymentId     String?             @unique
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime
+  stripePaymentStatus String?
+  stripeClientSecret  String?
+  guestEmail          String?
+  sessionId           String?
+  label_designs       label_designs[]
+  order_items         order_items[]
+  order_status_logs   order_status_logs[]
+  users               users?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model payment_methods {
+  id               String   @id
+  userId           String
+  stripePaymentId  String   @unique
+  type             String
+  last4            String
+  brand            String?
+  expirationMonth  Int?
+  expirationYear   Int?
+  isDefault        Boolean  @default(false)
+  billingAddressId String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime
+  users            users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model player_cosmetics {
+  id                String   @id
+  userId            String   @unique
+  unlockedThemes    String[]
+  unlockedSkins     String[]
+  activeThemeId     String?
+  activeTableSkinId String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime
+  users             users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model player_inventory {
+  id        String   @id
+  userId    String
+  itemId    String
+  itemType  String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId])
+}
+
+model player_quests {
+  id          String    @id
+  userId      String
+  questId     String
+  status      String    @default("active")
+  progress    Int       @default(0)
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  claimedAt   DateTime?
+  quests      quests    @relation(fields: [questId], references: [id], onDelete: Cascade)
+  users       users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questId])
+}
+
+model player_states {
+  id                String    @id
+  userId            String    @unique
+  level             Int       @default(1)
+  xp                Int       @default(0)
+  totalXp           Int       @default(0)
+  currentStreak     Int       @default(0)
+  longestStreak     Int       @default(0)
+  lastLoginAt       DateTime  @default(now())
+  lastDailyRewardAt DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime
+  users             users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model product_bundles {
+  id           String         @id
+  name         String
+  description  String?
+  discount     Decimal        @db.Decimal(5, 2)
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime
+  bundle_items bundle_items[]
+}
+
+model product_relations {
+  id                                                    String   @id
+  sourceProductId                                       String
+  relatedProductId                                      String
+  relationType                                          String
+  sortOrder                                             Int      @default(0)
+  createdAt                                             DateTime @default(now())
+  products_product_relations_relatedProductIdToproducts products @relation("product_relations_relatedProductIdToproducts", fields: [relatedProductId], references: [id], onDelete: Cascade)
+  products_product_relations_sourceProductIdToproducts  products @relation("product_relations_sourceProductIdToproducts", fields: [sourceProductId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceProductId, relatedProductId])
+  @@index([sourceProductId])
+}
+
+model products {
+  id                                                             String              @id
+  name                                                           String
+  description                                                    String
+  price                                                          Decimal             @db.Decimal(10, 2)
+  imageUrl                                                       String?
+  category                                                       String?
+  isActive                                                       Boolean             @default(true)
+  stock                                                          Int                 @default(0)
+  createdAt                                                      DateTime            @default(now())
+  updatedAt                                                      DateTime
+  images                                                         String[]            @default([])
+  tags                                                           String[]            @default([])
+  compareAtPrice                                                 Decimal?            @db.Decimal(10, 2)
+  lowStockThreshold                                              Int                 @default(5)
+  trackInventory                                                 Boolean             @default(true)
+  averageRating                                                  Decimal?            @db.Decimal(2, 1)
+  reviewCount                                                    Int                 @default(0)
+  bundle_items                                                   bundle_items[]
+  cart_items                                                     cart_items[]
+  order_items                                                    order_items[]
+  product_relations_product_relations_relatedProductIdToproducts product_relations[] @relation("product_relations_relatedProductIdToproducts")
+  product_relations_product_relations_sourceProductIdToproducts  product_relations[] @relation("product_relations_sourceProductIdToproducts")
+  reviews                                                        reviews[]
+  wishlist_items                                                 wishlist_items[]
+}
+
+model quests {
+  id                String          @id
+  name              String
+  description       String
+  questType         String
+  requiredLevel     Int             @default(1)
+  xpReward          Int             @default(0)
+  ingredientRewards Json?
+  cosmeticRewards   Json?
+  isActive          Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime
+  player_quests     player_quests[]
+}
+
+model recipes {
+  id            String   @id
+  name          String
+  description   String?
+  requiredLevel Int      @default(1)
+  ingredients   Json
+  resultItemId  String
+  xpGained      Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime
+}
+
+model refresh_tokens {
+  id        String   @id
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model reviews {
+  id         String   @id
+  userId     String
+  productId  String
+  rating     Int
+  title      String?
+  content    String?
+  isVerified Boolean  @default(false)
+  isApproved Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime
+  products   products @relation(fields: [productId], references: [id], onDelete: Cascade)
+  users      users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([productId])
+}
+
+model reward_history {
+  id          String   @id
+  userId      String
+  type        String
+  points      Int
+  description String
+  orderId     String?
+  createdAt   DateTime @default(now())
+  users       users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([userId])
+}
+
+model reward_points {
+  id             String   @id
+  userId         String   @unique
+  balance        Int      @default(0)
+  lifetimeEarned Int      @default(0)
+  tier           String   @default("Novice")
+  tierUpdatedAt  DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime
+  users          users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model rewards {
+  id            String   @id
+  name          String
+  description   String?
+  pointsCost    Int
+  discountType  String?
+  discountValue Decimal? @db.Decimal(10, 2)
+  productId     String?
+  minimumTier   String   @default("Novice")
+  isActive      Boolean  @default(true)
+  stock         Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime
+}
+
+model shipping_methods {
+  id            String   @id
+  name          String   @unique
+  description   String?
+  price         Decimal  @db.Decimal(10, 2)
+  estimatedDays String?
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime
+}
+
+model site_settings {
+  id          String   @id
+  key         String   @unique
   value       String
   description String?
-  category    String // content, seo, general
+  category    String
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("site_settings")
+  updatedAt   DateTime
 }
 
-// ============================================
-// Stripe Webhooks
-// ============================================
-
-model StripeWebhookEvent {
-  id          String    @id @default(cuid())
-  eventId     String    @unique // Stripe event ID for idempotency
-  eventType   String // payment_intent.succeeded, payment_intent.failed, etc.
-  payload     Json // Full webhook payload
+model stripe_webhook_events {
+  id          String    @id
+  eventId     String    @unique
+  eventType   String
+  payload     Json
   processed   Boolean   @default(false)
   processedAt DateTime?
-  error       String? // Error message if processing failed
+  error       String?
   createdAt   DateTime  @default(now())
 
   @@index([eventType])
   @@index([processed])
-  @@map("stripe_webhook_events")
+}
+
+model subscriptions {
+  id                   String    @id
+  userId               String
+  productId            String
+  name                 String
+  frequency            String
+  quantity             Int       @default(1)
+  price                Decimal   @db.Decimal(10, 2)
+  status               String    @default("active")
+  nextShipmentDate     DateTime?
+  lastShipmentDate     DateTime?
+  pausedAt             DateTime?
+  cancelledAt          DateTime?
+  skipNextShipment     Boolean   @default(false)
+  stripeSubscriptionId String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime
+  users                users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([userId])
+}
+
+model suppliers {
+  id          String        @id
+  name        String
+  email       String?
+  phone       String?
+  website     String?
+  address     String?
+  notes       String?
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime
+  ingredients ingredients[]
+}
+
+model table_skins {
+  id              String   @id
+  name            String   @unique
+  description     String?
+  themeId         String
+  imageUrl        String?
+  requiredLevel   Int      @default(1)
+  requiredQuestId String?
+  isPremium       Boolean  @default(false)
+  price           Decimal? @db.Decimal(10, 2)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime
+  themes          themes   @relation(fields: [themeId], references: [id], onDelete: Cascade)
+}
+
+model tax_rates {
+  id        String   @id
+  name      String
+  region    String   @unique
+  rate      Decimal  @db.Decimal(5, 4)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+}
+
+model themes {
+  id              String        @id
+  name            String        @unique
+  description     String?
+  backgroundUrl   String?
+  colorPalette    Json?
+  requiredLevel   Int           @default(1)
+  requiredQuestId String?
+  isPremium       Boolean       @default(false)
+  price           Decimal?      @db.Decimal(10, 2)
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime
+  table_skins     table_skins[]
+}
+
+model user_achievements {
+  id            String       @id
+  userId        String
+  achievementId String
+  earnedAt      DateTime?
+  progress      Int          @default(0)
+  achievements  achievements @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  users         users        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+}
+
+model user_profiles {
+  id                 String   @id
+  userId             String   @unique
+  firstName          String?
+  lastName           String?
+  avatarUrl          String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime
+  allergyNotes       String?
+  caffeinePreference String?
+  flavorPreferences  String[] @default([])
+  users              users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model users {
+  id                       String                    @id
+  email                    String                    @unique
+  password                 String
+  username                 String                    @unique
+  role                     String                    @default("user")
+  emailVerified            Boolean                   @default(false)
+  emailVerificationToken   String?
+  emailVerificationExpires DateTime?
+  passwordResetToken       String?
+  passwordResetExpires     DateTime?
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime
+  addresses                addresses[]
+  carts                    carts?
+  notification_preferences notification_preferences?
+  order_status_logs        order_status_logs[]
+  orders                   orders[]
+  payment_methods          payment_methods[]
+  player_cosmetics         player_cosmetics?
+  player_inventory         player_inventory[]
+  player_quests            player_quests[]
+  player_states            player_states?
+  refresh_tokens           refresh_tokens[]
+  reviews                  reviews[]
+  reward_history           reward_history[]
+  reward_points            reward_points?
+  subscriptions            subscriptions[]
+  user_achievements        user_achievements[]
+  user_profiles            user_profiles?
+  wishlist_items           wishlist_items[]
+}
+
+model wishlist_items {
+  id        String   @id
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  products  products @relation(fields: [productId], references: [id], onDelete: Cascade)
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
 }
