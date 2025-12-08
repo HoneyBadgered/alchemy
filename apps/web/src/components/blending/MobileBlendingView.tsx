@@ -28,7 +28,6 @@ interface MobileBlendingViewProps {
   onSelectBase: (baseId: string) => void;
   onToggleAddIn: (ingredientId: string) => void;
   onQuantityChange: (ingredientId: string, quantity: number) => void;
-  onBlendNameChange: (name: string) => void;
   onRemoveIngredient: (ingredientId: string) => void;
 }
 
@@ -40,26 +39,10 @@ export const MobileBlendingView: React.FC<MobileBlendingViewProps> = ({
   onSelectBase,
   onToggleAddIn,
   onQuantityChange,
-  onBlendNameChange,
   onRemoveIngredient,
 }) => {
   return (
     <div className="lg:hidden space-y-6">
-      {/* Blend Controls at Top */}
-      <div className="rounded-2xl p-4">
-        <div className="flex items-center justify-between gap-4">
-          <input
-            type="text"
-            value={blendState.blendName}
-            onChange={(e) => onBlendNameChange(e.target.value)}
-            placeholder="Name your blend…"
-            className="flex-1 bg-transparent border-b-2 border-white/30 focus:border-purple-300 text-white text-lg font-semibold placeholder-white/50 outline-none pb-1"
-          />
-          <div className="bg-gradient-to-r from-amber-400 to-amber-500 text-amber-900 px-3 py-1.5 rounded-full font-bold text-sm">
-            ${price}
-          </div>
-        </div>
-      </div>
 
       {/* Bowl Visual (simplified for mobile) */}
       <div className="rounded-2xl p-6">

@@ -15,8 +15,6 @@ import { getIngredientById } from '@/hooks/useIngredients';
 interface CenterSceneProps {
   /** Current blend state */
   blendState: ExtendedBlendState;
-  /** Callback when blend name changes */
-  onBlendNameChange: (name: string) => void;
   /** Callback when size changes */
   onSizeChange: (size: BlendSize) => void;
   /** Estimated price */
@@ -242,7 +240,6 @@ const BlendBreakdownList: React.FC<BlendBreakdownListProps> = ({
 
 export const CenterScene: React.FC<CenterSceneProps> = ({
   blendState,
-  onBlendNameChange,
   onSizeChange,
   price,
   flavorProfile,

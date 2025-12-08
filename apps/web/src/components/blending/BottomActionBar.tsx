@@ -6,7 +6,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import type { BlendSize, BlendStatus } from './types';
 
 interface BottomActionBarProps {
@@ -20,10 +20,14 @@ interface BottomActionBarProps {
   isReady: boolean;
   /** Whether we're currently processing */
   isProcessing?: boolean;
+  /** Whether the bowl has any contents */
+  hasContents: boolean;
   /** Callback when CTA is clicked */
   onContinue: () => void;
   /** Callback when size is changed */
   onSizeChange: (size: BlendSize) => void;
+  /** Callback when empty bowl is clicked */
+  onEmptyBowl: () => void;
 }
 
 export const BottomActionBar: React.FC<BottomActionBarProps> = ({
@@ -32,11 +36,55 @@ export const BottomActionBar: React.FC<BottomActionBarProps> = ({
   price,
   isReady,
   isProcessing = false,
+  hasContents,
   onContinue,
   onSizeChange,
+  onEmptyBowl,
 }) => {
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  const handleEmptyBowlClick = () => {
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmEmpty = () => {
+    onEmptyBowl();
+    setShowConfirmDialog(false);
+  };
+
+  const handleCancelEmpty = () => {
+    setShowConfirmDialog(false);
+  };
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40">
+    <>
+      {/* Confirmation Dialog */}
+      {showConfirmDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-gradient-to-br from-purple-900/95 to-indigo-900/95 backdrop-blur-md border border-white/20 rounded-2xl p-6 max-w-sm mx-4 shadow-2xl">
+            <h3 className="text-xl font-bold text-white mb-2">Empty Bowl?</h3>
+            <p className="text-white/80 mb-6">
+              This will remove your base tea and all add-ins. This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleCancelEmpty}
+                className="flex-1 px-4 py-2.5 rounded-full font-semibold text-sm bg-white/20 text-white hover:bg-white/30 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmEmpty}
+                className="flex-1 px-4 py-2.5 rounded-full font-semibold text-sm bg-red-500 text-white hover:bg-red-600 transition-all"
+              >
+                Empty Bowl
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="fixed bottom-0 left-0 right-0 z-40">
       {/* Top decorative line */}
       <div className="h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
       
@@ -76,36 +124,51 @@ export const BottomActionBar: React.FC<BottomActionBarProps> = ({
               </span>
             </div>
 
-            {/* Right: CTA Button */}
-            <button
-              onClick={onContinue}
-              disabled={!isReady || isProcessing}
-              className={`
-                px-6 py-2.5 rounded-full font-semibold text-sm transition-all transform
-                ${isReady && !isProcessing
-                  ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-amber-900 hover:from-amber-300 hover:to-amber-400 hover:scale-105 shadow-lg shadow-amber-500/30'
-                  : 'bg-white/10 text-white/40 cursor-not-allowed'
-                }
-              `}
-            >
-              {isProcessing ? (
-                <span className="flex items-center gap-2">
-                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  Enchanting...
-                </span>
-              ) : (
-                <>
-                  <span className="hidden sm:inline">✨ Enchant & Review</span>
-                  <span className="sm:hidden">✨ Continue</span>
-                </>
+            {/* Right: Action Buttons */}
+            <div className="flex items-center gap-2">
+              {/* Empty Bowl Button */}
+              {hasContents && (
+                <button
+                  onClick={handleEmptyBowlClick}
+                  className="px-4 py-2.5 rounded-full font-semibold text-sm transition-all bg-white/10 text-white/80 hover:bg-red-500/20 hover:text-red-300 border border-white/20 hover:border-red-400/50"
+                >
+                  <span className="hidden sm:inline">🗑️ Empty Bowl</span>
+                  <span className="sm:hidden">🗑️</span>
+                </button>
               )}
-            </button>
+
+              {/* Continue/Enchant Button */}
+              <button
+                onClick={onContinue}
+                disabled={!isReady || isProcessing}
+                className={`
+                  px-6 py-2.5 rounded-full font-semibold text-sm transition-all transform
+                  ${isReady && !isProcessing
+                    ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-amber-900 hover:from-amber-300 hover:to-amber-400 hover:scale-105 shadow-lg shadow-amber-500/30'
+                    : 'bg-white/10 text-white/40 cursor-not-allowed'
+                  }
+                `}
+              >
+                {isProcessing ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Enchanting...
+                  </span>
+                ) : (
+                  <>
+                    <span className="hidden sm:inline">✨ Enchant & Review</span>
+                    <span className="sm:hidden">✨ Continue</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };

@@ -65,9 +65,6 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
     if (blendState.addIns.length === 0) {
       return 'Step 2 · Add your ingredients';
     }
-    if (!blendState.blendName) {
-      return 'Step 3 · Name your blend';
-    }
     return undefined;
   };
 
@@ -76,13 +73,6 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
     setBlendState(prev => ({
       ...prev,
       baseTeaId: baseId,
-    }));
-  }, []);
-
-  const handleBlendNameChange = useCallback((name: string) => {
-    setBlendState(prev => ({
-      ...prev,
-      blendName: name,
     }));
   }, []);
 
@@ -128,6 +118,14 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
     setBlendState(prev => ({
       ...prev,
       addIns: prev.addIns.filter(a => a.ingredientId !== ingredientId),
+    }));
+  }, []);
+
+  const handleEmptyBowl = useCallback(() => {
+    setBlendState(prev => ({
+      ...prev,
+      baseTeaId: undefined,
+      addIns: [],
     }));
   }, []);
 
@@ -221,7 +219,6 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
               onSelectBase={handleSelectBase}
               onToggleAddIn={handleToggleAddIn}
               onQuantityChange={handleQuantityChange}
-              onBlendNameChange={handleBlendNameChange}
               onSizeChange={handleSizeChange}
               onRemoveIngredient={handleRemoveIngredient}
               onBasePanelOpenChange={setIsBasePanelOpen}
@@ -236,7 +233,6 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
               onSelectBase={handleSelectBase}
               onToggleAddIn={handleToggleAddIn}
               onQuantityChange={handleQuantityChange}
-              onBlendNameChange={handleBlendNameChange}
               onRemoveIngredient={handleRemoveIngredient}
             />
           </div>
@@ -249,8 +245,10 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
           price={pricing.price}
           isReady={isReady}
           isProcessing={isProcessing}
+          hasContents={!!blendState.baseTeaId || blendState.addIns.length > 0}
           onContinue={handleContinue}
           onSizeChange={handleSizeChange}
+          onEmptyBowl={handleEmptyBowl}
         />
       </div>
     </div>

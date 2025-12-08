@@ -20,6 +20,7 @@ export default function BlendReviewPage() {
   const router = useRouter();
   const { addBlendToCart, isLoading } = useCart();
   const [blendState, setBlendState] = useState<ExtendedBlendState | null>(null);
+  const [blendName, setBlendName] = useState<string>('');
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,6 +31,7 @@ export default function BlendReviewPage() {
       try {
         const parsed = JSON.parse(storedBlend);
         setBlendState(parsed);
+        setBlendName(parsed.blendName || '');
       } catch (e) {
         console.error('Failed to parse blend state:', e);
         setError('Invalid blend data. Please try creating your blend again.');
@@ -128,10 +130,17 @@ export default function BlendReviewPage() {
         <div className="space-y-6">
           {/* Blend Name Card */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-3xl font-bold text-purple-900 text-center">
-              {blendState.blendName || 'Custom Blend'} ✨
-            </h2>
-            <p className="text-center text-gray-500 mt-2">{blendState.size} oz blend</p>
+            <div className="text-center space-y-3">
+              <input
+                type="text"
+                value={blendName}
+                onChange={(e) => setBlendName(e.target.value)}
+                placeholder="Name your blend…"
+                className="w-full text-3xl font-bold text-purple-900 text-center bg-transparent border-b-2 border-purple-200 focus:border-purple-400 outline-none pb-2 placeholder-purple-300"
+                maxLength={50}
+              />
+              <p className="text-gray-500">{blendState.size} oz blend</p>
+            </div>
           </div>
 
           {/* Base Tea */}

@@ -28,7 +28,6 @@ interface DesktopBlendingViewProps {
   onSelectBase: (baseId: string) => void;
   onToggleAddIn: (ingredientId: string) => void;
   onQuantityChange: (ingredientId: string, quantity: number) => void;
-  onBlendNameChange: (name: string) => void;
   onSizeChange: (size: BlendSize) => void;
   onRemoveIngredient: (ingredientId: string) => void;
   onBasePanelOpenChange: (isOpen: boolean) => void;
@@ -44,7 +43,6 @@ export const DesktopBlendingView: React.FC<DesktopBlendingViewProps> = ({
   onSelectBase,
   onToggleAddIn,
   onQuantityChange,
-  onBlendNameChange,
   onSizeChange,
   onRemoveIngredient,
   onBasePanelOpenChange,
@@ -67,7 +65,6 @@ export const DesktopBlendingView: React.FC<DesktopBlendingViewProps> = ({
       <div className="lg:col-span-6">
         <CenterScene
           blendState={blendState}
-          onBlendNameChange={onBlendNameChange}
           onSizeChange={onSizeChange}
           price={price}
           flavorProfile={flavorProfile}
