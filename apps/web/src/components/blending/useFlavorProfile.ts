@@ -8,7 +8,8 @@
 
 import { useMemo } from 'react';
 import type { ExtendedBlendState, FlavorProfile, BlendStatus } from './types';
-import { getBlendingIngredientById } from './mockData';
+import type { BlendingIngredient } from './mockData';
+import { getIngredientById } from '@/hooks/useIngredients';
 
 /**
  * Flavor profile keys as a constant array for type-safe iteration
@@ -136,7 +137,15 @@ function deriveBlendStatus(profile: FlavorProfile): BlendStatus {
  * Note: Caffeine is calculated independently from flavor profiles.
  *       It comes directly from the base tea and does not change with add-ins.
  */
-export function useFlavorProfile(blendState: ExtendedBlendState): {
+export function useFlavorProfile(
+  blendState: ExtendedBlendState,
+  bases: BlendingIngredient[],
+  addInsData: {
+    addIns: BlendingIngredient[];
+    botanicals: BlendingIngredient[];
+    premium: BlendingIngredient[];
+  }
+): {
   profile: FlavorProfile;
   normalizedProfile: FlavorProfile;
   status: BlendStatus;
@@ -148,7 +157,7 @@ export function useFlavorProfile(blendState: ExtendedBlendState): {
 
     // Get caffeine directly from base tea (caffeine is independent of blend composition)
     if (blendState.baseTeaId) {
-      const base = getBlendingIngredientById(blendState.baseTeaId);
+      const base = getIngredientById(blendState.baseTeaId, bases, addInsData);
       if (base?.flavorProfile) {
         // Caffeine comes directly from the base tea and is not modified by add-ins
         // Note: addWeightedProfile and divideProfile only operate on FLAVOR_KEYS (excludes caffeine)
@@ -163,7 +172,7 @@ export function useFlavorProfile(blendState: ExtendedBlendState): {
 
     // Add add-ins contribution (only flavors, not caffeine)
     for (const addIn of blendState.addIns) {
-      const ingredient = getBlendingIngredientById(addIn.ingredientId);
+      const ingredient = getIngredientById(addIn.ingredientId, bases, addInsData);
       if (ingredient?.flavorProfile) {
         const weight = addIn.quantity;
         totalWeight += weight;
@@ -184,7 +193,7 @@ export function useFlavorProfile(blendState: ExtendedBlendState): {
       normalizedProfile,
       status,
     };
-  }, [blendState.baseTeaId, blendState.addIns, blendState.size]);
+  }, [blendState.baseTeaId, blendState.addIns, blendState.size, bases, addInsData]);
 }
 
 /**

@@ -2,23 +2,21 @@
  * BlendingPage Component
  * 
  * Main page component for the immersive blending experience
- * Features collapsible ingredient panels hidden by default
+ * Manages state and delegates rendering to Desktop/Mobile views
  */
 
 'use client';
 
 import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import type { ExtendedBlendState, BlendSize } from './types';
 import { useIngredients, getIngredientById } from '@/hooks/useIngredients';
 import { useBlendPricing } from './useBlendPricing';
 import { useFlavorProfile, DEFAULT_STATUS } from './useFlavorProfile';
 import { ImmersiveHeader } from './ImmersiveHeader';
-import { CenterScene } from './CenterScene';
 import { BottomActionBar } from './BottomActionBar';
-import { CollapsibleBaseColumn } from './CollapsibleBaseColumn';
-import { CollapsibleMagicColumn } from './CollapsibleMagicColumn';
+import { DesktopBlendingView } from './DesktopBlendingView';
+import { MobileBlendingView } from './MobileBlendingView';
 import { useCart } from '@/contexts/CartContext';
 import { BRANDING } from '@/config/branding';
 
@@ -54,7 +52,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
 
   // Calculate pricing and flavor profile
   const pricing = useBlendPricing(blendState);
-  const { normalizedProfile, status } = useFlavorProfile(blendState);
+  const { normalizedProfile, status } = useFlavorProfile(blendState, bases, addIns);
 
   // Determine if blend is ready (has base + at least something selected)
   const isReady = !!blendState.baseTeaId;
@@ -149,14 +147,6 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
     setIsProcessing(false);
   };
 
-  const handleBack = () => {
-    if (onBack) {
-      onBack();
-    } else {
-      router.back();
-    }
-  };
-
   const handleCartClick = () => {
     router.push('/cart');
   };
@@ -206,171 +196,49 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
         {/* Immersive Header */}
         <ImmersiveHeader
           onBack={() => {
-        if (window.history.length > 1) {
-          router.back();             // Go back to wherever user came from
-        } else {
-          router.push("/l");   // Fallback if no history (page opened fresh)
-        }
-      }}
+            if (window.history.length > 1) {
+              router.back();
+            } else {
+              router.push("/");
+            }
+          }}
           cartItemCount={itemCount}
           stepIndicator={getStepIndicator()}
           onCartClick={handleCartClick}
         />
 
-        {/* Main Content - 3 Column Layout */}
+        {/* Main Content */}
         <main className="pt-20 pb-24 px-4">
           <div className="max-w-7xl mx-auto">
-            {/* Desktop: 3-column layout */}
-            <div className="hidden lg:grid lg:grid-cols-12 gap-6">
-              {/* Left Column: Base Selection (~20-25%) - Now Collapsible */}
-              <div className="lg:col-span-3">
-                <div className="sticky top-24">
-                  <CollapsibleBaseColumn
-                    bases={bases}
-                    selectedBaseId={blendState.baseTeaId}
-                    onSelectBase={handleSelectBase}
-                    onOpenChange={setIsBasePanelOpen}
-                  />
-                </div>
-              </div>
+            {/* Desktop View */}
+            <DesktopBlendingView
+              blendState={blendState}
+              bases={bases}
+              addIns={addIns}
+              flavorProfile={normalizedProfile}
+              price={pricing.price}
+              isBasePanelOpen={isBasePanelOpen}
+              onSelectBase={handleSelectBase}
+              onToggleAddIn={handleToggleAddIn}
+              onQuantityChange={handleQuantityChange}
+              onBlendNameChange={handleBlendNameChange}
+              onSizeChange={handleSizeChange}
+              onRemoveIngredient={handleRemoveIngredient}
+              onBasePanelOpenChange={setIsBasePanelOpen}
+            />
 
-              {/* Center Column: Table Scene (~50-60%) */}
-              <div className="lg:col-span-6">
-                <CenterScene
-                  blendState={blendState}
-                  onBlendNameChange={handleBlendNameChange}
-                  onSizeChange={handleSizeChange}
-                  price={pricing.price}
-                  flavorProfile={normalizedProfile}
-                  onRemoveIngredient={handleRemoveIngredient}
-                  bases={bases}
-                  addInsData={addIns}
-                  isBasePanelOpen={isBasePanelOpen}
-                />
-              </div>
-
-              {/* Right Column: Add-ins (~20-25%) - Now Collapsible */}
-              <div className="lg:col-span-3">
-                <div className="sticky top-24">
-                  <CollapsibleMagicColumn
-                    selectedAddIns={blendState.addIns}
-                    onToggleAddIn={handleToggleAddIn}
-                    onQuantityChange={handleQuantityChange}
-                    addInsData={addIns}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Mobile: Stacked Layout */}
-            <div className="lg:hidden space-y-6">
-              {/* Blend Controls at Top */}
-              <div className="rounded-2xl p-4">
-                <div className="flex items-center justify-between gap-4 mb-3">
-                  <input
-                    type="text"
-                    value={blendState.blendName}
-                    onChange={(e) => handleBlendNameChange(e.target.value)}
-                    placeholder="Name your blend…"
-                    className="flex-1 bg-transparent border-b-2 border-white/30 focus:border-purple-300 text-white text-lg font-semibold placeholder-white/50 outline-none pb-1"
-                  />
-                  <div className="bg-gradient-to-r from-amber-400 to-amber-500 text-amber-900 px-3 py-1.5 rounded-full font-bold text-sm">
-                    ${pricing.price}
-                  </div>
-                </div>
-                
-                {/* Size Selector */}
-                <div className="flex gap-2 justify-center">
-                  {[1, 2, 4].map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => handleSizeChange(s as BlendSize)}
-                      className={`
-                        px-4 py-1.5 rounded-full text-sm font-medium transition-all
-                        ${blendState.size === s
-                          ? 'bg-white text-purple-900 shadow'
-                          : 'bg-white/20 text-white hover:bg-white/30'
-                        }
-                      `}
-                    >
-                      {s} oz
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Bowl Visual (simplified for mobile) */}
-              <div className="rounded-2xl p-6">
-                <div className="relative w-48 h-48 mx-auto">
-                  <Image
-                    src={`${BRANDING.IMAGE_BASE_PATH}/glass-bowl.png`}
-                    alt="Empty bowl"
-                    fill
-                    className="object-contain"
-                    priority
-                  />
-                </div>
-              </div>
-
-              {/* Collapsible Panels for Mobile */}
-              <div className="flex gap-4 justify-center">
-                {/* Base Selection Trigger */}
-                <CollapsibleBaseColumn
-                  bases={bases}
-                  selectedBaseId={blendState.baseTeaId}
-                  onSelectBase={handleSelectBase}
-                />
-
-                {/* Magic Selection Trigger */}
-                <CollapsibleMagicColumn
-                  selectedAddIns={blendState.addIns}
-                  onToggleAddIn={handleToggleAddIn}
-                  onQuantityChange={handleQuantityChange}
-                  addInsData={addIns}
-                />
-              </div>
-
-              {/* Blend Breakdown */}
-              <div className="rounded-2xl p-4">
-                <h3 className="text-lg font-bold text-white mb-3">Your Blend</h3>
-                {blendState.baseTeaId || blendState.addIns.length > 0 ? (
-                  <div className="space-y-2">
-                    {blendState.baseTeaId && (
-                      <div className="flex items-center gap-2 bg-white/20 p-2 rounded-lg">
-                        <span>{getIngredientById(blendState.baseTeaId, bases, addIns)?.emoji}</span>
-                        <span className="flex-1 text-sm font-medium text-white">
-                          {getIngredientById(blendState.baseTeaId, bases, addIns)?.name}
-                        </span>
-                        <span className="text-xs text-purple-300">Base</span>
-                      </div>
-                    )}
-                    {blendState.addIns.map((addIn) => {
-                      const ing = getIngredientById(addIn.ingredientId, bases, addIns);
-                      if (!ing) return null;
-                      return (
-                        <div key={addIn.ingredientId} className="flex items-center gap-2 bg-white/10 p-2 rounded-lg">
-                          <span>{ing.emoji}</span>
-                          <span className="flex-1 text-sm text-white">{ing.name}</span>
-                          <span className="text-xs text-white/60">{addIn.quantity.toFixed(2)} oz</span>
-                          <button
-                            onClick={() => handleRemoveIngredient(addIn.ingredientId)}
-                            className="w-5 h-5 rounded-full bg-red-500/30 hover:bg-red-500/50 flex items-center justify-center"
-                          >
-                            <svg className="w-3 h-3 text-red-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-white/50 text-sm text-center py-4">
-                    Select a base and add ingredients
-                  </p>
-                )}
-              </div>
-            </div>
+            {/* Mobile View */}
+            <MobileBlendingView
+              blendState={blendState}
+              bases={bases}
+              addIns={addIns}
+              price={pricing.price}
+              onSelectBase={handleSelectBase}
+              onToggleAddIn={handleToggleAddIn}
+              onQuantityChange={handleQuantityChange}
+              onBlendNameChange={handleBlendNameChange}
+              onRemoveIngredient={handleRemoveIngredient}
+            />
           </div>
         </main>
 
@@ -382,6 +250,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
           isReady={isReady}
           isProcessing={isProcessing}
           onContinue={handleContinue}
+          onSizeChange={handleSizeChange}
         />
       </div>
     </div>

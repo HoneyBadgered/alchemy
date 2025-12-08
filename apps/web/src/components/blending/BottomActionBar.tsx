@@ -22,6 +22,8 @@ interface BottomActionBarProps {
   isProcessing?: boolean;
   /** Callback when CTA is clicked */
   onContinue: () => void;
+  /** Callback when size is changed */
+  onSizeChange: (size: BlendSize) => void;
 }
 
 export const BottomActionBar: React.FC<BottomActionBarProps> = ({
@@ -31,21 +33,37 @@ export const BottomActionBar: React.FC<BottomActionBarProps> = ({
   isReady,
   isProcessing = false,
   onContinue,
+  onSizeChange,
 }) => {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40">
       {/* Top decorative line */}
-      <div className="h-px bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
+      <div className="h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
       
       {/* Bar content */}
-      <div className="bg-gradient-to-r from-purple-900/95 via-indigo-900/95 to-purple-900/95 backdrop-blur-md border-t border-white/10">
+      <div className="bg-black/40 backdrop-blur-md border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-4">
-            {/* Left: Size Summary */}
-            <div className="flex items-center gap-2 text-white/80">
+            {/* Left: Size Selector */}
+            <div className="flex items-center gap-2">
               <span className="text-lg">📦</span>
-              <span className="text-sm font-medium hidden sm:inline">{size} oz blend</span>
-              <span className="text-sm font-medium sm:hidden">{size}oz</span>
+              <div className="flex gap-1">
+                {[1, 2, 4].map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => onSizeChange(s as BlendSize)}
+                    className={`
+                      px-3 py-1 rounded-full text-xs font-medium transition-all
+                      ${size === s
+                        ? 'bg-white text-purple-900 shadow'
+                        : 'bg-white/20 text-white/80 hover:bg-white/30'
+                      }
+                    `}
+                  >
+                    {s}oz
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Center: Status + Price */}
