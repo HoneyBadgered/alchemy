@@ -7,7 +7,7 @@
 
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ExtendedBlendState, BlendSize } from './types';
 import { useIngredients, getIngredientById } from '@/hooks/useIngredients';
@@ -46,6 +46,24 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isBasePanelOpen, setIsBasePanelOpen] = useState(false);
+
+  // Restore blend state from sessionStorage if available (e.g., when returning from review page)
+  useEffect(() => {
+    const storedBlend = sessionStorage.getItem('pendingBlend');
+    if (storedBlend) {
+      try {
+        const parsed = JSON.parse(storedBlend);
+        setBlendState(parsed);
+      } catch (e) {
+        console.error('Failed to parse stored blend:', e);
+      }
+    }
+  }, []);
+
+  // Save blend state to sessionStorage whenever it changes
+  useEffect(() => {
+    sessionStorage.setItem('pendingBlend', JSON.stringify(blendState));
+  }, [blendState]);
 
   // Get cart item count for header
   const { itemCount } = useCart();
@@ -230,9 +248,11 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
               bases={bases}
               addIns={addIns}
               price={pricing.price}
+              flavorProfile={normalizedProfile}
               onSelectBase={handleSelectBase}
               onToggleAddIn={handleToggleAddIn}
               onQuantityChange={handleQuantityChange}
+              onSizeChange={handleSizeChange}
               onRemoveIngredient={handleRemoveIngredient}
             />
           </div>

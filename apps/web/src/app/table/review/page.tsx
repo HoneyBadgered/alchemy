@@ -70,7 +70,11 @@ export default function BlendReviewPage() {
   };
 
   const handleEditBlend = () => {
-    // Keep blend state in storage and go back to table
+    // Update blend state in storage with the current blend name before going back
+    if (blendState) {
+      const updatedBlend = { ...blendState, blendName };
+      sessionStorage.setItem('pendingBlend', JSON.stringify(updatedBlend));
+    }
     router.push('/table');
   };
 

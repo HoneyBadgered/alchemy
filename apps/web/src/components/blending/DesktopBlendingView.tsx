@@ -51,7 +51,7 @@ export const DesktopBlendingView: React.FC<DesktopBlendingViewProps> = ({
     <div className="hidden lg:grid lg:grid-cols-12 gap-6">
       {/* Left Column: Base Selection (~20-25%) - Collapsible */}
       <div className="lg:col-span-3">
-        <div className="sticky top-24">
+        <div className="sticky top-24 z-[55]">
           <CollapsibleBaseColumn
             bases={bases}
             selectedBaseId={blendState.baseTeaId}
@@ -77,7 +77,7 @@ export const DesktopBlendingView: React.FC<DesktopBlendingViewProps> = ({
 
       {/* Right Column: Add-ins (~20-25%) - Collapsible */}
       <div className="lg:col-span-3">
-        <div className="sticky top-24">
+        <div className="sticky top-24 z-[55]">
           <CollapsibleMagicColumn
             selectedAddIns={blendState.addIns}
             onToggleAddIn={onToggleAddIn}

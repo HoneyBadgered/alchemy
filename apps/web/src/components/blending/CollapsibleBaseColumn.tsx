@@ -66,7 +66,7 @@ const BaseJarItem: React.FC<BaseJarItemProps> = ({
     >
       {/* Desktop Hover Tooltip - hidden on mobile */}
       {!useMobileBehavior && (
-        <div className="absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+        <div className="absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[70]">
           <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
             {base.shortTags?.join(' · ') || base.description}
             <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1">
@@ -102,14 +102,11 @@ const BaseJarItem: React.FC<BaseJarItemProps> = ({
         {base.name}
       </h4>
 
-      {/* Mobile: Show select button when details sheet is used */}
+      {/* Mobile: Show select badge when details sheet is used */}
       {useMobileBehavior && !isSelected && (
-        <button
-          onClick={handleSecondaryAction}
-          className="mt-1 px-3 py-1 bg-purple-500 hover:bg-purple-600 text-white text-xs rounded-full transition-colors"
-        >
-          Select
-        </button>
+        <div className="mt-1 px-3 py-1 bg-purple-500 text-white text-xs rounded-full pointer-events-none">
+          Tap for Details
+        </div>
       )}
     </button>
   );
@@ -168,7 +165,7 @@ export const CollapsibleBaseColumn: React.FC<CollapsibleBaseColumnProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.2 }}
-            className="cursor-pointer pt-[25vh]"
+            className="cursor-pointer fixed top-[40vh] left-8 z-30"
             onClick={handleToggle}
             data-testid="base-trigger"
           >
@@ -203,11 +200,11 @@ export const CollapsibleBaseColumn: React.FC<CollapsibleBaseColumnProps> = ({
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -20, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="relative overflow-x-hidden max-w-md"
+            className="relative overflow-x-hidden max-w-md z-[55]"
             data-testid="base-panel-expanded"
           >
             <div 
-              className="rounded-2xl pt-6 px-6 pb-12 shadow-xl relative w-full max-w-md overflow-x-hidden"
+              className="rounded-2xl pt-6 px-6 pb-12 shadow-xl relative w-full max-w-md overflow-visible"
               style={{ 
                 backgroundImage: `url(${BRANDING.IMAGE_BASE_PATH}/background-scroll.png)`,
                 backgroundSize: '100% 100%',
@@ -238,7 +235,7 @@ export const CollapsibleBaseColumn: React.FC<CollapsibleBaseColumnProps> = ({
               </div>
 
               {/* Base List */}
-              <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+              <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1 pt-2">
                 {bases.map((base) => (
                   <BaseJarItem
                     key={base.id}

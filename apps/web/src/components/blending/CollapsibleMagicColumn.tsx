@@ -94,7 +94,7 @@ const IngredientItem: React.FC<IngredientItemProps> = ({
       >
         {/* Desktop Hover Tooltip - hidden on mobile */}
         {!useMobileBehavior && (
-          <div className="absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[70]">
             <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
               {tooltipText}
               <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1">
@@ -331,7 +331,7 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.2 }}
-            className="cursor-pointer pt-[35vh]"
+            className="cursor-pointer fixed top-[40vh] right-8 z-30"
             onClick={handleTogglePanel}
             data-testid="magic-trigger"
           >
@@ -360,11 +360,11 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 20, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="relative overflow-x-hidden max-w-lg"
+            className="relative overflow-x-hidden max-w-lg z-[55]"
             data-testid="magic-panel-expanded"
           >
             <div 
-              className="rounded-2xl pt-6 px-6 pb-12 shadow-xl relative w-full max-w-lg overflow-x-hidden"
+              className="rounded-2xl pt-6 px-6 pb-12 shadow-xl relative w-full max-w-lg overflow-visible"
               style={{ 
                 backgroundImage: `url(${BRANDING.IMAGE_BASE_PATH}/background-wide-scroll-2.png)`,
                 backgroundSize: '100% 100%',
@@ -395,7 +395,7 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
               </div>
 
               {/* All Ingredients in Grid */}
-              <div className="grid grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto pr-1">
+              <div className="grid grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto pr-1 pt-2">
                 {['addIns', 'botanicals', 'premium'].flatMap((categoryId) => {
                   const categoryKey = categoryId as keyof typeof addInsData;
                   return addInsData[categoryKey].map((ingredient) => {

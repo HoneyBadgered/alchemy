@@ -44,24 +44,32 @@ export const BottomActionBar: React.FC<BottomActionBarProps> = ({
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const handleEmptyBowlClick = () => {
+    console.log('Empty Bowl clicked, showing dialog');
     setShowConfirmDialog(true);
   };
 
   const handleConfirmEmpty = () => {
+    console.log('Confirmed empty bowl');
     onEmptyBowl();
     setShowConfirmDialog(false);
   };
 
   const handleCancelEmpty = () => {
+    console.log('Cancelled empty bowl');
     setShowConfirmDialog(false);
   };
+
+  console.log('BottomActionBar render - hasContents:', hasContents, 'showConfirmDialog:', showConfirmDialog);
 
   return (
     <>
       {/* Confirmation Dialog */}
       {showConfirmDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-gradient-to-br from-purple-900/95 to-indigo-900/95 backdrop-blur-md border border-white/20 rounded-2xl p-6 max-w-sm mx-4 shadow-2xl">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={handleCancelEmpty}>
+          <div 
+            className="bg-gradient-to-br from-purple-900/95 to-indigo-900/95 backdrop-blur-md border border-white/20 rounded-2xl p-6 max-w-sm mx-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-xl font-bold text-white mb-2">Empty Bowl?</h3>
             <p className="text-white/80 mb-6">
               This will remove your base tea and all add-ins. This action cannot be undone.
@@ -84,7 +92,7 @@ export const BottomActionBar: React.FC<BottomActionBarProps> = ({
         </div>
       )}
 
-      <div className="fixed bottom-0 left-0 right-0 z-40">
+      <div className="fixed bottom-0 left-0 right-0 z-[60]">
       {/* Top decorative line */}
       <div className="h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
       

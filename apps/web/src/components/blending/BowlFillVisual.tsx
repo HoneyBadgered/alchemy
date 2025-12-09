@@ -137,7 +137,7 @@ export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState, base
   const steamIntensity = totalFillPercentage > 70 ? 'high' : totalFillPercentage > 40 ? 'medium' : 'low';
 
   return (
-    <div className="relative w-full aspect-square max-w-sm mx-auto mt-12">
+    <div className="relative w-full aspect-square max-w-2xl mx-auto">
       {/* Outer glow effect */}
       <div className="absolute inset-0 bg-gradient-radial from-purple-500/20 via-transparent to-transparent rounded-full animate-pulse" />
       
@@ -149,8 +149,8 @@ export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState, base
         {/* Empty Bowl Image */}
         <div className="absolute inset-0 w-full h-full flex items-center justify-center">
           <Image
-            src={`${BRANDING.IMAGE_BASE_PATH}/empty-bowl.png`}
-            alt="Empty bowl"
+            src={`${BRANDING.IMAGE_BASE_PATH}/wooden-bowl.png`}
+            alt="Blending bowl"
             fill
             className="object-contain"
             priority

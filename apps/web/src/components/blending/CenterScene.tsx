@@ -249,18 +249,18 @@ export const CenterScene: React.FC<CenterSceneProps> = ({
   isBasePanelOpen = false,
 }) => {
   return (
-    <div className="flex flex-col h-full">
+    <div className="relative flex flex-col h-full min-h-screen">
       {/* Flavor Profile - Top Left, hidden when base panel is open */}
       {!isBasePanelOpen && (
-        <div className="fixed top-24 left-4 z-20 pointer-events-auto">
+        <div className="fixed top-24 left-4 z-40 pointer-events-auto">
           <div className="w-72">
             <BlendStatsPanel profile={flavorProfile} />
           </div>
         </div>
       )}
 
-      {/* Just the Bowl - Positioned to sit on the table */}
-      <div className="flex items-end justify-center pt-[25vh]">
+      {/* Just the Bowl - Fixed in center of viewport, moved down 50% */}
+      <div className="fixed top-3/4 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[896px] h-[896px]">
         <BowlFillVisual 
           blendState={blendState}
           bases={bases}
@@ -269,7 +269,7 @@ export const CenterScene: React.FC<CenterSceneProps> = ({
       </div>
 
       {/* Bottom Right: Ingredients Breakdown */}
-      <div className="fixed bottom-20 right-4 z-20 pointer-events-auto">
+      <div className="fixed bottom-20 right-4 z-40 pointer-events-auto">
         <div className="w-72">
           <BlendBreakdownList
             blendState={blendState}
