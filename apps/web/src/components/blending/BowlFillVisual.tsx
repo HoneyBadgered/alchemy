@@ -38,6 +38,8 @@ interface BowlFillVisualProps {
     botanicals: BlendingIngredient[];
     premium: BlendingIngredient[];
   };
+  /** Callback when enchant button is clicked */
+  onContinue?: () => void;
 }
 
 interface IngredientLayer {
@@ -71,9 +73,12 @@ const CATEGORY_PATTERNS: Record<string, string> = {
   special: 'bg-gradient-to-b',
 };
 
-export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState, bases, addInsData }) => {
+export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState, bases, addInsData, onContinue }) => {
   // Helper to get ingredient by ID
   const getIngredient = (id: string) => getIngredientById(id, bases, addInsData);
+
+  // Check if blend is ready
+  const isReady = !!blendState.baseTeaId;
 
   // Calculate ingredient layers with their positions and heights
   const { layers, totalFillPercentage } = useMemo(() => {
@@ -141,13 +146,39 @@ export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState, base
       {/* Outer glow effect */}
       <div className="absolute inset-0 bg-gradient-radial from-purple-500/20 via-transparent to-transparent rounded-full animate-pulse" />
       
-      {/* Bowl container with perspective */}
-      <div className="absolute inset-4 perspective-1000">
+      {/* Bowl container */}
+      <div className="relative w-full h-full">
+        {/* Brass Button Plate - underneath bowl */}
+        <div className="absolute left-1/2 top-[75%] -translate-x-1/2 -translate-y-1/2 w-[75%] h-[60%] z-[-1]">
+          <Image
+            src={`${BRANDING.IMAGE_BASE_PATH}/brass-button-plate.png`}
+            alt="Brass plate"
+            fill
+            className="object-contain"
+          />
+        </div>
+
+        {/* Brass Button Create - clickable enchant button */}
+        {onContinue && (
+          <button
+            onClick={onContinue}
+            className="absolute left-1/2 top-[75%] -translate-x-1/2 -translate-y-1/2 w-[25%] h-[20%] z-[25] hover:scale-105 active:scale-95 transition-transform"
+            aria-label="Enchant and review blend"
+          >
+            <Image
+              src={`${BRANDING.IMAGE_BASE_PATH}/brass-button-create.png`}
+              alt="Create blend"
+              fill
+              className="object-contain"
+            />
+          </button>
+        )}
+
         {/* Bowl shadow */}
         <div className="absolute inset-0 translate-y-2 bg-gradient-radial from-black/30 to-transparent rounded-[50%] blur-xl" />
         
-        {/* Empty Bowl Image */}
-        <div className="absolute inset-0 w-full h-full flex items-center justify-center">
+        {/* Empty Bowl Image - base layer */}
+        <div className="absolute inset-0 w-full h-full pointer-events-none z-0">
           <Image
             src={`${BRANDING.IMAGE_BASE_PATH}/wooden-bowl.png`}
             alt="Blending bowl"
@@ -157,15 +188,15 @@ export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState, base
           />
         </div>
         
-        {/* Fill container - masked to bowl interior */}
+        {/* Fill container - positioned in front of bowl base */}
         <div 
-          className="absolute inset-0 overflow-hidden"
+          className="absolute left-1/2 top-[58%] -translate-x-1/2 -translate-y-1/2 w-[48%] h-[36%] overflow-hidden z-10"
           style={{
-            clipPath: 'ellipse(32.5% 27.5% at 50% 50%)',
+            clipPath: 'ellipse(50% 45% at 50% 50%)',
           }}
         >
           {/* Ingredient layers - stacked from bottom */}
-          <div className="absolute inset-0 flex flex-col-reverse">
+          <div className="absolute inset-0 flex flex-col-reverse justify-end">
             <AnimatePresence mode="sync">
               {layers.map((layer, index) => (
                 <motion.div
@@ -236,7 +267,7 @@ export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState, base
         {/* Bowl rim overlay (on top of fill) */}
         <svg
           viewBox="0 0 200 200"
-          className="absolute inset-0 w-full h-full pointer-events-none"
+          className="absolute inset-0 w-full h-full pointer-events-none z-20"
         >
           {/* Rim highlight */}
           <ellipse

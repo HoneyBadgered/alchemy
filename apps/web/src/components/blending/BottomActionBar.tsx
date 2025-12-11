@@ -28,6 +28,8 @@ interface BottomActionBarProps {
   onSizeChange: (size: BlendSize) => void;
   /** Callback when empty bowl is clicked */
   onEmptyBowl: () => void;
+  /** Callback when randomize blend is clicked */
+  onRandomize: () => void;
 }
 
 export const BottomActionBar: React.FC<BottomActionBarProps> = ({
@@ -40,6 +42,7 @@ export const BottomActionBar: React.FC<BottomActionBarProps> = ({
   onContinue,
   onSizeChange,
   onEmptyBowl,
+  onRandomize,
 }) => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
@@ -134,6 +137,15 @@ export const BottomActionBar: React.FC<BottomActionBarProps> = ({
 
             {/* Right: Action Buttons */}
             <div className="flex items-center gap-2">
+              {/* Randomize Button */}
+              <button
+                onClick={onRandomize}
+                className="px-4 py-2.5 rounded-full font-semibold text-sm transition-all bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-200 hover:from-purple-500/30 hover:to-pink-500/30 hover:text-white border border-purple-400/30 hover:border-purple-400/50"
+              >
+                <span className="hidden sm:inline">🎲 Randomize</span>
+                <span className="sm:hidden">🎲</span>
+              </button>
+
               {/* Empty Bowl Button */}
               {hasContents && (
                 <button
@@ -144,34 +156,6 @@ export const BottomActionBar: React.FC<BottomActionBarProps> = ({
                   <span className="sm:hidden">🗑️</span>
                 </button>
               )}
-
-              {/* Continue/Enchant Button */}
-              <button
-                onClick={onContinue}
-                disabled={!isReady || isProcessing}
-                className={`
-                  px-6 py-2.5 rounded-full font-semibold text-sm transition-all transform
-                  ${isReady && !isProcessing
-                    ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-amber-900 hover:from-amber-300 hover:to-amber-400 hover:scale-105 shadow-lg shadow-amber-500/30'
-                    : 'bg-white/10 text-white/40 cursor-not-allowed'
-                  }
-                `}
-              >
-                {isProcessing ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Enchanting...
-                  </span>
-                ) : (
-                  <>
-                    <span className="hidden sm:inline">✨ Enchant & Review</span>
-                    <span className="sm:hidden">✨ Continue</span>
-                  </>
-                )}
-              </button>
             </div>
           </div>
         </div>

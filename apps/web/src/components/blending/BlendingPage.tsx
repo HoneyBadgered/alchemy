@@ -46,6 +46,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isBasePanelOpen, setIsBasePanelOpen] = useState(false);
+  const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
 
   // Restore blend state from sessionStorage if available (e.g., when returning from review page)
   useEffect(() => {
@@ -58,12 +59,15 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
         console.error('Failed to parse stored blend:', e);
       }
     }
+    setHasLoadedFromStorage(true);
   }, []);
 
-  // Save blend state to sessionStorage whenever it changes
+  // Save blend state to sessionStorage whenever it changes (but only after initial load)
   useEffect(() => {
-    sessionStorage.setItem('pendingBlend', JSON.stringify(blendState));
-  }, [blendState]);
+    if (hasLoadedFromStorage) {
+      sessionStorage.setItem('pendingBlend', JSON.stringify(blendState));
+    }
+  }, [blendState, hasLoadedFromStorage]);
 
   // Get cart item count for header
   const { itemCount } = useCart();
@@ -146,6 +150,36 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
       addIns: [],
     }));
   }, []);
+
+  const handleRandomizeBlend = useCallback(() => {
+    // Select random base
+    const randomBase = bases[Math.floor(Math.random() * bases.length)];
+    
+    // Combine all add-ins
+    const allAddIns = [...addIns.addIns, ...addIns.botanicals, ...addIns.premium];
+    
+    // Select 2-5 random add-ins
+    const numAddIns = Math.floor(Math.random() * 4) + 2; // 2-5 add-ins
+    const shuffled = [...allAddIns].sort(() => Math.random() - 0.5);
+    const selectedAddIns = shuffled.slice(0, numAddIns);
+    
+    // Create add-ins with random quantities
+    const randomAddIns = selectedAddIns.map(ingredient => ({
+      ingredientId: ingredient.id,
+      quantity: Math.round((Math.random() * 0.75 + 0.25) * 4) / 4, // 0.25 to 1.0 in 0.25 increments
+    }));
+    
+    // Random size
+    const sizes: BlendSize[] = [1, 2, 4];
+    const randomSize = sizes[Math.floor(Math.random() * sizes.length)];
+    
+    setBlendState({
+      baseTeaId: randomBase.id,
+      addIns: randomAddIns,
+      blendName: '',
+      size: randomSize,
+    });
+  }, [bases, addIns]);
 
   const handleContinue = async () => {
     if (!isReady || isProcessing) return;
@@ -240,6 +274,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
               onSizeChange={handleSizeChange}
               onRemoveIngredient={handleRemoveIngredient}
               onBasePanelOpenChange={setIsBasePanelOpen}
+              onContinue={handleContinue}
             />
 
             {/* Mobile View */}
@@ -269,6 +304,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
           onContinue={handleContinue}
           onSizeChange={handleSizeChange}
           onEmptyBowl={handleEmptyBowl}
+          onRandomize={handleRandomizeBlend}
         />
       </div>
     </div>

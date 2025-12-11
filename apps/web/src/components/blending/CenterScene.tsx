@@ -33,6 +33,8 @@ interface CenterSceneProps {
   };
   /** Whether the base panel is open */
   isBasePanelOpen?: boolean;
+  /** Callback when enchant/continue is clicked */
+  onContinue?: () => void;
 }
 
 interface BlendNameFieldProps {
@@ -247,6 +249,7 @@ export const CenterScene: React.FC<CenterSceneProps> = ({
   bases,
   addInsData,
   isBasePanelOpen = false,
+  onContinue,
 }) => {
   return (
     <div className="relative flex flex-col h-full min-h-screen">
@@ -265,6 +268,7 @@ export const CenterScene: React.FC<CenterSceneProps> = ({
           blendState={blendState}
           bases={bases}
           addInsData={addInsData}
+          onContinue={onContinue}
         />
       </div>
 

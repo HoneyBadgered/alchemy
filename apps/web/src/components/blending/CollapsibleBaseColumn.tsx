@@ -10,6 +10,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import type { BlendingIngredient } from './mockData';
 import { BRANDING } from '@/config/branding';
@@ -57,24 +58,33 @@ const BaseJarItem: React.FC<BaseJarItemProps> = ({
     onSelect();
   };
 
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (showTooltip && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setTooltipPos({
+        top: rect.top - 8,
+        left: rect.left + rect.width / 2
+      });
+    }
+  }, [showTooltip]);
+
+  const tooltipText = base.shortTags?.join(' · ') || base.description;
+
   return (
-    <button
-      onClick={handleClick}
-      className="relative group w-full p-2 transition-all duration-200 flex flex-col items-center text-center gap-2 hover:scale-105 active:scale-95"
-      aria-pressed={isSelected}
-      aria-label={`${useMobileBehavior ? 'View details for' : 'Select'} ${base.name} as base tea`}
-    >
-      {/* Desktop Hover Tooltip - hidden on mobile */}
-      {!useMobileBehavior && (
-        <div className="absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[70]">
-          <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
-            {base.shortTags?.join(' · ') || base.description}
-            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1">
-              <div className="border-4 border-transparent border-t-gray-900"></div>
-            </div>
-          </div>
-        </div>
-      )}
+    <>
+      <button
+        ref={buttonRef}
+        onClick={handleClick}
+        onMouseEnter={() => !useMobileBehavior && setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        className="relative w-full p-2 transition-all duration-200 flex flex-col items-center text-center gap-2 hover:scale-105 active:scale-95"
+        aria-pressed={isSelected}
+        aria-label={`${useMobileBehavior ? 'View details for' : 'Select'} ${base.name} as base tea`}
+      >
 
       {/* Tea Bottle Image */}
       <div className="relative w-16 h-20">
@@ -109,6 +119,27 @@ const BaseJarItem: React.FC<BaseJarItemProps> = ({
         </div>
       )}
     </button>
+
+    {/* Portal Tooltip */}
+    {showTooltip && !useMobileBehavior && typeof window !== 'undefined' && createPortal(
+      <div 
+        className="fixed pointer-events-none z-[9999] transition-opacity duration-200"
+        style={{
+          top: tooltipPos.top,
+          left: tooltipPos.left,
+          transform: 'translate(-50%, -100%)'
+        }}
+      >
+        <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
+          {tooltipText}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1">
+            <div className="border-4 border-transparent border-t-gray-900"></div>
+          </div>
+        </div>
+      </div>,
+      document.body
+    )}
+  </>
   );
 };
 
@@ -200,7 +231,7 @@ export const CollapsibleBaseColumn: React.FC<CollapsibleBaseColumnProps> = ({
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -20, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="relative overflow-x-hidden max-w-md z-[55]"
+            className="relative max-w-md z-[55]"
             data-testid="base-panel-expanded"
           >
             <div 
@@ -234,8 +265,9 @@ export const CollapsibleBaseColumn: React.FC<CollapsibleBaseColumnProps> = ({
                 </button>
               </div>
 
-              {/* Base List */}
-              <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1 pt-2">
+              {/* Base List - Wrapper allows tooltips to escape */}
+              <div className="overflow-visible">
+                <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1 pt-2">
                 {bases.map((base) => (
                   <BaseJarItem
                     key={base.id}
@@ -248,6 +280,7 @@ export const CollapsibleBaseColumn: React.FC<CollapsibleBaseColumnProps> = ({
                 ))}
               </div>
             </div>
+          </div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -31,6 +31,7 @@ interface DesktopBlendingViewProps {
   onSizeChange: (size: BlendSize) => void;
   onRemoveIngredient: (ingredientId: string) => void;
   onBasePanelOpenChange: (isOpen: boolean) => void;
+  onContinue?: () => void;
 }
 
 export const DesktopBlendingView: React.FC<DesktopBlendingViewProps> = ({
@@ -46,6 +47,7 @@ export const DesktopBlendingView: React.FC<DesktopBlendingViewProps> = ({
   onSizeChange,
   onRemoveIngredient,
   onBasePanelOpenChange,
+  onContinue,
 }) => {
   return (
     <div className="hidden lg:grid lg:grid-cols-12 gap-6">
@@ -72,6 +74,7 @@ export const DesktopBlendingView: React.FC<DesktopBlendingViewProps> = ({
           bases={bases}
           addInsData={addIns}
           isBasePanelOpen={isBasePanelOpen}
+          onContinue={onContinue}
         />
       </div>
 
