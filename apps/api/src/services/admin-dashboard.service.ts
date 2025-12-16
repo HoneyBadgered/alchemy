@@ -142,7 +142,7 @@ export class AdminDashboardService {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    const orderItems = await prisma.orders.items.groupBy({
+    const orderItems = await prisma.order_items.groupBy({
       by: ['productId'],
       where: {
         createdAt: {

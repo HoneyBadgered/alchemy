@@ -4,6 +4,7 @@
  */
 
 import { prisma } from '../utils/prisma';
+import crypto from 'crypto';
 
 export interface CreateSubscriptionInput {
   productId: string;
@@ -89,6 +90,7 @@ export class SubscriptionService {
 
     const subscription = await prisma.subscriptions.create({
       data: {
+        id: crypto.randomUUID(),
         userId,
         productId: input.productId,
         name: input.name,
@@ -97,6 +99,7 @@ export class SubscriptionService {
         price: input.price,
         status: 'active',
         nextShipmentDate,
+        updatedAt: new Date(),
       },
     });
 
