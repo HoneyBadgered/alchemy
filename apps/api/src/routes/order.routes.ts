@@ -42,9 +42,16 @@ export async function orderRoutes(fastify: FastifyInstance) {
    * Place an order from the user's or guest's cart
    * POST /orders
    * Supports both authenticated users and guests (via x-session-id header)
+   * Rate limit: 10 orders per hour to prevent spam
    */
   fastify.post('/orders', {
     preHandler: optionalAuthMiddleware,
+    config: {
+      rateLimit: {
+        max: 10,
+        timeWindow: '1 hour',
+      },
+    },
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const userId = request.user?.userId;

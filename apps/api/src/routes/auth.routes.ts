@@ -43,7 +43,14 @@ export async function authRoutes(fastify: FastifyInstance) {
   const authService = new AuthService();
 
   // POST /auth/register
-  fastify.post('/auth/register', async (request, reply) => {
+  fastify.post('/auth/register', {
+    config: {
+      rateLimit: {
+        max: 3, // Only 3 registrations per hour
+        timeWindow: '1 hour',
+      },
+    },
+  }, async (request, reply) => {
     try {
       if (!request.body) {
         return reply.status(400).send({ message: 'Request body is required' });
