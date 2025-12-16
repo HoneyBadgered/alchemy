@@ -3,6 +3,7 @@
  */
 
 import { prisma } from '../utils/prisma';
+import crypto from 'crypto';
 
 export interface CreateThemeInput {
   name: string;
@@ -35,7 +36,7 @@ export class AdminThemeService {
   async getThemes() {
     const themes = await prisma.themes.findMany({
       include: {
-        tableSkins: true,
+        table_skins: true,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -50,7 +51,7 @@ export class AdminThemeService {
     const theme = await prisma.themes.findUnique({
       where: { id },
       include: {
-        tableSkins: true,
+        table_skins: true,
       },
     });
 
@@ -102,7 +103,7 @@ export class AdminThemeService {
     const theme = await prisma.themes.findUnique({
       where: { id },
       include: {
-        tableSkins: true,
+        table_skins: true,
       },
     });
 

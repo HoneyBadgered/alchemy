@@ -4,8 +4,8 @@
  */
 
 import Stripe from 'stripe';
+import crypto from 'crypto';
 import { prisma } from '../utils/prisma';
-import type { Prisma } from '@prisma/client';
 import { stripe, STRIPE_PAYMENT_SUCCESS_STATUSES } from '../utils/stripe';
 import { 
   NotFoundError, 
@@ -44,7 +44,7 @@ export class PaymentService {
       const order = await prisma.orders.findFirst({
         where: whereClause,
         include: {
-          user: true,
+          users: true,
         },
       });
 
@@ -97,7 +97,7 @@ export class PaymentService {
 
       // Update order with payment intent details in a transaction
       await prisma.$transaction(async (tx) => {
-        await tx.order.update({
+        await tx.orders.update({
           where: { id: orderId },
           data: {
             stripePaymentId: paymentIntent.id,
@@ -108,7 +108,7 @@ export class PaymentService {
         });
 
         // Log status change
-        await tx.orderStatusLog.create({
+        await tx.order_status_logs.create({
           data: {
             orderId,
             fromStatus: order.status,
@@ -311,14 +311,14 @@ export class PaymentService {
       // Update order and log status change in a transaction
       await prisma.$transaction(async (tx) => {
         // Update order
-        await tx.order.update({
+        await tx.orders.update({
           where: { id: orderId },
           data: updates,
         });
 
         // Log status change if it changed
         if (newOrderStatus !== order.status) {
-          await tx.orderStatusLog.create({
+          await tx.order_status_logs.create({
             data: {
               orderId,
               fromStatus: order.status,

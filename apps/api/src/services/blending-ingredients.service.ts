@@ -6,7 +6,7 @@
  */
 
 import { prisma } from '../utils/prisma';
-import type { Ingredient } from '@prisma/client';
+import type { ingredients } from '@prisma/client';
 
 export interface BlendingIngredient {
   id: string;
@@ -40,7 +40,7 @@ export class BlendingIngredientsService {
   /**
    * Map database ingredient to BlendingIngredient interface
    */
-  private mapToBlendingIngredient(ingredient: Ingredient): BlendingIngredient {
+  private mapToBlendingIngredient(ingredient: ingredients): BlendingIngredient {
     // Parse flavor notes to generate flavor profile scores
     const flavorNotes = (ingredient.flavorNotes as string[]) || [];
     const flavorProfile = this.generateFlavorProfile(flavorNotes, ingredient.caffeineLevel || 'none');
@@ -114,7 +114,7 @@ export class BlendingIngredientsService {
   /**
    * Determine ingredient tier based on cost and category
    */
-  private determineTier(ingredient: Ingredient): 'standard' | 'premium' {
+  private determineTier(ingredient: ingredients): 'standard' | 'premium' {
     const cost = Number(ingredient.costPerOunce) || 0;
     const category = ingredient.category.toLowerCase();
 
@@ -130,7 +130,7 @@ export class BlendingIngredientsService {
   /**
    * Generate short tags from ingredient data
    */
-  private generateShortTags(ingredient: Ingredient): string[] {
+  private generateShortTags(ingredient: ingredients): string[] {
     const tags: string[] = [];
 
     // Add category

@@ -4,6 +4,7 @@
  */
 
 import { prisma } from '../utils/prisma';
+import crypto from 'crypto';
 
 export interface UpdateNotificationPreferencesInput {
   emailEnabled?: boolean;

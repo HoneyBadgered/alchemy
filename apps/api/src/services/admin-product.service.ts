@@ -3,6 +3,7 @@
  */
 
 import { prisma } from '../utils/prisma';
+import crypto from 'crypto';
 import type { Prisma } from '@prisma/client';
 
 export interface ProductFilters {
@@ -57,7 +58,7 @@ export class AdminProductService {
     const skip = (page - 1) * perPage;
 
     // Build where clause
-    const where: Prisma.ProductWhereInput = {};
+    const where: Prisma.productsWhereInput = {};
 
     if (search) {
       where.OR = [
@@ -104,7 +105,7 @@ export class AdminProductService {
     const product = await prisma.products.findUnique({
       where: { id },
       include: {
-        orderItems: {
+        order_items: {
           include: {
             order: {
               select: {
@@ -133,6 +134,7 @@ export class AdminProductService {
   async createProduct(data: CreateProductInput) {
     const product = await prisma.products.create({
       data: {
+        id: crypto.randomUUID(),
         name: data.name,
         description: data.description,
         price: data.price,
@@ -142,6 +144,7 @@ export class AdminProductService {
         tags: data.tags || [],
         stock: data.stock ?? 0,
         isActive: data.isActive ?? true,
+        updatedAt: new Date(),
       },
     });
 

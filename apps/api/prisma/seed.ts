@@ -5,6 +5,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { randomUUID } from 'crypto';
 
 const prisma = new PrismaClient();
 const SALT_ROUNDS = 10;
@@ -26,30 +27,39 @@ async function main() {
 
   if (!existingAdmin) {
     const hashedPassword = await hashPassword('Admin123!');
+    const userId = randomUUID();
     await prisma.user.create({
       data: {
+        id: userId,
         email: adminEmail,
         password: hashedPassword,
         username: 'admin',
         role: 'admin',
         emailVerified: true,
-        profile: {
+        updatedAt: new Date(),
+        user_profiles: {
           create: {
+            id: randomUUID(),
             firstName: 'Admin',
             lastName: 'User',
+            updatedAt: new Date(),
           },
         },
-        playerState: {
+        player_states: {
           create: {
+            id: randomUUID(),
             level: 99,
             xp: 0,
             totalXp: 999999,
+            updatedAt: new Date(),
           },
         },
-        cosmetics: {
+        player_cosmetics: {
           create: {
+            id: randomUUID(),
             unlockedThemes: [],
             unlockedSkins: [],
+            updatedAt: new Date(),
           },
         },
       },
@@ -293,7 +303,13 @@ async function main() {
     });
 
     if (!existing) {
-      await prisma.product.create({ data: productData });
+      await prisma.product.create({ 
+        data: {
+          id: randomUUID(),
+          ...productData,
+          updatedAt: new Date(),
+        }
+      });
       createdCount++;
       console.log(`  ✓ Created: ${productData.name}`);
     } else {
@@ -627,7 +643,13 @@ async function main() {
     });
 
     if (!existing) {
-      await prisma.ingredient.create({ data: ingredientData });
+      await prisma.ingredient.create({ 
+        data: {
+          id: randomUUID(),
+          ...ingredientData,
+          updatedAt: new Date(),
+        }
+      });
       ingredientCount++;
       console.log(`  ✓ Created: ${ingredientData.name} (${ingredientData.role})`);
     } else {

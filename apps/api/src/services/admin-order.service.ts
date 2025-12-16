@@ -3,6 +3,7 @@
  */
 
 import { prisma } from '../utils/prisma';
+import crypto from 'crypto';
 import type { Prisma } from '@prisma/client';
 
 export interface OrderFilters {
@@ -40,7 +41,7 @@ export class AdminOrderService {
     const skip = (page - 1) * perPage;
 
     // Build where clause
-    const where: Prisma.OrderWhereInput = {};
+    const where: Prisma.ordersWhereInput = {};
 
     if (status) {
       where.status = status;
@@ -49,8 +50,8 @@ export class AdminOrderService {
     if (search) {
       where.OR = [
         { id: { contains: search, mode: 'insensitive' } },
-        { user: { email: { contains: search, mode: 'insensitive' } } },
-        { user: { username: { contains: search, mode: 'insensitive' } } },
+        { users: { email: { contains: search, mode: 'insensitive' } } },
+        { users: { username: { contains: search, mode: 'insensitive' } } },
       ];
     }
 
@@ -72,7 +73,7 @@ export class AdminOrderService {
         take: perPage,
         orderBy: { [sortBy]: sortOrder },
         include: {
-          user: {
+          users: {
             select: {
               id: true,
               email: true,
@@ -111,7 +112,7 @@ export class AdminOrderService {
     const order = await prisma.orders.findUnique({
       where: { id },
       include: {
-        user: {
+        users: {
           select: {
             id: true,
             email: true,
@@ -126,7 +127,7 @@ export class AdminOrderService {
         },
         statusLogs: {
           include: {
-            user: {
+            users: {
               select: {
                 id: true,
                 username: true,
@@ -163,11 +164,11 @@ export class AdminOrderService {
     // Update order and create status log in a transaction
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Update order status
-      const updatedOrder = await tx.order.update({
+      const updatedOrder = await tx.orders.update({
         where: { id: orderId },
         data: { status: toStatus },
         include: {
-          user: {
+          users: {
             select: {
               id: true,
               email: true,
@@ -183,7 +184,7 @@ export class AdminOrderService {
       });
 
       // Create status log
-      await tx.orderStatusLog.create({
+      await tx.order_status_logs.create({
         data: {
           orderId,
           fromStatus,
@@ -206,7 +207,7 @@ export class AdminOrderService {
     const logs = await prisma.orders.tatusLog.findMany({
       where: { orderId },
       include: {
-        user: {
+        users: {
           select: {
             id: true,
             username: true,
@@ -224,7 +225,7 @@ export class AdminOrderService {
    * Get order statistics
    */
   async getOrderStats(dateFrom?: string, dateTo?: string) {
-    const where: Prisma.OrderWhereInput = {};
+    const where: Prisma.ordersWhereInput = {};
 
     if (dateFrom || dateTo) {
       where.createdAt = {};

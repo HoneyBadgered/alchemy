@@ -4,6 +4,7 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import crypto from 'crypto';
 import {
   getIngredientById,
   getIngredientBaseAmount,
@@ -296,7 +297,7 @@ export class CartService {
       await prisma.$transaction(async (tx) => {
         // Merge items
         for (const guestItem of guestCart.items) {
-          const existingItem = await tx.cartItem.findUnique({
+          const existingItem = await tx.cart_items.findUnique({
             where: {
               cartId_productId: {
                 cartId: userCart.id,
@@ -307,13 +308,13 @@ export class CartService {
 
           if (existingItem) {
             // Update quantity
-            await tx.cartItem.update({
+            await tx.cart_items.update({
               where: { id: existingItem.id },
               data: { quantity: existingItem.quantity + guestItem.quantity },
             });
           } else {
             // Move item to user cart
-            await tx.cartItem.update({
+            await tx.cart_items.update({
               where: { id: guestItem.id },
               data: { cartId: userCart.id },
             });
