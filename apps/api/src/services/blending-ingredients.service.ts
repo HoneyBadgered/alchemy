@@ -6,7 +6,7 @@
  */
 
 import { prisma } from '../utils/prisma';
-import type { Ingredient } from '@prisma/client';
+import type { ingredients } from '@prisma/client';
 
 export interface BlendingIngredient {
   id: string;

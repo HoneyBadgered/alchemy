@@ -4,7 +4,7 @@
  */
 
 import { prisma } from '../utils/prisma';
-import type { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { 
   BadRequestError, 
   NotFoundError, 
@@ -61,9 +61,11 @@ export class OrderService {
   async placeOrder(input: PlaceOrderInput) {
     const { userId, sessionId, guestEmail, shippingAddress, shippingMethod, customerNotes, discountCode } = input;
 
+    let cart: Awaited<ReturnType<typeof prisma.carts.findFirst>> | null = null;
+
     try {
       // Get user's cart
-      const cart = await prisma.carts.findFirst({
+      cart = await prisma.carts.findFirst({
         where: userId ? { userId } : { sessionId },
         include: {
           items: {
@@ -301,7 +303,7 @@ export class OrderService {
     const { page = 1, perPage = 20, status } = filters;
     const skip = (page - 1) * perPage;
 
-    const where: Prisma.OrderWhereInput = { userId };
+    const where: Prisma.ordersWhereInput = { userId };
     if (status) {
       where.status = status;
     }

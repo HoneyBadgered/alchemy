@@ -40,7 +40,7 @@ export class AdminOrderService {
     const skip = (page - 1) * perPage;
 
     // Build where clause
-    const where: Prisma.OrderWhereInput = {};
+    const where: Prisma.ordersWhereInput = {};
 
     if (status) {
       where.status = status;
@@ -224,7 +224,7 @@ export class AdminOrderService {
    * Get order statistics
    */
   async getOrderStats(dateFrom?: string, dateTo?: string) {
-    const where: Prisma.OrderWhereInput = {};
+    const where: Prisma.ordersWhereInput = {};
 
     if (dateFrom || dateTo) {
       where.createdAt = {};

@@ -82,7 +82,8 @@ export class PurchaseHistoryService {
       },
     });
 
-    const reviewMap = new Map(reviews.map((r) => [r.productId, r]));
+    type ReviewType = typeof reviews[number];
+    const reviewMap = new Map<string, ReviewType>(reviews.map((r) => [r.productId, r]));
 
     // Aggregate purchase data by product
     const productPurchases = new Map<string, {

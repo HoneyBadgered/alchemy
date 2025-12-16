@@ -5,7 +5,6 @@
 
 import Stripe from 'stripe';
 import { prisma } from '../utils/prisma';
-import type { Prisma } from '@prisma/client';
 import { stripe, STRIPE_PAYMENT_SUCCESS_STATUSES } from '../utils/stripe';
 import { 
   NotFoundError, 

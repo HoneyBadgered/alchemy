@@ -57,7 +57,7 @@ export class AdminProductService {
     const skip = (page - 1) * perPage;
 
     // Build where clause
-    const where: Prisma.ProductWhereInput = {};
+    const where: Prisma.productsWhereInput = {};
 
     if (search) {
       where.OR = [
