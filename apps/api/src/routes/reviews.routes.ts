@@ -7,6 +7,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { ReviewsService } from '../services/reviews.service';
 import { authMiddleware } from '../middleware/auth';
+import { NotFoundError, ConflictError, ForbiddenError, BadRequestError } from '../utils/errors';
 
 const createReviewSchema = z.object({
   productId: z.string().min(1),
@@ -36,23 +37,11 @@ export async function reviewsRoutes(fastify: FastifyInstance) {
    * Public endpoint
    */
   fastify.get('/products/:id/reviews', async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const { id } = request.params as { id: string };
-      const params = getReviewsSchema.parse(request.query);
+    const { id } = request.params as { id: string };
+    const params = getReviewsSchema.parse(request.query);
 
-      const result = await reviewsService.getProductReviews(id, params);
-      return reply.send(result);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return reply.status(400).send({
-          message: 'Validation error',
-          errors: error.errors,
-        });
-      }
-      return reply.status(500).send({
-        message: (error as Error).message,
-      });
-    }
+    const result = await reviewsService.getProductReviews(id, params);
+    return reply.send(result);
   });
 
   /**
@@ -70,32 +59,15 @@ export async function reviewsRoutes(fastify: FastifyInstance) {
       },
     },
   }, async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const userId = request.user!.userId;
-      const data = createReviewSchema.parse(request.body);
+    const userId = request.user!.userId;
+    const data = createReviewSchema.parse(request.body);
 
-      const review = await reviewsService.createReview({
-        userId,
-        ...data,
-      });
+    const review = await reviewsService.createReview({
+      userId,
+      ...data,
+    });
 
-      return reply.status(201).send(review);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return reply.status(400).send({
-          message: 'Validation error',
-          errors: error.errors,
-        });
-      }
-      const message = (error as Error).message;
-      if (message.includes('already reviewed')) {
-        return reply.status(409).send({ message });
-      }
-      if (message.includes('not found') || message.includes('not available')) {
-        return reply.status(404).send({ message });
-      }
-      return reply.status(400).send({ message });
-    }
+    return reply.status(201).send(review);
   });
 
   /**

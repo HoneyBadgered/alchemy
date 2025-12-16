@@ -5,6 +5,7 @@
 
 import { prisma } from '../utils/prisma';
 import type { Prisma } from '@prisma/client';
+import { NotFoundError, ConflictError, BadRequestError, ForbiddenError } from '../utils/errors';
 
 export interface CreateReviewInput {
   userId: string;
@@ -35,7 +36,7 @@ export class ReviewsService {
 
     // Validate rating is between 1 and 5
     if (rating < 1 || rating > 5 || !Number.isInteger(rating)) {
-      throw new Error('Rating must be an integer between 1 and 5');
+      throw new BadRequestError('Rating must be an integer between 1 and 5');
     }
 
     // Check if product exists and is active
@@ -44,11 +45,11 @@ export class ReviewsService {
     });
 
     if (!product) {
-      throw new Error('Product not found');
+      throw new NotFoundError('Product not found');
     }
 
     if (!product.isActive) {
-      throw new Error('Product is not available');
+      throw new BadRequestError('Product is not available');
     }
 
     // Check if user already reviewed this product
@@ -62,7 +63,7 @@ export class ReviewsService {
     });
 
     if (existingReview) {
-      throw new Error('You have already reviewed this product');
+      throw new ConflictError('You have already reviewed this product');
     }
 
     // Check if user has purchased this product (verified review)

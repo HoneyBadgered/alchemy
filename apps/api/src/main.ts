@@ -36,10 +36,14 @@ import { subscriptionRoutes } from './routes/subscription.routes';
 import { notificationPreferencesRoutes } from './routes/notification-preferences.routes';
 import { achievementsRoutes } from './routes/achievements.routes';
 import { purchaseHistoryRoutes } from './routes/purchase-history.routes';
+import { errorHandlerPlugin } from './plugins/error-handler';
 
 const fastify = Fastify({
   logger: config.isDevelopment,
 });
+
+// Register error handler plugin first
+fastify.register(errorHandlerPlugin);
 
 // Register CORS support
 fastify.register(cors, {
