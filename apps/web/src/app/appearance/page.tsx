@@ -134,19 +134,3 @@ export default function AppearancePage() {
     </div>
   );
 }
-              </div>
-              <div className="text-4xl mt-4 mb-2">
-                {tableSkins.find((s) => s.id === selectedTableSkin)?.emoji}
-              </div>
-              <div className="text-sm">
-                Table: {tableSkins.find((s) => s.id === selectedTableSkin)?.name}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <BottomNavigation />
-    </div>
-  );
-}

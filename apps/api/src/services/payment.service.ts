@@ -196,6 +196,7 @@ export class PaymentService {
     } catch (error: any) {
       console.error('Failed to retrieve payment intent from Stripe:', error);
       throw new PaymentError(`Unable to retrieve payment status: ${error.message}`);
+    }
 
     // Update order status if payment status changed (graceful error handling)
     if (paymentIntent.status !== order.stripePaymentStatus) {
@@ -244,19 +245,6 @@ export class PaymentService {
 
     // Get latest status from Stripe
     let paymentIntent: Stripe.PaymentIntent;
-    try {
-      paymentIntent = await stripe.paymentIntents.retrieve(order.stripePaymentId);
-    } catch (error: any) {
-      console.error('Failed to retrieve payment intent from Stripe:', error);
-      // Return last known status instead of failing completely
-      return {
-        status: order.stripePaymentStatus || 'unknown',
-        orderId: order.id,
-        orderStatus: order.status,
-        paymentIntentId: order.stripePaymentId,
-        error: 'Unable to retrieve latest payment status from Stripe',
-      };
-    }
     try {
       paymentIntent = await stripe.paymentIntents.retrieve(order.stripePaymentId);
     } catch (error: any) {

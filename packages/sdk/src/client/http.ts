@@ -31,7 +31,7 @@ export class HttpClient {
     options?: {
       body?: unknown;
       headers?: Record<string, string>;
-      params?: Record<string, string>;
+      params?: Record<string, string | boolean | number | undefined>;
     }
   ): Promise<T> {
     const url = new URL(path, this.baseURL);
@@ -39,7 +39,9 @@ export class HttpClient {
     // Add query params
     if (options?.params) {
       Object.entries(options.params).forEach(([key, value]) => {
-        url.searchParams.append(key, value);
+        if (value !== undefined) {
+          url.searchParams.append(key, String(value));
+        }
       });
     }
 
@@ -86,8 +88,8 @@ export class HttpClient {
     return response.json() as Promise<T>;
   }
 
-  async get<T>(path: string, params?: Record<string, string>): Promise<T> {
-    return this.request<T>('GET', path, { params });
+  async get<T>(path: string, options?: { params?: Record<string, string | boolean | number | undefined> }): Promise<T> {
+    return this.request<T>('GET', path, options);
   }
 
   async post<T>(path: string, body?: unknown): Promise<T> {
