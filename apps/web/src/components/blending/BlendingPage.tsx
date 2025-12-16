@@ -152,26 +152,45 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
   }, []);
 
   const handleRandomizeBlend = useCallback(() => {
+    // Cryptographically secure random number generator
+    const getRandomInt = (max: number): number => {
+      const randomBuffer = new Uint32Array(1);
+      crypto.getRandomValues(randomBuffer);
+      return randomBuffer[0] % max;
+    };
+
+    const getRandomFloat = (): number => {
+      const randomBuffer = new Uint32Array(1);
+      crypto.getRandomValues(randomBuffer);
+      return randomBuffer[0] / (0xFFFFFFFF + 1);
+    };
+
     // Select random base
-    const randomBase = bases[Math.floor(Math.random() * bases.length)];
+    const randomBase = bases[getRandomInt(bases.length)];
     
     // Combine all add-ins
     const allAddIns = [...addIns.addIns, ...addIns.botanicals, ...addIns.premium];
     
     // Select 2-5 random add-ins
-    const numAddIns = Math.floor(Math.random() * 4) + 2; // 2-5 add-ins
-    const shuffled = [...allAddIns].sort(() => Math.random() - 0.5);
+    const numAddIns = getRandomInt(4) + 2; // 2-5 add-ins
+    
+    // Fisher-Yates shuffle for proper randomization
+    const shuffled = [...allAddIns];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = getRandomInt(i + 1);
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
     const selectedAddIns = shuffled.slice(0, numAddIns);
     
     // Create add-ins with random quantities
     const randomAddIns = selectedAddIns.map(ingredient => ({
       ingredientId: ingredient.id,
-      quantity: Math.round((Math.random() * 0.75 + 0.25) * 4) / 4, // 0.25 to 1.0 in 0.25 increments
+      quantity: Math.round((getRandomFloat() * 0.75 + 0.25) * 4) / 4, // 0.25 to 1.0 in 0.25 increments
     }));
     
     // Random size
     const sizes: BlendSize[] = [1, 2, 4];
-    const randomSize = sizes[Math.floor(Math.random() * sizes.length)];
+    const randomSize = sizes[getRandomInt(sizes.length)];
     
     setBlendState({
       baseTeaId: randomBase.id,

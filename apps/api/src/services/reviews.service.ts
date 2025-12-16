@@ -6,6 +6,14 @@
 import { prisma } from '../utils/prisma';
 import type { Prisma } from '@prisma/client';
 import { NotFoundError, ConflictError, BadRequestError, ForbiddenError } from '../utils/errors';
+import sanitizeHtml from 'sanitize-html';
+
+// Sanitization config for review content
+const sanitizeConfig = {
+  allowedTags: [], // No HTML tags allowed, plain text only
+  allowedAttributes: {},
+  disallowedTagsMode: 'discard' as const,
+};
 
 export interface CreateReviewInput {
   userId: string;
@@ -38,6 +46,10 @@ export class ReviewsService {
     if (rating < 1 || rating > 5 || !Number.isInteger(rating)) {
       throw new BadRequestError('Rating must be an integer between 1 and 5');
     }
+
+    // Sanitize user input to prevent XSS attacks
+    const sanitizedTitle = title ? sanitizeHtml(title, sanitizeConfig).trim() : undefined;
+    const sanitizedContent = content ? sanitizeHtml(content, sanitizeConfig).trim() : undefined;
 
     // Check if product exists and is active
     const product = await prisma.product.findUnique({
@@ -85,8 +97,8 @@ export class ReviewsService {
         userId,
         productId,
         rating,
-        title: title || null,
-        content: content || null,
+        title: sanitizedTitle || null,
+        content: sanitizedContent || null,
         isVerified: !!hasPurchased,
       },
       include: {
@@ -219,12 +231,20 @@ export class ReviewsService {
       }
     }
 
+    // Sanitize user input to prevent XSS attacks
+    const sanitizedTitle = input.title !== undefined 
+      ? sanitizeHtml(input.title, sanitizeConfig).trim() 
+      : undefined;
+    const sanitizedContent = input.content !== undefined 
+      ? sanitizeHtml(input.content, sanitizeConfig).trim() 
+      : undefined;
+
     const updatedReview = await prisma.review.update({
       where: { id: reviewId },
       data: {
         rating: input.rating,
-        title: input.title !== undefined ? input.title : undefined,
-        content: input.content !== undefined ? input.content : undefined,
+        title: sanitizedTitle !== undefined ? sanitizedTitle : undefined,
+        content: sanitizedContent !== undefined ? sanitizedContent : undefined,
       },
       include: {
         user: {

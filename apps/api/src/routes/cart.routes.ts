@@ -98,9 +98,16 @@ export async function cartRoutes(fastify: FastifyInstance) {
    * Add item to cart
    * POST /cart/items
    * Optional authentication (supports both authenticated users and guests)
+   * Rate limit: 30 items per minute to prevent abuse
    */
   fastify.post('/cart/items', {
     preHandler: optionalAuthMiddleware,
+    config: {
+      rateLimit: {
+        max: 30,
+        timeWindow: '1 minute',
+      },
+    },
   }, async (request, reply) => {
     try {
       const auth = validateAuthOrSession(request, reply);
@@ -124,9 +131,16 @@ export async function cartRoutes(fastify: FastifyInstance) {
    * Update cart item quantity
    * PATCH /cart/items
    * Optional authentication (supports both authenticated users and guests)
+   * Rate limit: 30 updates per minute to prevent abuse
    */
   fastify.patch('/cart/items', {
     preHandler: optionalAuthMiddleware,
+    config: {
+      rateLimit: {
+        max: 30,
+        timeWindow: '1 minute',
+      },
+    },
   }, async (request, reply) => {
     try {
       const auth = validateAuthOrSession(request, reply);
