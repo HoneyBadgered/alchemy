@@ -134,6 +134,7 @@ export class AdminProductService {
   async createProduct(data: CreateProductInput) {
     const product = await prisma.products.create({
       data: {
+        id: crypto.randomUUID(),
         name: data.name,
         description: data.description,
         price: data.price,
@@ -143,6 +144,7 @@ export class AdminProductService {
         tags: data.tags || [],
         stock: data.stock ?? 0,
         isActive: data.isActive ?? true,
+        updatedAt: new Date(),
       },
     });
 

@@ -52,10 +52,12 @@ export class AdminSettingsService {
   }) {
     const setting = await prisma.site_settings.create({
       data: {
+        id: crypto.randomUUID(),
         key: data.key,
         value: data.value,
         description: data.description,
         category: data.category ?? 'general',
+        updatedAt: new Date(),
       },
     });
 
@@ -96,12 +98,14 @@ export class AdminSettingsService {
   }) {
     const method = await prisma.shipping_methods.create({
       data: {
+        id: crypto.randomUUID(),
         name: data.name,
         description: data.description,
         price: data.price,
         estimatedDays: data.estimatedDays,
         isActive: data.isActive ?? true,
         sortOrder: data.sortOrder ?? 0,
+        updatedAt: new Date(),
       },
     });
 
@@ -164,10 +168,12 @@ export class AdminSettingsService {
   }) {
     const taxRate = await prisma.tax_rates.create({
       data: {
+        id: crypto.randomUUID(),
         name: data.name,
         region: data.region,
         rate: data.rate,
         isActive: data.isActive ?? true,
+        updatedAt: new Date(),
       },
     });
 
@@ -233,6 +239,7 @@ export class AdminSettingsService {
   }) {
     const discountCode = await prisma.discount_codes.create({
       data: {
+        id: crypto.randomUUID(),
         code: data.code,
         description: data.description,
         discountType: data.discountType,
@@ -242,6 +249,7 @@ export class AdminSettingsService {
         validFrom: data.validFrom,
         validUntil: data.validUntil,
         isActive: data.isActive ?? true,
+        updatedAt: new Date(),
       },
     });
 
@@ -308,11 +316,13 @@ export class AdminSettingsService {
   }) {
     const template = await prisma.email_templates.create({
       data: {
+        id: crypto.randomUUID(),
         name: data.name,
         subject: data.subject,
         bodyHtml: data.bodyHtml,
         bodyText: data.bodyText,
         isActive: data.isActive ?? true,
+        updatedAt: new Date(),
       },
     });
 
