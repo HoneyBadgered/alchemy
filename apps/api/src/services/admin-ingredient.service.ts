@@ -13,6 +13,7 @@ import {
   DEFAULT_BASE_AMOUNT,
   DEFAULT_INCREMENT_AMOUNT,
 } from '@alchemy/core';
+import crypto from 'crypto';
 
 // Constants for gram conversion
 const GRAMS_PER_OUNCE = 28.3495;
@@ -294,6 +295,7 @@ export class AdminIngredientService {
 
     const ingredient = await prisma.ingredients.create({
       data: {
+        id: crypto.randomUUID(),
         name: data.name,
         role,
         category: data.category,
@@ -328,9 +330,10 @@ export class AdminIngredientService {
         isBase,
         baseAmount: data.baseAmount,
         incrementAmount: data.incrementAmount,
+        updatedAt: new Date(),
       },
       include: {
-        supplier: true,
+        suppliers: true,
       },
     });
 

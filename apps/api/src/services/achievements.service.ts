@@ -276,9 +276,11 @@ export class AchievementsService {
         } else {
           await tx.reward_points.create({
             data: {
+              id: crypto.randomUUID(),
               userId,
               balance: achievement.pointsReward,
               lifetimeEarned: achievement.pointsReward,
+              updatedAt: new Date(),
             },
           });
         }
@@ -286,6 +288,7 @@ export class AchievementsService {
         // Record in history
         await tx.reward_history.create({
           data: {
+            id: crypto.randomUUID(),
             userId,
             type: 'earned',
             points: achievement.pointsReward,

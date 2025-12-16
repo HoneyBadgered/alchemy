@@ -4,6 +4,7 @@
  */
 
 import { prisma } from '../utils/prisma';
+import crypto from 'crypto';
 
 export interface CreateAddressInput {
   label?: string;
@@ -88,9 +89,11 @@ export class AddressService {
 
     const address = await prisma.addresses.create({
       data: {
+        id: crypto.randomUUID(),
         userId,
         ...input,
         isDefault,
+        updatedAt: new Date(),
       },
     });
 

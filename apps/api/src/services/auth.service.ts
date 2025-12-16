@@ -7,6 +7,7 @@ import { hashPassword, verifyPassword } from '../utils/password';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
 import { generateSecureToken, hashToken } from '../utils/token';
 import { EmailService } from './email.service';
+import crypto from 'crypto';
 
 export interface RegisterInput {
   email: string;
@@ -83,33 +84,43 @@ export class AuthService {
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     // Create user with initial player state and profile
+    const userId = crypto.randomUUID();
     const user = await prisma.users.create({
       data: {
+        id: userId,
         email: normalizedEmail,
         password: hashedPassword,
         username: input.username,
         emailVerificationToken: hashedVerificationToken,
         emailVerificationExpires: verificationExpires,
-        profile: {
-          create: {},
-        },
-        playerState: {
+        updatedAt: new Date(),
+        user_profiles: {
           create: {
+            id: crypto.randomUUID(),
+            updatedAt: new Date(),
+          },
+        },
+        player_states: {
+          create: {
+            id: crypto.randomUUID(),
             level: 1,
             xp: 0,
             totalXp: 0,
+            updatedAt: new Date(),
           },
         },
-        cosmetics: {
+        player_cosmetics: {
           create: {
+            id: crypto.randomUUID(),
             unlockedThemes: [],
             unlockedSkins: [],
+            updatedAt: new Date(),
           },
         },
       },
       include: {
-        playerState: true,
-        profile: true,
+        player_states: true,
+        user_profiles: true,
       },
     });
 
@@ -222,7 +233,7 @@ export class AuthService {
         role: true,
         emailVerified: true,
         createdAt: true,
-        profile: {
+        user_profiles: {
           select: {
             firstName: true,
             lastName: true,
@@ -398,7 +409,7 @@ export class AuthService {
         },
       },
       include: {
-        user: {
+        users: {
           select: {
             id: true,
             email: true,
@@ -415,7 +426,7 @@ export class AuthService {
       throw new Error('Invalid or expired refresh token');
     }
 
-    return storedToken.user;
+    return storedToken.users;
   }
 
   private async storeRefreshToken(userId: string, refreshToken: string) {
@@ -424,6 +435,7 @@ export class AuthService {
 
     await prisma.refresh_tokens.create({
       data: {
+        id: crypto.randomUUID(),
         token: hashedToken,
         userId,
         expiresAt,
