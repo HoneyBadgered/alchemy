@@ -13,15 +13,18 @@ if (existsSync(envPath)) {
   dotenv.config();
 } else {
   // Only warn if .env file is missing - environment variables may be provided by Docker/system
-  console.log('ℹ️  No .env file found, using environment variables from system/Docker');
+  console.log('ℹ️  No .env file found. Using defaults for unset environment variables.');
+  console.log('   For custom configuration, create an .env file: cp .env.example .env');
 }
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('3000'),
-  DATABASE_URL: z.string(),
-  JWT_SECRET: z.string(),
-  JWT_REFRESH_SECRET: z.string(),
+  DATABASE_URL: z.string().default('postgresql://alchemy:alchemy_password@localhost:5432/alchemy?schema=public'),
+  // WARNING: These JWT secrets are insecure development defaults only!
+  // Always set JWT_SECRET and JWT_REFRESH_SECRET in production environments
+  JWT_SECRET: z.string().default('dev-secret-key-change-in-production'),
+  JWT_REFRESH_SECRET: z.string().default('dev-refresh-secret-key-change-in-production'),
   APP_URL: z.string().default('http://localhost:3001'),
   EMAIL_HOST: z.string().optional(),
   EMAIL_PORT: z.string().optional(),
@@ -58,6 +61,14 @@ try {
     process.exit(1);
   }
   throw error;
+}
+
+// Warn if using default JWT secrets in production
+if (env.NODE_ENV === 'production' && 
+    (env.JWT_SECRET === 'dev-secret-key-change-in-production' || 
+     env.JWT_REFRESH_SECRET === 'dev-refresh-secret-key-change-in-production')) {
+  console.error('\n⚠️  WARNING: Using insecure default JWT secrets in production!');
+  console.error('   Set JWT_SECRET and JWT_REFRESH_SECRET environment variables immediately.\n');
 }
 
 export const config = {
