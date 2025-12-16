@@ -5,6 +5,12 @@
 
 import { prisma } from '../utils/prisma';
 import type { Prisma } from '@prisma/client';
+import { 
+  BadRequestError, 
+  NotFoundError, 
+  InsufficientStockError, 
+  OrderValidationError 
+} from '../utils/errors';
 
 export interface PlaceOrderInput {
   userId?: string;
@@ -55,99 +61,134 @@ export class OrderService {
   async placeOrder(input: PlaceOrderInput) {
     const { userId, sessionId, guestEmail, shippingAddress, shippingMethod, customerNotes, discountCode } = input;
 
-    // Get user's cart
-    const cart = await prisma.cart.findFirst({
-      where: userId ? { userId } : { sessionId },
-      include: {
-        items: {
-          include: {
-            product: true,
+    try {
+      // Get user's cart
+      const cart = await prisma.cart.findFirst({
+        where: userId ? { userId } : { sessionId },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
           },
         },
-      },
-    });
-
-    if (!cart || cart.items.length === 0) {
-      throw new Error('Cart is empty');
-    }
-
-    // Validate all products are available and have sufficient stock
-    for (const item of cart.items) {
-      if (!item.product.isActive) {
-        throw new Error(`Product ${item.product.name} is no longer available`);
-      }
-      if (item.product.stock < item.quantity) {
-        throw new Error(`Insufficient stock for ${item.product.name}`);
-      }
-    }
-
-    // Calculate order totals
-    const subtotal = cart.items.reduce((sum: number, item: CartItemWithProduct) => {
-      return sum + Number(item.product.price) * item.quantity;
-    }, 0);
-
-    let shippingCost = 0;
-    if (shippingMethod) {
-      const shippingMethodData = await prisma.shippingMethod.findUnique({
-        where: { name: shippingMethod },
-      });
-      if (shippingMethodData && shippingMethodData.isActive) {
-        shippingCost = Number(shippingMethodData.price);
-      }
-    }
-
-    // Calculate tax (simplified - could be enhanced with region-based tax)
-    let taxAmount = 0;
-    const taxRate = await prisma.taxRate.findFirst({
-      where: { 
-        region: shippingAddress?.state || 'Global',
-        isActive: true,
-      },
-    });
-    if (taxRate) {
-      taxAmount = subtotal * Number(taxRate.rate);
-    }
-
-    // Apply discount if provided
-    let discountAmount = 0;
-    let validDiscountCode = null;
-    if (discountCode) {
-      const discount = await prisma.discountCode.findUnique({
-        where: { code: discountCode },
       });
 
-      if (discount && discount.isActive) {
-        const now = new Date();
-        const isValid = 
-          now >= discount.validFrom && 
-          (!discount.validUntil || now <= discount.validUntil) &&
-          (!discount.maxUses || discount.usedCount < discount.maxUses) &&
-          (!discount.minOrderAmount || subtotal >= Number(discount.minOrderAmount));
+      if (!cart || cart.items.length === 0) {
+        throw new BadRequestError('Cart is empty');
+      }
 
-        if (isValid) {
-          validDiscountCode = discount;
-          if (discount.discountType === 'percentage') {
-            discountAmount = subtotal * (Number(discount.discountValue) / 100);
-          } else {
-            discountAmount = Number(discount.discountValue);
+      // Validate all products are available and have sufficient stock BEFORE transaction
+      const stockValidation: Array<{ productName: string; issue: string }> = [];
+      for (const item of cart.items) {
+        if (!item.product.isActive) {
+          stockValidation.push({
+            productName: item.product.name,
+            issue: 'no longer available',
+          });
+        }
+        if (item.product.stock < item.quantity) {
+          stockValidation.push({
+            productName: item.product.name,
+            issue: `insufficient stock (requested: ${item.quantity}, available: ${item.product.stock})`,
+          });
+        }
+      }
+
+      if (stockValidation.length > 0) {
+        throw new InsufficientStockError('Stock validation failed', { issues: stockValidation });
+      }
+
+      // Calculate order totals
+      const subtotal = cart.items.reduce((sum: number, item: CartItemWithProduct) => {
+        return sum + Number(item.product.price) * item.quantity;
+      }, 0);
+
+      let shippingCost = 0;
+      if (shippingMethod) {
+        const shippingMethodData = await prisma.shippingMethod.findUnique({
+          where: { name: shippingMethod },
+        });
+        if (shippingMethodData && shippingMethodData.isActive) {
+          shippingCost = Number(shippingMethodData.price);
+        }
+      }
+
+      // Calculate tax (simplified - could be enhanced with region-based tax)
+      let taxAmount = 0;
+      const taxRate = await prisma.taxRate.findFirst({
+        where: { 
+          region: shippingAddress?.state || 'Global',
+          isActive: true,
+        },
+      });
+      if (taxRate) {
+        taxAmount = subtotal * Number(taxRate.rate);
+      }
+
+      // Apply discount if provided
+      let discountAmount = 0;
+      let validDiscountCode = null;
+      if (discountCode) {
+        const discount = await prisma.discountCode.findUnique({
+          where: { code: discountCode },
+        });
+
+        if (discount && discount.isActive) {
+          const now = new Date();
+          const isValid = 
+            now >= discount.validFrom && 
+            (!discount.validUntil || now <= discount.validUntil) &&
+            (!discount.maxUses || discount.usedCount < discount.maxUses) &&
+            (!discount.minOrderAmount || subtotal >= Number(discount.minOrderAmount));
+
+          if (isValid) {
+            validDiscountCode = discount;
+            if (discount.discountType === 'percentage') {
+              discountAmount = subtotal * (Number(discount.discountValue) / 100);
+            } else {
+              discountAmount = Number(discount.discountValue);
+            }
           }
         }
       }
-    }
 
-    const totalAmount = subtotal + shippingCost + taxAmount - discountAmount;
+      const totalAmount = subtotal + shippingCost + taxAmount - discountAmount;
 
-    // Create order and update inventory in a transaction
-    const order = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      // Create order
-      const newOrder = await tx.order.create({
-        data: {
-          userId: userId || null,
-          guestEmail: guestEmail || null,
-          sessionId: sessionId || null,
-          status: 'pending',
-          totalAmount,
-          shippingMethod,
+      // Create order and update inventory in a transaction with proper error handling
+      const order = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+        // Double-check stock levels inside transaction to prevent race conditions
+        for (const item of cart.items) {
+          const currentProduct = await tx.product.findUnique({
+            where: { id: item.productId },
+            select: { stock: true, isActive: true },
+          });
+
+          if (!currentProduct || !currentProduct.isActive) {
+            throw new OrderValidationError(`Product ${item.product.name} is no longer available`);
+          }
+
+          if (currentProduct.stock < item.quantity) {
+            throw new InsufficientStockError(
+              `Insufficient stock for ${item.product.name}`,
+              { 
+                productId: item.productId,
+                requested: item.quantity,
+                available: currentProduct.stock,
+              }
+            );
+          }
+        }
+
+        // Create order
+        const newOrder = await tx.order.create({
+          data: {
+            userId: userId || null,
+            guestEmail: guestEmail || null,
+            sessionId: sessionId || null,
+            status: 'pending',
+            totalAmount,
+            shippingMethod,
           shippingCost,
           taxAmount,
           discountCode: validDiscountCode?.code,
@@ -211,9 +252,46 @@ export class OrderService {
       });
 
       return newOrder;
+    }, {
+      maxWait: 5000, // Max 5 seconds to acquire a connection
+      timeout: 15000, // Max 15 seconds for transaction
+      isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
     });
 
-    return order;
+      return order;
+
+    } catch (error) {
+      // Log the error for monitoring
+      console.error('Order placement failed:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        userId,
+        sessionId,
+        cartId: cart?.id,
+      });
+
+      // Re-throw known ApiErrors
+      if (error instanceof BadRequestError || 
+          error instanceof InsufficientStockError || 
+          error instanceof OrderValidationError) {
+        throw error;
+      }
+
+      // Handle Prisma-specific errors
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2034') {
+          throw new OrderValidationError('Transaction conflict - please try again');
+        }
+        if (error.code === 'P2025') {
+          throw new NotFoundError('One or more items no longer exist');
+        }
+      }
+
+      // Wrap unknown errors
+      throw new BadRequestError(
+        'Failed to place order. Please try again.',
+        { originalError: error instanceof Error ? error.message : 'Unknown error' }
+      );
+    }
   }
 
   /**
@@ -278,7 +356,7 @@ export class OrderService {
     });
 
     if (!order) {
-      throw new Error('Order not found');
+      throw new NotFoundError('Order not found');
     }
 
     return order;

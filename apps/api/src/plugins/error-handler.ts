@@ -7,7 +7,7 @@ import { FastifyPluginCallback, FastifyError } from 'fastify';
 import { ZodError } from 'zod';
 import { ApiError, handleZodError, toApiError } from '../utils/errors';
 
-export const errorHandlerPlugin: FastifyPluginCallback = (fastify, opts, done) => {
+export const errorHandlerPlugin: FastifyPluginCallback = (fastify, _opts, done) => {
   // Set custom error handler
   fastify.setErrorHandler((error: FastifyError | Error, request, reply) => {
     // Log error for debugging

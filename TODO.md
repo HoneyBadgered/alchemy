@@ -2,6 +2,40 @@
 
 This document summarizes the features implemented and any additional work needed.
 
+## Recent Security & Infrastructure Improvements ✅
+
+### Transaction Safety & Error Handling (COMPLETED)
+- ✅ Standardized API error handling system
+  - Created `ApiError` class hierarchy with HTTP and domain-specific errors
+  - Centralized error handler plugin for consistent responses
+  - Automatic Zod validation error handling
+- ✅ Order service transaction safety
+  - Inventory validation before transactions
+  - Transaction timeouts and isolation levels
+  - Comprehensive error categorization
+  - Cart preservation on failure
+- ✅ Payment service error handling
+  - Stripe API error handling for all error types
+  - Graceful degradation for API failures
+  - Webhook idempotency and retry handling
+  - Transaction safety for payment status updates
+- ✅ Cart service improvements
+  - Stock validation with detailed errors
+  - Atomic cart merge transactions
+  - Product availability checks
+- ✅ Rate limiting on review endpoints
+  - 5 reviews per hour (create)
+  - 10 updates per hour
+  - 10 deletes per hour
+- ✅ Health check endpoints
+  - `/health` - Comprehensive check (DB, Stripe, uptime)
+  - `/ready` - Kubernetes readiness probe
+  - `/live` - Kubernetes liveness probe
+- ✅ Fixed weak session generation in mobile app
+  - Replaced Math.random() with proper UUID v4 generation
+
+**Documentation:** See `TRANSACTION_SAFETY.md` for complete details
+
 ## Implemented Features
 
 ### 1. Product Reviews & Ratings ✅

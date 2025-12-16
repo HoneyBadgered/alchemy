@@ -20,12 +20,15 @@ export class ApiError extends Error {
   }
 
   toJSON() {
-    return {
+    const response: { error: string; message: string; statusCode: number; details?: unknown } = {
       error: this.code || 'API_ERROR',
       message: this.message,
       statusCode: this.statusCode,
-      ...(this.details && { details: this.details }),
     };
+    if (this.details) {
+      response.details = this.details;
+    }
+    return response;
   }
 }
 

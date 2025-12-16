@@ -7,7 +7,7 @@
 
 import { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
-import { BlendingIngredientsService } from '../services/blending-ingredients.service';
+import { BlendingIngredientsService } from '../services/blending-ingredients.service.js';
 
 // Validation schemas
 const getIngredientsQuerySchema = z.object({
@@ -41,7 +41,7 @@ export async function ingredientsRoutes(fastify: FastifyInstance) {
   });
 
   // GET /ingredients/bases - Get all base teas
-  fastify.get('/ingredients/bases', async (request: FastifyRequest, reply) => {
+  fastify.get('/ingredients/bases', async (_request: FastifyRequest, reply) => {
     try {
       const bases = await service.getBaseTeas();
       
@@ -55,7 +55,7 @@ export async function ingredientsRoutes(fastify: FastifyInstance) {
   });
 
   // GET /ingredients/add-ins - Get all add-ins grouped by category
-  fastify.get('/ingredients/add-ins', async (request: FastifyRequest, reply) => {
+  fastify.get('/ingredients/add-ins', async (_request: FastifyRequest, reply) => {
     try {
       const addIns = await service.getAddIns();
       

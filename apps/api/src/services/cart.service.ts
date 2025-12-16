@@ -9,6 +9,12 @@ import {
   getIngredientBaseAmount,
   getIngredientIncrementAmount,
 } from '@alchemy/core';
+import {
+  BadRequestError,
+  NotFoundError,
+  InsufficientStockError,
+  CartError,
+} from '../utils/errors.js';
 
 const prisma = new PrismaClient();
 
@@ -49,7 +55,7 @@ export class CartService {
    */
   private async getOrCreateCart(userId?: string, sessionId?: string) {
     if (!userId && !sessionId) {
-      throw new Error('Either userId or sessionId must be provided');
+      throw new BadRequestError('Either userId or sessionId must be provided');
     }
 
     // Try to find existing cart
@@ -108,21 +114,29 @@ export class CartService {
    * Add item to cart
    */
   async addToCart({ productId, quantity, userId, sessionId }: AddToCartParams) {
+    // Validate quantity
+    if (quantity < 1) {
+      throw new BadRequestError('Quantity must be at least 1');
+    }
+
     // Validate product exists and is active
     const product = await prisma.product.findUnique({
       where: { id: productId },
     });
 
     if (!product) {
-      throw new Error('Product not found');
+      throw new NotFoundError('Product not found');
     }
 
     if (!product.isActive) {
-      throw new Error('Product is not available');
+      throw new CartError('Product is not available for purchase');
     }
 
     if (product.stock < quantity) {
-      throw new Error('Insufficient stock');
+      throw new InsufficientStockError(
+        `Insufficient stock for ${product.name}`,
+        { available: product.stock, requested: quantity }
+      );
     }
 
     const cart = await this.getOrCreateCart(userId, sessionId);
@@ -137,27 +151,42 @@ export class CartService {
       },
     });
 
-    if (existingItem) {
-      // Update quantity
-      const newQuantity = existingItem.quantity + quantity;
-      
-      if (product.stock < newQuantity) {
-        throw new Error('Insufficient stock');
-      }
+    try {
+      if (existingItem) {
+        // Update quantity
+        const newQuantity = existingItem.quantity + quantity;
+        
+        if (product.stock < newQuantity) {
+          throw new InsufficientStockError(
+            `Insufficient stock for ${product.name}`,
+            { available: product.stock, requested: newQuantity }
+          );
+        }
 
-      await prisma.cartItem.update({
-        where: { id: existingItem.id },
-        data: { quantity: newQuantity },
-      });
-    } else {
-      // Create new cart item
-      await prisma.cartItem.create({
-        data: {
-          cartId: cart.id,
-          productId,
-          quantity,
-        },
-      });
+        await prisma.cartItem.update({
+          where: { id: existingItem.id },
+          data: { quantity: newQuantity },
+        });
+      } else {
+        // Create new cart item
+        await prisma.cartItem.create({
+          data: {
+            cartId: cart.id,
+            productId,
+            quantity,
+          },
+        });
+      }
+    } catch (error) {
+      // Re-throw known errors
+      if (error instanceof InsufficientStockError || 
+          error instanceof CartError ||
+          error instanceof BadRequestError) {
+        throw error;
+      }
+      
+      console.error('Failed to add item to cart:', error);
+      throw new CartError('Failed to add item to cart');
     }
 
     return this.getCart({ userId, sessionId });
@@ -168,7 +197,7 @@ export class CartService {
    */
   async updateCartItem({ productId, quantity, userId, sessionId }: UpdateCartItemParams) {
     if (quantity < 1) {
-      throw new Error('Quantity must be at least 1');
+      throw new BadRequestError('Quantity must be at least 1');
     }
 
     const cart = await this.getOrCreateCart(userId, sessionId);
@@ -186,17 +215,29 @@ export class CartService {
     });
 
     if (!cartItem) {
-      throw new Error('Item not found in cart');
+      throw new NotFoundError('Item not found in cart');
+    }
+
+    if (!cartItem.product.isActive) {
+      throw new CartError('Product is no longer available');
     }
 
     if (cartItem.product.stock < quantity) {
-      throw new Error('Insufficient stock');
+      throw new InsufficientStockError(
+        `Insufficient stock for ${cartItem.product.name}`,
+        { available: cartItem.product.stock, requested: quantity }
+      );
     }
 
-    await prisma.cartItem.update({
-      where: { id: cartItem.id },
-      data: { quantity },
-    });
+    try {
+      await prisma.cartItem.update({
+        where: { id: cartItem.id },
+        data: { quantity },
+      });
+    } catch (error) {
+      console.error('Failed to update cart item:', error);
+      throw new CartError('Failed to update cart item');
+    }
 
     return this.getCart({ userId, sessionId });
   }
@@ -247,39 +288,47 @@ export class CartService {
       return this.getCart({ userId });
     }
 
-    // Get or create user cart
-    const userCart = await this.getOrCreateCart(userId);
+    try {
+      // Get or create user cart
+      const userCart = await this.getOrCreateCart(userId);
 
-    // Merge items
-    for (const guestItem of guestCart.items) {
-      const existingItem = await prisma.cartItem.findUnique({
-        where: {
-          cartId_productId: {
-            cartId: userCart.id,
-            productId: guestItem.productId,
-          },
-        },
+      // Merge items and delete guest cart in a transaction
+      await prisma.$transaction(async (tx) => {
+        // Merge items
+        for (const guestItem of guestCart.items) {
+          const existingItem = await tx.cartItem.findUnique({
+            where: {
+              cartId_productId: {
+                cartId: userCart.id,
+                productId: guestItem.productId,
+              },
+            },
+          });
+
+          if (existingItem) {
+            // Update quantity
+            await tx.cartItem.update({
+              where: { id: existingItem.id },
+              data: { quantity: existingItem.quantity + guestItem.quantity },
+            });
+          } else {
+            // Move item to user cart
+            await tx.cartItem.update({
+              where: { id: guestItem.id },
+              data: { cartId: userCart.id },
+            });
+          }
+        }
+
+        // Delete guest cart
+        await tx.cart.delete({
+          where: { id: guestCart.id },
+        });
       });
-
-      if (existingItem) {
-        // Update quantity
-        await prisma.cartItem.update({
-          where: { id: existingItem.id },
-          data: { quantity: existingItem.quantity + guestItem.quantity },
-        });
-      } else {
-        // Move item to user cart
-        await prisma.cartItem.update({
-          where: { id: guestItem.id },
-          data: { cartId: userCart.id },
-        });
-      }
+    } catch (error) {
+      console.error('Failed to merge guest cart:', error);
+      throw new CartError('Failed to merge shopping carts');
     }
-
-    // Delete guest cart
-    await prisma.cart.delete({
-      where: { id: guestCart.id },
-    });
 
     return this.getCart({ userId });
   }
