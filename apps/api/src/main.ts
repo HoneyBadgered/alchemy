@@ -104,7 +104,7 @@ fastify.register(achievementsRoutes);
 fastify.register(purchaseHistoryRoutes);
 
 // Health check endpoint
-fastify.get('/health', async (request, reply) => {
+fastify.get('/health', async (_request, reply) => {
   const health: any = {
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -127,7 +127,7 @@ fastify.get('/health', async (request, reply) => {
 
   // Check Stripe configuration
   health.stripe = {
-    configured: !!(config.stripe.secretKey && config.stripe.webhookSecret)
+    configured: !!(config.stripeSecretKey && config.stripeWebhookSecret)
   };
 
   // Return 503 if database is down
@@ -139,7 +139,7 @@ fastify.get('/health', async (request, reply) => {
 });
 
 // Readiness check (for Kubernetes/Docker health checks)
-fastify.get('/ready', async (request, reply) => {
+fastify.get('/ready', async (_request, reply) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     return reply.send({ ready: true });

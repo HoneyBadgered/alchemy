@@ -46,7 +46,7 @@ export class PurchaseHistoryService {
     const skip = (page - 1) * perPage;
 
     // Get all completed orders for the user
-    const orders = await prisma.order.findMany({
+    const orders = await prisma.orders.findMany({
       where: {
         userId,
         status: { in: ['paid', 'processing', 'shipped', 'completed'] },
@@ -72,7 +72,7 @@ export class PurchaseHistoryService {
     });
 
     // Get user reviews
-    const reviews = await prisma.review.findMany({
+    const reviews = await prisma.reviews.findMany({
       where: { userId },
       select: {
         productId: true,
@@ -166,7 +166,7 @@ export class PurchaseHistoryService {
    */
   async getPurchaseFrequencyMetrics(userId: string): Promise<PurchaseFrequencyMetrics[]> {
     // Get all completed orders for the user
-    const orders = await prisma.order.findMany({
+    const orders = await prisma.orders.findMany({
       where: {
         userId,
         status: { in: ['paid', 'processing', 'shipped', 'completed'] },
@@ -250,7 +250,7 @@ export class PurchaseHistoryService {
    */
   async getRecommendations(userId: string, limit: number = 10) {
     // Get user's purchase history
-    const orders = await prisma.order.findMany({
+    const orders = await prisma.orders.findMany({
       where: {
         userId,
         status: { in: ['paid', 'processing', 'shipped', 'completed'] },
@@ -265,7 +265,7 @@ export class PurchaseHistoryService {
     );
 
     // Get categories the user has purchased from
-    const purchasedProducts = await prisma.product.findMany({
+    const purchasedProducts = await prisma.products.findMany({
       where: {
         id: { in: Array.from(purchasedProductIds) },
       },
@@ -277,7 +277,7 @@ export class PurchaseHistoryService {
     )] as string[];
 
     // Get recommendations: products from preferred categories not yet purchased
-    const recommendations = await prisma.product.findMany({
+    const recommendations = await prisma.products.findMany({
       where: {
         isActive: true,
         id: { notIn: Array.from(purchasedProductIds) },
@@ -303,7 +303,7 @@ export class PurchaseHistoryService {
 
     // If not enough from preferred categories, add top-rated products
     if (recommendations.length < limit) {
-      const additional = await prisma.product.findMany({
+      const additional = await prisma.products.findMany({
         where: {
           isActive: true,
           id: { notIn: [...purchasedProductIds, ...recommendations.map((r) => r.id)] },
@@ -339,7 +339,7 @@ export class PurchaseHistoryService {
    * Get purchase statistics for a user
    */
   async getPurchaseStats(userId: string) {
-    const orders = await prisma.order.findMany({
+    const orders = await prisma.orders.findMany({
       where: {
         userId,
         status: { in: ['paid', 'processing', 'shipped', 'completed'] },
@@ -406,7 +406,7 @@ export class PurchaseHistoryService {
    * Get reorder data for an order
    */
   async getReorderData(userId: string, orderId: string) {
-    const order = await prisma.order.findFirst({
+    const order = await prisma.orders.findFirst({
       where: {
         id: orderId,
         userId,

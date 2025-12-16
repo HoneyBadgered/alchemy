@@ -32,7 +32,7 @@ export async function adminMiddleware(
     };
 
     // Get user from database to check role
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: decoded.userId },
       select: {
         id: true,

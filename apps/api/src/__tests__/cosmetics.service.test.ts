@@ -41,12 +41,12 @@ describe('CosmeticsService', () => {
         { id: '2', name: 'Dark', isActive: true, requiredLevel: 5 },
       ];
 
-      prisma.theme.findMany.mockResolvedValue(mockThemes);
+      prisma.themes.findMany.mockResolvedValue(mockThemes);
 
       const result = await cosmeticsService.getThemes();
 
       expect(result).toEqual(mockThemes);
-      expect(prisma.theme.findMany).toHaveBeenCalledWith({
+      expect(prisma.themes.findMany).toHaveBeenCalledWith({
         where: { isActive: true },
         orderBy: { requiredLevel: 'asc' },
       });
@@ -61,13 +61,13 @@ describe('CosmeticsService', () => {
         { id: 's1', name: 'Oak', themeId: '1', isActive: true },
       ];
 
-      prisma.theme.findUnique.mockResolvedValue(mockTheme);
-      prisma.tableSkin.findMany.mockResolvedValue(mockSkins);
+      prisma.themes.findUnique.mockResolvedValue(mockTheme);
+      prisma.table_skins.findMany.mockResolvedValue(mockSkins);
 
       const result = await cosmeticsService.getThemeSkins('1');
 
       expect(result).toEqual(mockSkins);
-      expect(prisma.tableSkin.findMany).toHaveBeenCalledWith({
+      expect(prisma.table_skins.findMany).toHaveBeenCalledWith({
         where: { themeId: '1', isActive: true },
         orderBy: { requiredLevel: 'asc' },
       });
@@ -75,7 +75,7 @@ describe('CosmeticsService', () => {
 
     it('should throw error if theme not found', async () => {
       const { prisma } = require('../utils/prisma');
-      prisma.theme.findUnique.mockResolvedValue(null);
+      prisma.themes.findUnique.mockResolvedValue(null);
 
       await expect(cosmeticsService.getThemeSkins('999')).rejects.toThrow('Theme not found');
     });
@@ -92,7 +92,7 @@ describe('CosmeticsService', () => {
         activeTableSkinId: 's1',
       };
 
-      prisma.playerCosmetics.findUnique.mockResolvedValue(mockCosmetics);
+      prisma.player_cosmetics.findUnique.mockResolvedValue(mockCosmetics);
 
       const result = await cosmeticsService.getMyCosmetics('user1');
 
@@ -106,7 +106,7 @@ describe('CosmeticsService', () => {
 
     it('should throw error if cosmetics not found', async () => {
       const { prisma } = require('../utils/prisma');
-      prisma.playerCosmetics.findUnique.mockResolvedValue(null);
+      prisma.player_cosmetics.findUnique.mockResolvedValue(null);
 
       await expect(cosmeticsService.getMyCosmetics('user1')).rejects.toThrow('Player cosmetics not found');
     });

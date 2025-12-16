@@ -37,7 +37,7 @@ describe('UserProfileService', () => {
     it('should return user profile with profile details', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findUnique.mockResolvedValue({
+      prisma.users.findUnique.mockResolvedValue({
         id: 'user_123',
         email: 'test@example.com',
         username: 'testuser',
@@ -61,14 +61,14 @@ describe('UserProfileService', () => {
 
       expect(result.id).toBe('user_123');
       expect(result.email).toBe('test@example.com');
-      expect(result.profile?.firstName).toBe('John');
-      expect(result.profile?.flavorPreferences).toEqual(['floral', 'fruity']);
+      expect(result.user_profiles?.firstName).toBe('John');
+      expect(result.user_profiles?.flavorPreferences).toEqual(['floral', 'fruity']);
     });
 
     it('should throw error if user not found', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.users.findUnique.mockResolvedValue(null);
 
       await expect(userProfileService.getProfile('invalid_user'))
         .rejects.toThrow('User not found');
@@ -79,8 +79,8 @@ describe('UserProfileService', () => {
     it('should create profile if it does not exist', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.userProfile.findUnique.mockResolvedValue(null);
-      prisma.userProfile.create.mockResolvedValue({
+      prisma.users.profiles.findUnique.mockResolvedValue(null);
+      prisma.users.profiles.create.mockResolvedValue({
         id: 'profile_123',
         userId: 'user_123',
         firstName: 'John',
@@ -92,18 +92,18 @@ describe('UserProfileService', () => {
         lastName: 'Doe',
       });
 
-      expect(prisma.userProfile.create).toHaveBeenCalled();
+      expect(prisma.users.profiles.create).toHaveBeenCalled();
       expect(result.firstName).toBe('John');
     });
 
     it('should update existing profile', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.userProfile.findUnique.mockResolvedValue({
+      prisma.users.profiles.findUnique.mockResolvedValue({
         id: 'profile_123',
         userId: 'user_123',
       });
-      prisma.userProfile.update.mockResolvedValue({
+      prisma.users.profiles.update.mockResolvedValue({
         id: 'profile_123',
         userId: 'user_123',
         firstName: 'Jane',
@@ -115,7 +115,7 @@ describe('UserProfileService', () => {
         lastName: 'Smith',
       });
 
-      expect(prisma.userProfile.update).toHaveBeenCalled();
+      expect(prisma.users.profiles.update).toHaveBeenCalled();
       expect(result.firstName).toBe('Jane');
     });
 
@@ -130,11 +130,11 @@ describe('UserProfileService', () => {
     it('should accept valid flavor preferences', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.userProfile.findUnique.mockResolvedValue({
+      prisma.users.profiles.findUnique.mockResolvedValue({
         id: 'profile_123',
         userId: 'user_123',
       });
-      prisma.userProfile.update.mockResolvedValue({
+      prisma.users.profiles.update.mockResolvedValue({
         id: 'profile_123',
         userId: 'user_123',
         flavorPreferences: ['floral', 'fruity', 'earthy'],
@@ -144,7 +144,7 @@ describe('UserProfileService', () => {
         flavorPreferences: ['Floral', 'FRUITY', 'Earthy'],
       });
 
-      expect(prisma.userProfile.update).toHaveBeenCalledWith(
+      expect(prisma.users.profiles.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             flavorPreferences: ['floral', 'fruity', 'earthy'],
@@ -164,11 +164,11 @@ describe('UserProfileService', () => {
     it('should accept valid caffeine preferences', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.userProfile.findUnique.mockResolvedValue({
+      prisma.users.profiles.findUnique.mockResolvedValue({
         id: 'profile_123',
         userId: 'user_123',
       });
-      prisma.userProfile.update.mockResolvedValue({
+      prisma.users.profiles.update.mockResolvedValue({
         id: 'profile_123',
         userId: 'user_123',
         caffeinePreference: 'medium',
@@ -178,7 +178,7 @@ describe('UserProfileService', () => {
         caffeinePreference: 'MEDIUM',
       });
 
-      expect(prisma.userProfile.update).toHaveBeenCalledWith(
+      expect(prisma.users.profiles.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             caffeinePreference: 'medium',
@@ -192,7 +192,7 @@ describe('UserProfileService', () => {
     it('should update email', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findUnique
+      prisma.users.findUnique
         .mockResolvedValueOnce({
           id: 'user_123',
           email: 'old@example.com',
@@ -201,7 +201,7 @@ describe('UserProfileService', () => {
         })
         .mockResolvedValueOnce(null); // No user with new email
 
-      prisma.user.update.mockResolvedValue({
+      prisma.users.update.mockResolvedValue({
         id: 'user_123',
         email: 'new@example.com',
         username: 'testuser',
@@ -221,7 +221,7 @@ describe('UserProfileService', () => {
     it('should reject duplicate email', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findUnique
+      prisma.users.findUnique
         .mockResolvedValueOnce({
           id: 'user_123',
           email: 'old@example.com',
@@ -241,14 +241,14 @@ describe('UserProfileService', () => {
     it('should update password with current password verification', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findUnique.mockResolvedValue({
+      prisma.users.findUnique.mockResolvedValue({
         id: 'user_123',
         email: 'test@example.com',
         username: 'testuser',
         password: 'hashed_OldPass123',
       });
 
-      prisma.user.update.mockResolvedValue({
+      prisma.users.update.mockResolvedValue({
         id: 'user_123',
         email: 'test@example.com',
         username: 'testuser',
@@ -263,7 +263,7 @@ describe('UserProfileService', () => {
         newPassword: 'NewPass123',
       });
 
-      expect(prisma.user.update).toHaveBeenCalledWith(
+      expect(prisma.users.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             password: 'hashed_NewPass123',
@@ -275,7 +275,7 @@ describe('UserProfileService', () => {
     it('should reject password update without current password', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findUnique.mockResolvedValue({
+      prisma.users.findUnique.mockResolvedValue({
         id: 'user_123',
         email: 'test@example.com',
         password: 'hashed_password',
@@ -291,7 +291,7 @@ describe('UserProfileService', () => {
     it('should reject incorrect current password', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findUnique.mockResolvedValue({
+      prisma.users.findUnique.mockResolvedValue({
         id: 'user_123',
         email: 'test@example.com',
         password: 'hashed_CorrectPass123',
@@ -310,17 +310,17 @@ describe('UserProfileService', () => {
     it('should delete account with valid password', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findUnique.mockResolvedValue({
+      prisma.users.findUnique.mockResolvedValue({
         id: 'user_123',
         email: 'test@example.com',
         password: 'hashed_ValidPass123',
       });
-      prisma.user.delete.mockResolvedValue({});
+      prisma.users.delete.mockResolvedValue({});
 
       const result = await userProfileService.deleteAccount('user_123', 'ValidPass123');
 
       expect(result.success).toBe(true);
-      expect(prisma.user.delete).toHaveBeenCalledWith({
+      expect(prisma.users.delete).toHaveBeenCalledWith({
         where: { id: 'user_123' },
       });
     });
@@ -328,7 +328,7 @@ describe('UserProfileService', () => {
     it('should reject deletion with invalid password', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findUnique.mockResolvedValue({
+      prisma.users.findUnique.mockResolvedValue({
         id: 'user_123',
         email: 'test@example.com',
         password: 'hashed_CorrectPass123',
@@ -338,13 +338,13 @@ describe('UserProfileService', () => {
         userProfileService.deleteAccount('user_123', 'WrongPass123')
       ).rejects.toThrow('Invalid password');
 
-      expect(prisma.user.delete).not.toHaveBeenCalled();
+      expect(prisma.users.delete).not.toHaveBeenCalled();
     });
 
     it('should throw error if user not found', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.users.findUnique.mockResolvedValue(null);
 
       await expect(
         userProfileService.deleteAccount('invalid_user', 'password')

@@ -30,7 +30,7 @@ export class UserProfileService {
    * Get user profile details
    */
   async getProfile(userId: string) {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -39,7 +39,7 @@ export class UserProfileService {
         role: true,
         emailVerified: true,
         createdAt: true,
-        profile: {
+        user_profiles: {
           select: {
             id: true,
             firstName: true,
@@ -86,13 +86,13 @@ export class UserProfileService {
     }
 
     // Check if profile exists
-    const existingProfile = await prisma.userProfile.findUnique({
+    const existingProfile = await prisma.users.profiles.findUnique({
       where: { userId },
     });
 
     if (!existingProfile) {
       // Create profile if it doesn't exist
-      const profile = await prisma.userProfile.create({
+      const profile = await prisma.users.profiles.create({
         data: {
           userId,
           ...input,
@@ -102,7 +102,7 @@ export class UserProfileService {
     }
 
     // Update existing profile
-    const profile = await prisma.userProfile.update({
+    const profile = await prisma.users.profiles.update({
       where: { userId },
       data: input,
     });
@@ -114,7 +114,7 @@ export class UserProfileService {
    * Update user account details (email, username, password)
    */
   async updateAccount(userId: string, input: UpdateAccountInput) {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: userId },
     });
 
@@ -127,7 +127,7 @@ export class UserProfileService {
     // Handle email update
     if (input.email && input.email !== user.email) {
       const normalizedEmail = input.email.toLowerCase();
-      const existingUser = await prisma.user.findUnique({
+      const existingUser = await prisma.users.findUnique({
         where: { email: normalizedEmail },
       });
       if (existingUser) {
@@ -138,7 +138,7 @@ export class UserProfileService {
 
     // Handle username update
     if (input.username && input.username !== user.username) {
-      const existingUser = await prisma.user.findUnique({
+      const existingUser = await prisma.users.findUnique({
         where: { username: input.username },
       });
       if (existingUser) {
@@ -170,7 +170,7 @@ export class UserProfileService {
       throw new Error('No valid fields to update');
     }
 
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await prisma.users.update({
       where: { id: userId },
       data: updateData,
       select: {
@@ -191,7 +191,7 @@ export class UserProfileService {
    * Delete user account
    */
   async deleteAccount(userId: string, password: string) {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: userId },
     });
 
@@ -206,7 +206,7 @@ export class UserProfileService {
     }
 
     // Delete user (cascades to all related data)
-    await prisma.user.delete({
+    await prisma.users.delete({
       where: { id: userId },
     });
 

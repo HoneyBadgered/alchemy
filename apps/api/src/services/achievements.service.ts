@@ -28,7 +28,7 @@ export class AchievementsService {
    */
   async getAchievements(userId: string): Promise<AchievementProgress[]> {
     // Get all active achievements
-    const achievements = await prisma.achievement.findMany({
+    const achievements = await prisma.achievements.findMany({
       where: { isActive: true },
       orderBy: [
         { category: 'asc' },
@@ -37,7 +37,7 @@ export class AchievementsService {
     });
 
     // Get user's achievement progress
-    const userAchievements = await prisma.userAchievement.findMany({
+    const userAchievements = await prisma.user_achievements.findMany({
       where: { userId },
     });
 
@@ -93,7 +93,7 @@ export class AchievementsService {
    * Get earned achievements (badges) for a user
    */
   async getEarnedAchievements(userId: string) {
-    const earned = await prisma.userAchievement.findMany({
+    const earned = await prisma.user_achievements.findMany({
       where: {
         userId,
         earnedAt: { not: null },
@@ -128,7 +128,7 @@ export class AchievementsService {
    * Update progress for an achievement
    */
   async updateProgress(userId: string, achievementId: string, newProgress: number) {
-    const achievement = await prisma.achievement.findUnique({
+    const achievement = await prisma.achievements.findUnique({
       where: { id: achievementId },
     });
 
@@ -136,7 +136,7 @@ export class AchievementsService {
       throw new Error('Achievement not found');
     }
 
-    const existing = await prisma.userAchievement.findUnique({
+    const existing = await prisma.user_achievements.findUnique({
       where: {
         userId_achievementId: {
           userId,
@@ -154,7 +154,7 @@ export class AchievementsService {
 
     if (!existing) {
       // Create new progress record
-      await prisma.userAchievement.create({
+      await prisma.user_achievements.create({
         data: {
           userId,
           achievementId,
@@ -164,7 +164,7 @@ export class AchievementsService {
       });
     } else {
       // Update existing progress
-      await prisma.userAchievement.update({
+      await prisma.user_achievements.update({
         where: {
           userId_achievementId: {
             userId,
@@ -205,7 +205,7 @@ export class AchievementsService {
    */
   async checkAchievements(userId: string, triggerType: string, value: number) {
     // Get all achievements for this trigger type
-    const achievements = await prisma.achievement.findMany({
+    const achievements = await prisma.achievements.findMany({
       where: {
         triggerType,
         isActive: true,
@@ -215,7 +215,7 @@ export class AchievementsService {
     const results = [];
 
     for (const achievement of achievements) {
-      const existing = await prisma.userAchievement.findUnique({
+      const existing = await prisma.user_achievements.findUnique({
         where: {
           userId_achievementId: {
             userId,
@@ -248,7 +248,7 @@ export class AchievementsService {
     await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Award XP
       if (achievement.xpReward > 0) {
-        await tx.playerState.update({
+        await tx.player_states.update({
           where: { userId },
           data: {
             xp: { increment: achievement.xpReward },
@@ -259,12 +259,12 @@ export class AchievementsService {
 
       // Award points
       if (achievement.pointsReward > 0) {
-        const rewardPoints = await tx.rewardPoints.findUnique({
+        const rewardPoints = await tx.reward_points.findUnique({
           where: { userId },
         });
 
         if (rewardPoints) {
-          await tx.rewardPoints.update({
+          await tx.reward_points.update({
             where: { userId },
             data: {
               balance: { increment: achievement.pointsReward },
@@ -272,7 +272,7 @@ export class AchievementsService {
             },
           });
         } else {
-          await tx.rewardPoints.create({
+          await tx.reward_points.create({
             data: {
               userId,
               balance: achievement.pointsReward,
@@ -282,7 +282,7 @@ export class AchievementsService {
         }
 
         // Record in history
-        await tx.rewardHistory.create({
+        await tx.reward_history.create({
           data: {
             userId,
             type: 'earned',
@@ -299,14 +299,14 @@ export class AchievementsService {
    */
   async getAchievementStats(userId: string) {
     const [totalAchievements, earnedCount, inProgressCount] = await Promise.all([
-      prisma.achievement.count({ where: { isActive: true } }),
-      prisma.userAchievement.count({
+      prisma.achievements.count({ where: { isActive: true } }),
+      prisma.user_achievements.count({
         where: {
           userId,
           earnedAt: { not: null },
         },
       }),
-      prisma.userAchievement.count({
+      prisma.user_achievements.count({
         where: {
           userId,
           earnedAt: null,
@@ -316,7 +316,7 @@ export class AchievementsService {
     ]);
 
     // Get total XP and points earned from achievements
-    const earnedAchievements = await prisma.userAchievement.findMany({
+    const earnedAchievements = await prisma.user_achievements.findMany({
       where: {
         userId,
         earnedAt: { not: null },

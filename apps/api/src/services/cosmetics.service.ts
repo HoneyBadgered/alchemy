@@ -6,7 +6,7 @@ import { prisma } from '../utils/prisma';
 
 export class CosmeticsService {
   async getThemes() {
-    const themes = await prisma.theme.findMany({
+    const themes = await prisma.themes.findMany({
       where: { isActive: true },
       orderBy: { requiredLevel: 'asc' },
     });
@@ -19,7 +19,7 @@ export class CosmeticsService {
       throw new Error('Theme ID is required');
     }
 
-    const theme = await prisma.theme.findUnique({
+    const theme = await prisma.themes.findUnique({
       where: { id: themeId },
     });
 
@@ -35,7 +35,7 @@ export class CosmeticsService {
       throw error;
     }
 
-    const skins = await prisma.tableSkin.findMany({
+    const skins = await prisma.table_skins.findMany({
       where: {
         themeId,
         isActive: true,
@@ -51,7 +51,7 @@ export class CosmeticsService {
       throw new Error('User ID is required');
     }
 
-    const cosmetics = await prisma.playerCosmetics.findUnique({
+    const cosmetics = await prisma.player_cosmetics.findUnique({
       where: { userId },
     });
 
@@ -80,10 +80,10 @@ export class CosmeticsService {
 
     // Get player state and cosmetics
     const [playerState, playerCosmetics] = await Promise.all([
-      prisma.playerState.findUnique({
+      prisma.player_states.findUnique({
         where: { userId },
       }),
-      prisma.playerCosmetics.findUnique({
+      prisma.player_cosmetics.findUnique({
         where: { userId },
       }),
     ]);
@@ -101,7 +101,7 @@ export class CosmeticsService {
     }
 
     // Get theme
-    const theme = await prisma.theme.findUnique({
+    const theme = await prisma.themes.findUnique({
       where: { id: themeId },
     });
 
@@ -128,7 +128,7 @@ export class CosmeticsService {
     }
 
     // Update active theme
-    await prisma.playerCosmetics.update({
+    await prisma.player_cosmetics.update({
       where: { userId },
       data: {
         activeThemeId: themeId,
@@ -150,10 +150,10 @@ export class CosmeticsService {
 
     // Get player state and cosmetics
     const [playerState, playerCosmetics] = await Promise.all([
-      prisma.playerState.findUnique({
+      prisma.player_states.findUnique({
         where: { userId },
       }),
-      prisma.playerCosmetics.findUnique({
+      prisma.player_cosmetics.findUnique({
         where: { userId },
       }),
     ]);
@@ -171,7 +171,7 @@ export class CosmeticsService {
     }
 
     // Get table skin
-    const skin = await prisma.tableSkin.findUnique({
+    const skin = await prisma.table_skins.findUnique({
       where: { id: skinId },
     });
 
@@ -198,7 +198,7 @@ export class CosmeticsService {
     }
 
     // Update active skin
-    await prisma.playerCosmetics.update({
+    await prisma.player_cosmetics.update({
       where: { userId },
       data: {
         activeTableSkinId: skinId,

@@ -22,7 +22,7 @@ export interface LabelUpdateInput {
 export class LabelsService {
   async getOrderLabels(userId: string, orderId: string) {
     // Verify order belongs to user
-    const order = await prisma.order.findFirst({
+    const order = await prisma.orders.findFirst({
       where: {
         id: orderId,
         userId,
@@ -34,7 +34,7 @@ export class LabelsService {
     }
 
     // Get labels for this order
-    const labels = await prisma.labelDesign.findMany({
+    const labels = await prisma.label_designs.findMany({
       where: { orderId },
       orderBy: { createdAt: 'desc' },
     });
@@ -44,7 +44,7 @@ export class LabelsService {
 
   async generateLabel(userId: string, orderId: string, input: LabelGenerationInput) {
     // Verify order belongs to user and is paid
-    const order = await prisma.order.findFirst({
+    const order = await prisma.orders.findFirst({
       where: {
         id: orderId,
         userId,
@@ -66,7 +66,7 @@ export class LabelsService {
     const description = `This blend was crafted with ${stylePreset} style${flavorNotes ? ` featuring ${flavorNotes}` : ''}. ${customPrompt}`;
 
     // Create label
-    const label = await prisma.labelDesign.create({
+    const label = await prisma.label_designs.create({
       data: {
         orderId,
         name,
@@ -83,7 +83,7 @@ export class LabelsService {
 
   async updateLabel(userId: string, labelId: string, input: LabelUpdateInput) {
     // Get label and verify ownership
-    const label = await prisma.labelDesign.findUnique({
+    const label = await prisma.label_designs.findUnique({
       where: { id: labelId },
       include: {
         order: true,
@@ -103,7 +103,7 @@ export class LabelsService {
     }
 
     // Update label
-    const updatedLabel = await prisma.labelDesign.update({
+    const updatedLabel = await prisma.label_designs.update({
       where: { id: labelId },
       data: input,
     });
@@ -113,7 +113,7 @@ export class LabelsService {
 
   async approveLabel(userId: string, labelId: string) {
     // Get label and verify ownership
-    const label = await prisma.labelDesign.findUnique({
+    const label = await prisma.label_designs.findUnique({
       where: { id: labelId },
       include: {
         order: true,
@@ -133,7 +133,7 @@ export class LabelsService {
     }
 
     // Approve label
-    await prisma.labelDesign.update({
+    await prisma.label_designs.update({
       where: { id: labelId },
       data: {
         status: 'approved',

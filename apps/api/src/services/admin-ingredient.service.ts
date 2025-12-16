@@ -164,7 +164,7 @@ export class AdminIngredientService {
 
     // Get ingredients and total count
     const [ingredients, total] = await Promise.all([
-      prisma.ingredient.findMany({
+      prisma.ingredients.findMany({
         where,
         skip,
         take: perPage,
@@ -190,7 +190,7 @@ export class AdminIngredientService {
           },
         },
       }),
-      prisma.ingredient.count({ where }),
+      prisma.ingredients.count({ where }),
     ]);
 
     // Filter for low stock if needed (since Prisma doesn't support field comparison)
@@ -225,7 +225,7 @@ export class AdminIngredientService {
    * Get a single ingredient by ID
    */
   async getIngredient(id: string) {
-    const ingredient = await prisma.ingredient.findUnique({
+    const ingredient = await prisma.ingredients.findUnique({
       where: { id },
       include: {
         supplier: true,
@@ -292,7 +292,7 @@ export class AdminIngredientService {
     const role = data.role || 'addIn';
     const isBase = data.isBase ?? (role === 'base' || role === 'either');
 
-    const ingredient = await prisma.ingredient.create({
+    const ingredient = await prisma.ingredients.create({
       data: {
         name: data.name,
         role,
@@ -347,7 +347,7 @@ export class AdminIngredientService {
    */
   async updateIngredient(id: string, data: UpdateIngredientInput) {
     // Check if ingredient exists
-    const existing = await prisma.ingredient.findUnique({ where: { id } });
+    const existing = await prisma.ingredients.findUnique({ where: { id } });
     if (!existing) {
       throw new Error('Ingredient not found');
     }
@@ -385,7 +385,7 @@ export class AdminIngredientService {
       finalUpdateData.isBase = data.role === 'base' || data.role === 'either';
     }
     
-    const ingredient = await prisma.ingredient.update({
+    const ingredient = await prisma.ingredients.update({
       where: { id },
       data: {
         ...finalUpdateData,
@@ -410,13 +410,13 @@ export class AdminIngredientService {
    */
   private async updatePairings(ingredientId: string, pairingIds: string[]) {
     // Remove existing pairings
-    await prisma.ingredientPairing.deleteMany({
+    await prisma.ingredients.pairings.deleteMany({
       where: { sourceIngredientId: ingredientId },
     });
 
     // Create new pairings
     if (pairingIds.length > 0) {
-      await prisma.ingredientPairing.createMany({
+      await prisma.ingredients.pairings.createMany({
         data: pairingIds.map((targetId) => ({
           sourceIngredientId: ingredientId,
           targetIngredientId: targetId,
@@ -430,7 +430,7 @@ export class AdminIngredientService {
    * Archive an ingredient (soft delete)
    */
   async archiveIngredient(id: string) {
-    const ingredient = await prisma.ingredient.update({
+    const ingredient = await prisma.ingredients.update({
       where: { id },
       data: { status: 'archived' },
     });
@@ -441,7 +441,7 @@ export class AdminIngredientService {
    * Unarchive an ingredient
    */
   async unarchiveIngredient(id: string) {
-    const existing = await prisma.ingredient.findUnique({ where: { id } });
+    const existing = await prisma.ingredients.findUnique({ where: { id } });
     if (!existing) {
       throw new Error('Ingredient not found');
     }
@@ -452,7 +452,7 @@ export class AdminIngredientService {
       Number(existing.minimumStockLevel)
     );
 
-    const ingredient = await prisma.ingredient.update({
+    const ingredient = await prisma.ingredients.update({
       where: { id },
       data: { status: newStatus },
     });
@@ -463,7 +463,7 @@ export class AdminIngredientService {
    * Delete an ingredient (hard delete)
    */
   async deleteIngredient(id: string) {
-    await prisma.ingredient.delete({ where: { id } });
+    await prisma.ingredients.delete({ where: { id } });
     return { success: true };
   }
 
@@ -471,7 +471,7 @@ export class AdminIngredientService {
    * Get available ingredient categories
    */
   async getCategories(): Promise<string[]> {
-    const categories = await prisma.ingredient.findMany({
+    const categories = await prisma.ingredients.findMany({
       select: { category: true },
       distinct: ['category'],
     });
@@ -488,7 +488,7 @@ export class AdminIngredientService {
    * Get all suppliers
    */
   async getSuppliers() {
-    return prisma.supplier.findMany({
+    return prisma.suppliers.findMany({
       where: { isActive: true },
       orderBy: { name: 'asc' },
     });
@@ -498,7 +498,7 @@ export class AdminIngredientService {
    * Get low stock ingredients
    */
   async getLowStockIngredients() {
-    const ingredients = await prisma.ingredient.findMany({
+    const ingredients = await prisma.ingredients.findMany({
       where: {
         status: { not: 'archived' },
       },
@@ -533,7 +533,7 @@ export class AdminIngredientService {
    * Seed database with ingredients from core package (for initial setup)
    */
   async seedFromCore() {
-    const existingCount = await prisma.ingredient.count();
+    const existingCount = await prisma.ingredients.count();
     if (existingCount > 0) {
       return { message: 'Ingredients already exist, skipping seed', count: existingCount };
     }
@@ -541,7 +541,7 @@ export class AdminIngredientService {
     const coreIngredients = INGREDIENTS;
     
     for (const ing of coreIngredients) {
-      await prisma.ingredient.create({
+      await prisma.ingredients.create({
         data: {
           name: ing.name,
           role: ing.isBase ? 'base' : 'addIn',
@@ -568,7 +568,7 @@ export class AdminIngredientService {
   async getIngredientUsage(id: string) {
     // This would check Recipe.ingredients JSON field
     // For now, return empty as implementation depends on how recipes store ingredients
-    const recipes = await prisma.recipe.findMany({
+    const recipes = await prisma.recipes.findMany({
       where: {
         isActive: true,
       },

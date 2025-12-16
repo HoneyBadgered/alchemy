@@ -40,7 +40,7 @@ export class ReviewsService {
     }
 
     // Check if product exists and is active
-    const product = await prisma.product.findUnique({
+    const product = await prisma.products.findUnique({
       where: { id: productId },
     });
 
@@ -53,7 +53,7 @@ export class ReviewsService {
     }
 
     // Check if user already reviewed this product
-    const existingReview = await prisma.review.findUnique({
+    const existingReview = await prisma.reviews.findUnique({
       where: {
         userId_productId: {
           userId,
@@ -67,7 +67,7 @@ export class ReviewsService {
     }
 
     // Check if user has purchased this product (verified review)
-    const hasPurchased = await prisma.orderItem.findFirst({
+    const hasPurchased = await prisma.orders.items.findFirst({
       where: {
         productId,
         order: {
@@ -80,7 +80,7 @@ export class ReviewsService {
     });
 
     // Create the review
-    const review = await prisma.review.create({
+    const review = await prisma.reviews.create({
       data: {
         userId,
         productId,
@@ -136,7 +136,7 @@ export class ReviewsService {
     };
 
     const [reviews, total] = await Promise.all([
-      prisma.review.findMany({
+      prisma.reviews.findMany({
         where,
         skip,
         take: perPage,
@@ -150,11 +150,11 @@ export class ReviewsService {
           },
         },
       }),
-      prisma.review.count({ where }),
+      prisma.reviews.count({ where }),
     ]);
 
     // Get rating distribution
-    const ratingDistribution = await prisma.review.groupBy({
+    const ratingDistribution = await prisma.reviews.groupBy({
       by: ['rating'],
       where: {
         productId,
@@ -186,7 +186,7 @@ export class ReviewsService {
    * Get a user's review for a specific product
    */
   async getUserReview(userId: string, productId: string) {
-    return prisma.review.findUnique({
+    return prisma.reviews.findUnique({
       where: {
         userId_productId: {
           userId,
@@ -200,7 +200,7 @@ export class ReviewsService {
    * Update a review
    */
   async updateReview(reviewId: string, userId: string, input: UpdateReviewInput) {
-    const review = await prisma.review.findUnique({
+    const review = await prisma.reviews.findUnique({
       where: { id: reviewId },
     });
 
@@ -219,7 +219,7 @@ export class ReviewsService {
       }
     }
 
-    const updatedReview = await prisma.review.update({
+    const updatedReview = await prisma.reviews.update({
       where: { id: reviewId },
       data: {
         rating: input.rating,
@@ -248,7 +248,7 @@ export class ReviewsService {
    * Delete a review
    */
   async deleteReview(reviewId: string, userId: string) {
-    const review = await prisma.review.findUnique({
+    const review = await prisma.reviews.findUnique({
       where: { id: reviewId },
     });
 
@@ -260,7 +260,7 @@ export class ReviewsService {
       throw new Error('You can only delete your own reviews');
     }
 
-    await prisma.review.delete({
+    await prisma.reviews.delete({
       where: { id: reviewId },
     });
 
@@ -274,7 +274,7 @@ export class ReviewsService {
    * Update product's cached average rating and review count
    */
   private async updateProductRating(productId: string) {
-    const stats = await prisma.review.aggregate({
+    const stats = await prisma.reviews.aggregate({
       where: {
         productId,
         isApproved: true,
@@ -287,7 +287,7 @@ export class ReviewsService {
       },
     });
 
-    await prisma.product.update({
+    await prisma.products.update({
       where: { id: productId },
       data: {
         averageRating: stats._avg.rating ? Math.round(stats._avg.rating * 10) / 10 : null,

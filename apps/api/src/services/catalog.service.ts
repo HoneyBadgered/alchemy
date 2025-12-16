@@ -36,13 +36,13 @@ export class CatalogService {
     }
 
     const [products, total] = await Promise.all([
-      prisma.product.findMany({
+      prisma.products.findMany({
         where,
         skip,
         take: perPage,
         orderBy: { createdAt: 'desc' },
       }),
-      prisma.product.count({ where }),
+      prisma.products.count({ where }),
     ]);
 
     // Enhance products with stock status and sale info
@@ -67,7 +67,7 @@ export class CatalogService {
   }
 
   async getProduct(id: string) {
-    const product = await prisma.product.findUnique({
+    const product = await prisma.products.findUnique({
       where: { id },
     });
 

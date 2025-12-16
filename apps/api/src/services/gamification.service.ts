@@ -12,7 +12,7 @@ export class GamificationService {
       throw new Error('User ID is required');
     }
 
-    const playerState = await prisma.playerState.findUnique({
+    const playerState = await prisma.player_states.findUnique({
       where: { userId },
     });
 
@@ -39,7 +39,7 @@ export class GamificationService {
     }
 
     // Get player state to check level
-    const playerState = await prisma.playerState.findUnique({
+    const playerState = await prisma.player_states.findUnique({
       where: { userId },
     });
 
@@ -50,7 +50,7 @@ export class GamificationService {
     }
 
     // Get player quests
-    const playerQuests = await prisma.playerQuest.findMany({
+    const playerQuests = await prisma.player_quests.findMany({
       where: { userId },
       include: {
         quest: true,
@@ -84,7 +84,7 @@ export class GamificationService {
     }
 
     // Get player quest
-    const playerQuest = await prisma.playerQuest.findUnique({
+    const playerQuest = await prisma.player_quests.findUnique({
       where: {
         userId_questId: {
           userId,
@@ -131,7 +131,7 @@ export class GamificationService {
       });
 
       // Award XP
-      const playerState = await tx.playerState.findUnique({
+      const playerState = await tx.player_states.findUnique({
         where: { userId },
       });
 
@@ -144,7 +144,7 @@ export class GamificationService {
       const newTotalXp = playerState.totalXp + playerQuest.quest.xpReward;
       const newLevel = getLevelFromTotalXp(newTotalXp);
 
-      await tx.playerState.update({
+      await tx.player_states.update({
         where: { userId },
         data: {
           totalXp: newTotalXp,
@@ -219,7 +219,7 @@ export class GamificationService {
       throw new Error('User ID is required');
     }
 
-    const inventory = await prisma.playerInventory.findMany({
+    const inventory = await prisma.player_inventory.findMany({
       where: { userId },
       orderBy: [
         { itemType: 'asc' },

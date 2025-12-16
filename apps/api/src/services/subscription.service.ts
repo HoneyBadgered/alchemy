@@ -25,7 +25,7 @@ export class SubscriptionService {
    * Get all subscriptions for a user
    */
   async getSubscriptions(userId: string) {
-    const subscriptions = await prisma.subscription.findMany({
+    const subscriptions = await prisma.subscriptions.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
     });
@@ -40,7 +40,7 @@ export class SubscriptionService {
    * Get active subscriptions for a user
    */
   async getActiveSubscriptions(userId: string) {
-    const subscriptions = await prisma.subscription.findMany({
+    const subscriptions = await prisma.subscriptions.findMany({
       where: {
         userId,
         status: 'active',
@@ -58,7 +58,7 @@ export class SubscriptionService {
    * Get a single subscription
    */
   async getSubscription(userId: string, subscriptionId: string) {
-    const subscription = await prisma.subscription.findFirst({
+    const subscription = await prisma.subscriptions.findFirst({
       where: {
         id: subscriptionId,
         userId,
@@ -87,7 +87,7 @@ export class SubscriptionService {
     // Calculate next shipment date
     const nextShipmentDate = this.calculateNextShipmentDate(input.frequency);
 
-    const subscription = await prisma.subscription.create({
+    const subscription = await prisma.subscriptions.create({
       data: {
         userId,
         productId: input.productId,
@@ -110,7 +110,7 @@ export class SubscriptionService {
    * Update subscription frequency or quantity
    */
   async updateSubscription(userId: string, subscriptionId: string, input: UpdateSubscriptionInput) {
-    const existing = await prisma.subscription.findFirst({
+    const existing = await prisma.subscriptions.findFirst({
       where: {
         id: subscriptionId,
         userId,
@@ -149,7 +149,7 @@ export class SubscriptionService {
       updateData.quantity = input.quantity;
     }
 
-    const subscription = await prisma.subscription.update({
+    const subscription = await prisma.subscriptions.update({
       where: { id: subscriptionId },
       data: updateData,
     });
@@ -164,7 +164,7 @@ export class SubscriptionService {
    * Pause a subscription
    */
   async pauseSubscription(userId: string, subscriptionId: string) {
-    const existing = await prisma.subscription.findFirst({
+    const existing = await prisma.subscriptions.findFirst({
       where: {
         id: subscriptionId,
         userId,
@@ -179,7 +179,7 @@ export class SubscriptionService {
       throw new Error('Only active subscriptions can be paused');
     }
 
-    const subscription = await prisma.subscription.update({
+    const subscription = await prisma.subscriptions.update({
       where: { id: subscriptionId },
       data: {
         status: 'paused',
@@ -197,7 +197,7 @@ export class SubscriptionService {
    * Resume a paused subscription
    */
   async resumeSubscription(userId: string, subscriptionId: string) {
-    const existing = await prisma.subscription.findFirst({
+    const existing = await prisma.subscriptions.findFirst({
       where: {
         id: subscriptionId,
         userId,
@@ -215,7 +215,7 @@ export class SubscriptionService {
     // Recalculate next shipment date
     const nextShipmentDate = this.calculateNextShipmentDate(existing.frequency);
 
-    const subscription = await prisma.subscription.update({
+    const subscription = await prisma.subscriptions.update({
       where: { id: subscriptionId },
       data: {
         status: 'active',
@@ -234,7 +234,7 @@ export class SubscriptionService {
    * Skip next shipment
    */
   async skipNextShipment(userId: string, subscriptionId: string) {
-    const existing = await prisma.subscription.findFirst({
+    const existing = await prisma.subscriptions.findFirst({
       where: {
         id: subscriptionId,
         userId,
@@ -255,7 +255,7 @@ export class SubscriptionService {
       existing.nextShipmentDate || undefined
     );
 
-    const subscription = await prisma.subscription.update({
+    const subscription = await prisma.subscriptions.update({
       where: { id: subscriptionId },
       data: {
         skipNextShipment: true,
@@ -274,7 +274,7 @@ export class SubscriptionService {
    * Cancel a subscription
    */
   async cancelSubscription(userId: string, subscriptionId: string) {
-    const existing = await prisma.subscription.findFirst({
+    const existing = await prisma.subscriptions.findFirst({
       where: {
         id: subscriptionId,
         userId,
@@ -289,7 +289,7 @@ export class SubscriptionService {
       throw new Error('Subscription is already cancelled');
     }
 
-    const subscription = await prisma.subscription.update({
+    const subscription = await prisma.subscriptions.update({
       where: { id: subscriptionId },
       data: {
         status: 'cancelled',
@@ -309,7 +309,7 @@ export class SubscriptionService {
    * Get subscription summary (next shipments)
    */
   async getSubscriptionSummary(userId: string) {
-    const subscriptions = await prisma.subscription.findMany({
+    const subscriptions = await prisma.subscriptions.findMany({
       where: {
         userId,
         status: 'active',

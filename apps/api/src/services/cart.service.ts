@@ -59,7 +59,7 @@ export class CartService {
     }
 
     // Try to find existing cart
-    let cart = await prisma.cart.findFirst({
+    let cart = await prisma.carts.findFirst({
       where: userId ? { userId } : { sessionId },
       include: {
         items: {
@@ -72,7 +72,7 @@ export class CartService {
 
     // Create cart if it doesn't exist
     if (!cart) {
-      cart = await prisma.cart.create({
+      cart = await prisma.carts.create({
         data: {
           userId: userId || null,
           sessionId: sessionId || null,
@@ -120,7 +120,7 @@ export class CartService {
     }
 
     // Validate product exists and is active
-    const product = await prisma.product.findUnique({
+    const product = await prisma.products.findUnique({
       where: { id: productId },
     });
 
@@ -142,7 +142,7 @@ export class CartService {
     const cart = await this.getOrCreateCart(userId, sessionId);
 
     // Check if item already exists in cart
-    const existingItem = await prisma.cartItem.findUnique({
+    const existingItem = await prisma.carts.tem.findUnique({
       where: {
         cartId_productId: {
           cartId: cart.id,
@@ -163,13 +163,13 @@ export class CartService {
           );
         }
 
-        await prisma.cartItem.update({
+        await prisma.carts.tem.update({
           where: { id: existingItem.id },
           data: { quantity: newQuantity },
         });
       } else {
         // Create new cart item
-        await prisma.cartItem.create({
+        await prisma.carts.tem.create({
           data: {
             cartId: cart.id,
             productId,
@@ -202,7 +202,7 @@ export class CartService {
 
     const cart = await this.getOrCreateCart(userId, sessionId);
 
-    const cartItem = await prisma.cartItem.findUnique({
+    const cartItem = await prisma.carts.tem.findUnique({
       where: {
         cartId_productId: {
           cartId: cart.id,
@@ -230,7 +230,7 @@ export class CartService {
     }
 
     try {
-      await prisma.cartItem.update({
+      await prisma.carts.tem.update({
         where: { id: cartItem.id },
         data: { quantity },
       });
@@ -248,7 +248,7 @@ export class CartService {
   async removeFromCart({ productId, userId, sessionId }: RemoveFromCartParams) {
     const cart = await this.getOrCreateCart(userId, sessionId);
 
-    await prisma.cartItem.deleteMany({
+    await prisma.carts.tem.deleteMany({
       where: {
         cartId: cart.id,
         productId,
@@ -264,7 +264,7 @@ export class CartService {
   async clearCart({ userId, sessionId }: GetCartParams) {
     const cart = await this.getOrCreateCart(userId, sessionId);
 
-    await prisma.cartItem.deleteMany({
+    await prisma.carts.tem.deleteMany({
       where: {
         cartId: cart.id,
       },
@@ -277,7 +277,7 @@ export class CartService {
    * Merge guest cart with user cart (after login)
    */
   async mergeGuestCart(userId: string, sessionId: string) {
-    const guestCart = await prisma.cart.findUnique({
+    const guestCart = await prisma.carts.findUnique({
       where: { sessionId },
       include: {
         items: true,
@@ -352,7 +352,7 @@ export class CartService {
     const blendKey = this.generateBlendKey(baseTeaId, addIns);
     
     // Look for existing blend product with same composition
-    let product = await prisma.product.findFirst({
+    let product = await prisma.products.findFirst({
       where: {
         category: 'custom-blend',
         tags: { has: blendKey },
@@ -367,7 +367,7 @@ export class CartService {
       // Generate blend name
       const blendName = this.generateBlendName(baseTeaId, addIns);
 
-      product = await prisma.product.create({
+      product = await prisma.products.create({
         data: {
           name: blendName,
           description: `Custom blend with ${baseTeaId} base and ${addIns.length} add-in${addIns.length === 1 ? '' : 's'}`,

@@ -64,7 +64,7 @@ describe('CraftingService', () => {
         },
       ];
 
-      mockPrisma.playerState.findUnique.mockResolvedValue(mockPlayerState);
+      mockPrisma.player_states.findUnique.mockResolvedValue(mockPlayerState);
       mockPrisma.recipe.findMany.mockResolvedValue(mockRecipes);
 
       const result = await craftingService.getRecipes('user-1');
@@ -77,7 +77,7 @@ describe('CraftingService', () => {
     });
 
     it('should throw error if player state not found', async () => {
-      mockPrisma.playerState.findUnique.mockResolvedValue(null);
+      mockPrisma.player_states.findUnique.mockResolvedValue(null);
 
       await expect(
         craftingService.getRecipes('user-1')
@@ -140,7 +140,7 @@ describe('CraftingService', () => {
 
     it('should throw error if player state not found', async () => {
       mockPrisma.recipe.findUnique.mockResolvedValue(mockRecipe);
-      mockPrisma.playerState.findUnique.mockResolvedValue(null);
+      mockPrisma.player_states.findUnique.mockResolvedValue(null);
       mockPrisma.playerInventory.findMany.mockResolvedValue(mockInventory);
 
       await expect(
@@ -150,7 +150,7 @@ describe('CraftingService', () => {
 
     it('should throw error if player level too low', async () => {
       mockPrisma.recipe.findUnique.mockResolvedValue(mockRecipe);
-      mockPrisma.playerState.findUnique.mockResolvedValue({
+      mockPrisma.player_states.findUnique.mockResolvedValue({
         ...mockPlayerState,
         level: 2,
       });
@@ -163,7 +163,7 @@ describe('CraftingService', () => {
 
     it('should throw error if insufficient ingredients', async () => {
       mockPrisma.recipe.findUnique.mockResolvedValue(mockRecipe);
-      mockPrisma.playerState.findUnique.mockResolvedValue(mockPlayerState);
+      mockPrisma.player_states.findUnique.mockResolvedValue(mockPlayerState);
       mockPrisma.playerInventory.findMany.mockResolvedValue([
         { userId: 'user-1', itemId: 'herb-1', quantity: 1 },
       ]);
@@ -175,7 +175,7 @@ describe('CraftingService', () => {
 
     it('should successfully craft item and update inventory', async () => {
       mockPrisma.recipe.findUnique.mockResolvedValue(mockRecipe);
-      mockPrisma.playerState.findUnique.mockResolvedValue(mockPlayerState);
+      mockPrisma.player_states.findUnique.mockResolvedValue(mockPlayerState);
       mockPrisma.playerInventory.findMany.mockResolvedValue(mockInventory);
 
       mockPrisma.$transaction.mockImplementation(async (callback: any) => {

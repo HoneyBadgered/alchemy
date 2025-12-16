@@ -53,8 +53,8 @@ describe('AuthService', () => {
     it('should create a user with strong password', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findFirst.mockResolvedValue(null);
-      prisma.user.create.mockResolvedValue({
+      prisma.users.findFirst.mockResolvedValue(null);
+      prisma.users.create.mockResolvedValue({
         id: 'user_123',
         email: 'test@example.com',
         username: 'testuser',
@@ -75,8 +75,8 @@ describe('AuthService', () => {
       expect(result.user.role).toBe('user');
       expect(result.accessToken).toBe('access_token');
       expect(result.refreshToken).toBe('refresh_token');
-      expect(prisma.user.create).toHaveBeenCalled();
-      expect(prisma.refreshToken.create).toHaveBeenCalled();
+      expect(prisma.users.create).toHaveBeenCalled();
+      expect(prisma.refresh_tokens.create).toHaveBeenCalled();
     });
 
     it('should reject weak passwords', async () => {
@@ -112,7 +112,7 @@ describe('AuthService', () => {
     it('should reject duplicate email', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findFirst.mockResolvedValue({
+      prisma.users.findFirst.mockResolvedValue({
         id: 'existing_user',
         email: 'test@example.com',
       });
@@ -129,8 +129,8 @@ describe('AuthService', () => {
     it('should normalize email to lowercase during registration', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findFirst.mockResolvedValue(null);
-      prisma.user.create.mockResolvedValue({
+      prisma.users.findFirst.mockResolvedValue(null);
+      prisma.users.create.mockResolvedValue({
         id: 'user_123',
         email: 'test@example.com',
         username: 'testuser',
@@ -148,7 +148,7 @@ describe('AuthService', () => {
       });
 
       // Verify that create was called with lowercase email
-      expect(prisma.user.create).toHaveBeenCalledWith(
+      expect(prisma.users.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             email: 'test@example.com',
@@ -162,7 +162,7 @@ describe('AuthService', () => {
     it('should login with valid credentials', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findUnique.mockResolvedValue({
+      prisma.users.findUnique.mockResolvedValue({
         id: 'user_123',
         email: 'test@example.com',
         username: 'testuser',
@@ -172,7 +172,7 @@ describe('AuthService', () => {
         createdAt: new Date(),
       });
 
-      prisma.playerState.update.mockResolvedValue({});
+      prisma.player_states.update.mockResolvedValue({});
 
       const result = await authService.login({
         email: 'test@example.com',
@@ -182,13 +182,13 @@ describe('AuthService', () => {
       expect(result.user.email).toBe('test@example.com');
       expect(result.user.role).toBe('user');
       expect(result.accessToken).toBe('access_token');
-      expect(prisma.playerState.update).toHaveBeenCalled();
+      expect(prisma.player_states.update).toHaveBeenCalled();
     });
 
     it('should return admin role for admin users', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findUnique.mockResolvedValue({
+      prisma.users.findUnique.mockResolvedValue({
         id: 'admin_123',
         email: 'admin@example.com',
         username: 'adminuser',
@@ -198,7 +198,7 @@ describe('AuthService', () => {
         createdAt: new Date(),
       });
 
-      prisma.playerState.update.mockResolvedValue({});
+      prisma.player_states.update.mockResolvedValue({});
 
       const result = await authService.login({
         email: 'admin@example.com',
@@ -213,7 +213,7 @@ describe('AuthService', () => {
     it('should reject invalid credentials', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.users.findUnique.mockResolvedValue(null);
 
       await expect(
         authService.login({
@@ -226,7 +226,7 @@ describe('AuthService', () => {
     it('should reject wrong password', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findUnique.mockResolvedValue({
+      prisma.users.findUnique.mockResolvedValue({
         id: 'user_123',
         email: 'test@example.com',
         password: 'hashed_CorrectPass123',
@@ -243,7 +243,7 @@ describe('AuthService', () => {
     it('should login with uppercase email (case-insensitive)', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findUnique.mockResolvedValue({
+      prisma.users.findUnique.mockResolvedValue({
         id: 'user_123',
         email: 'test@example.com',
         username: 'testuser',
@@ -253,7 +253,7 @@ describe('AuthService', () => {
         createdAt: new Date(),
       });
 
-      prisma.playerState.update.mockResolvedValue({});
+      prisma.player_states.update.mockResolvedValue({});
 
       const result = await authService.login({
         email: 'TEST@EXAMPLE.COM',
@@ -263,7 +263,7 @@ describe('AuthService', () => {
       expect(result.user.email).toBe('test@example.com');
       expect(result.accessToken).toBe('access_token');
       // Verify that findUnique was called with lowercase email
-      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+      expect(prisma.users.findUnique).toHaveBeenCalledWith({
         where: { email: 'test@example.com' },
       });
     });
@@ -271,7 +271,7 @@ describe('AuthService', () => {
     it('should login with mixed case email (case-insensitive)', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findUnique.mockResolvedValue({
+      prisma.users.findUnique.mockResolvedValue({
         id: 'admin_123',
         email: 'admin@alchemy.dev',
         username: 'admin',
@@ -281,7 +281,7 @@ describe('AuthService', () => {
         createdAt: new Date(),
       });
 
-      prisma.playerState.update.mockResolvedValue({});
+      prisma.player_states.update.mockResolvedValue({});
 
       const result = await authService.login({
         email: 'Admin@Alchemy.Dev',
@@ -291,7 +291,7 @@ describe('AuthService', () => {
       expect(result.user.email).toBe('admin@alchemy.dev');
       expect(result.user.role).toBe('admin');
       // Verify that findUnique was called with lowercase email
-      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+      expect(prisma.users.findUnique).toHaveBeenCalledWith({
         where: { email: 'admin@alchemy.dev' },
       });
     });
@@ -301,32 +301,32 @@ describe('AuthService', () => {
     it('should send reset email for existing user', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findUnique.mockResolvedValue({
+      prisma.users.findUnique.mockResolvedValue({
         id: 'user_123',
         email: 'test@example.com',
       });
 
-      prisma.user.update.mockResolvedValue({});
+      prisma.users.update.mockResolvedValue({});
 
       const result = await authService.requestPasswordReset({
         email: 'test@example.com',
       });
 
       expect(result.message).toContain('password reset email');
-      expect(prisma.user.update).toHaveBeenCalled();
+      expect(prisma.users.update).toHaveBeenCalled();
     });
 
     it('should not reveal if user does not exist', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.users.findUnique.mockResolvedValue(null);
 
       const result = await authService.requestPasswordReset({
         email: 'nonexistent@example.com',
       });
 
       expect(result.message).toContain('password reset email');
-      expect(prisma.user.update).not.toHaveBeenCalled();
+      expect(prisma.users.update).not.toHaveBeenCalled();
     });
   });
 
@@ -334,12 +334,12 @@ describe('AuthService', () => {
     it('should reset password with valid token', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findFirst.mockResolvedValue({
+      prisma.users.findFirst.mockResolvedValue({
         id: 'user_123',
         email: 'test@example.com',
       });
 
-      prisma.user.update.mockResolvedValue({});
+      prisma.users.update.mockResolvedValue({});
 
       const result = await authService.resetPassword({
         token: 'valid_token',
@@ -347,14 +347,14 @@ describe('AuthService', () => {
       });
 
       expect(result.message).toBe('Password reset successful');
-      expect(prisma.user.update).toHaveBeenCalled();
-      expect(prisma.refreshToken.deleteMany).toHaveBeenCalled();
+      expect(prisma.users.update).toHaveBeenCalled();
+      expect(prisma.refresh_tokens.deleteMany).toHaveBeenCalled();
     });
 
     it('should reject invalid token', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findFirst.mockResolvedValue(null);
+      prisma.users.findFirst.mockResolvedValue(null);
 
       await expect(
         authService.resetPassword({
@@ -367,7 +367,7 @@ describe('AuthService', () => {
     it('should validate new password strength', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findFirst.mockResolvedValue({
+      prisma.users.findFirst.mockResolvedValue({
         id: 'user_123',
         email: 'test@example.com',
       });
@@ -385,17 +385,17 @@ describe('AuthService', () => {
     it('should verify email with valid token', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findFirst.mockResolvedValue({
+      prisma.users.findFirst.mockResolvedValue({
         id: 'user_123',
         email: 'test@example.com',
       });
 
-      prisma.user.update.mockResolvedValue({});
+      prisma.users.update.mockResolvedValue({});
 
       const result = await authService.verifyEmail('valid_token');
 
       expect(result.message).toBe('Email verified successfully');
-      expect(prisma.user.update).toHaveBeenCalledWith({
+      expect(prisma.users.update).toHaveBeenCalledWith({
         where: { id: 'user_123' },
         data: {
           emailVerified: true,
@@ -408,7 +408,7 @@ describe('AuthService', () => {
     it('should reject invalid verification token', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.user.findFirst.mockResolvedValue(null);
+      prisma.users.findFirst.mockResolvedValue(null);
 
       await expect(
         authService.verifyEmail('invalid_token')
@@ -422,7 +422,7 @@ describe('AuthService', () => {
       
       await authService.logout('user_123', 'refresh_token');
 
-      expect(prisma.refreshToken.deleteMany).toHaveBeenCalledWith({
+      expect(prisma.refresh_tokens.deleteMany).toHaveBeenCalledWith({
         where: {
           userId: 'user_123',
           token: expect.any(String),
