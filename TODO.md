@@ -156,3 +156,45 @@ The `Product` model was enhanced with:
 - Catalog service tests updated to include new enhanced fields
 - Pre-existing crafting service test failure (unrelated to these changes)
 - Frontend components tested through build process
+
+---
+
+## Production Deployment Checklist
+
+### Security & Configuration
+
+1. **Session Generation (Mobile)**
+   - **Location**: `apps/mobile/src/contexts/CartContext.tsx`
+   - **Current**: Using improved UUID generation with Math.random()
+   - **Action Required**: Install and use `expo-crypto` or `react-native-get-random-values` for cryptographically secure random values
+   - **Priority**: HIGH - Security vulnerability
+   - **Code to add**:
+     ```typescript
+     import 'react-native-get-random-values';
+     // Then use crypto.randomUUID() directly
+     ```
+
+### Environment Variables
+- Verify all `.env` files are configured for production
+- Ensure Stripe keys are production keys
+- Verify database connection strings
+
+### Database
+- Run all pending migrations
+- Add missing indexes (see performance section)
+- Set up automated backups
+
+### API Rate Limiting
+- Review and adjust rate limits for production traffic
+- Add per-endpoint rate limiting (currently only global)
+
+### Monitoring & Logging
+- Set up error tracking (Sentry/DataDog)
+- Configure structured logging
+- Set up performance monitoring
+
+### Testing
+- Run full test suite
+- Perform E2E testing on staging
+- Load testing for critical endpoints
+

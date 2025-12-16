@@ -59,9 +59,16 @@ export async function reviewsRoutes(fastify: FastifyInstance) {
    * Create a new review
    * POST /reviews
    * Requires authentication
+   * Rate limit: 5 reviews per hour per user
    */
   fastify.post('/reviews', {
     preHandler: authMiddleware,
+    config: {
+      rateLimit: {
+        max: 5,
+        timeWindow: '1 hour',
+      },
+    },
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const userId = request.user!.userId;
@@ -116,9 +123,16 @@ export async function reviewsRoutes(fastify: FastifyInstance) {
    * Update a review
    * PATCH /reviews/:id
    * Requires authentication
+   * Rate limit: 10 updates per hour per user
    */
   fastify.patch('/reviews/:id', {
     preHandler: authMiddleware,
+    config: {
+      rateLimit: {
+        max: 10,
+        timeWindow: '1 hour',
+      },
+    },
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const userId = request.user!.userId;
@@ -149,9 +163,16 @@ export async function reviewsRoutes(fastify: FastifyInstance) {
    * Delete a review
    * DELETE /reviews/:id
    * Requires authentication
+   * Rate limit: 10 deletions per hour per user
    */
   fastify.delete('/reviews/:id', {
     preHandler: authMiddleware,
+    config: {
+      rateLimit: {
+        max: 10,
+        timeWindow: '1 hour',
+      },
+    },
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const userId = request.user!.userId;
