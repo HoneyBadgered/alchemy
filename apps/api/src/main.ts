@@ -8,6 +8,7 @@ import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import rawBody from 'fastify-raw-body';
 import { config } from './config';
+import { prisma } from './utils/prisma';
 import { authRoutes } from './routes/auth.routes';
 import { catalogRoutes } from './routes/catalog.routes';
 import { cartRoutes } from './routes/cart.routes';
@@ -102,9 +103,57 @@ fastify.register(notificationPreferencesRoutes);
 fastify.register(achievementsRoutes);
 fastify.register(purchaseHistoryRoutes);
 
-// Health check
-fastify.get('/health', async () => {
-  return { status: 'ok', timestamp: new Date().toISOString() };
+// Health check endpoint
+fastify.get('/health', async (request, reply) => {
+  const health: any = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: config.isDevelopment ? 'development' : 'production',
+    version: process.env.npm_package_version || '1.0.0',
+  };
+
+  // Check database connection
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    health.database = { status: 'connected' };
+  } catch (error) {
+    health.database = { 
+      status: 'disconnected',
+      error: (error as Error).message 
+    };
+    health.status = 'degraded';
+  }
+
+  // Check Stripe configuration
+  health.stripe = {
+    configured: !!(config.stripe.secretKey && config.stripe.webhookSecret)
+  };
+
+  // Return 503 if database is down
+  if (health.status === 'degraded') {
+    return reply.status(503).send(health);
+  }
+
+  return health;
+});
+
+// Readiness check (for Kubernetes/Docker health checks)
+fastify.get('/ready', async (request, reply) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    return reply.send({ ready: true });
+  } catch (error) {
+    return reply.status(503).send({ 
+      ready: false,
+      error: (error as Error).message 
+    });
+  }
+});
+
+// Liveness check (for Kubernetes/Docker health checks)
+fastify.get('/live', async () => {
+  return { alive: true };
 });
 
 // Start server
