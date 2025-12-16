@@ -7,6 +7,7 @@ import { prisma } from '../utils/prisma';
 import type { Prisma } from '@prisma/client';
 import { NotFoundError, ConflictError, BadRequestError } from '../utils/errors';
 import sanitizeHtml from 'sanitize-html';
+import crypto from 'crypto';
 
 // Sanitization config for review content
 const sanitizeConfig = {
@@ -82,7 +83,7 @@ export class ReviewsService {
     const hasPurchased = await prisma.order_items.findFirst({
       where: {
         productId,
-        order: {
+        orders: {
           userId,
           status: {
             in: ['paid', 'processing', 'shipped', 'completed'],
@@ -94,6 +95,7 @@ export class ReviewsService {
     // Create the review
     const review = await prisma.reviews.create({
       data: {
+        id: crypto.randomUUID(),
         userId,
         productId,
         rating,
@@ -102,7 +104,7 @@ export class ReviewsService {
         isVerified: !!hasPurchased,
       },
       include: {
-        user: {
+        users: {
           select: {
             id: true,
             username: true,
@@ -154,7 +156,7 @@ export class ReviewsService {
         take: perPage,
         orderBy,
         include: {
-          user: {
+          users: {
             select: {
               id: true,
               username: true,
@@ -243,7 +245,7 @@ export class ReviewsService {
         content: sanitizedContent !== undefined ? sanitizedContent : undefined,
       },
       include: {
-        user: {
+        users: {
           select: {
             id: true,
             username: true,

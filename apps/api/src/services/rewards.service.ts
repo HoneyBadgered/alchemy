@@ -5,6 +5,7 @@
 
 import { prisma } from '../utils/prisma';
 import type { Prisma } from '@prisma/client';
+import crypto from 'crypto';
 
 export interface AddPointsInput {
   points: number;
@@ -38,6 +39,7 @@ export class RewardsService {
     if (!rewardPoints) {
       rewardPoints = await prisma.reward_points.create({
         data: {
+          id: crypto.randomUUID(),
           userId,
           balance: 0,
           lifetimeEarned: 0,
@@ -74,13 +76,13 @@ export class RewardsService {
     const skip = (page - 1) * perPage;
 
     const [history, total] = await Promise.all([
-      prisma.rewards.history.findMany({
+      prisma.reward_history.findMany({
         where: { userId },
         skip,
         take: perPage,
         orderBy: { createdAt: 'desc' },
       }),
-      prisma.rewards.history.count({ where: { userId } }),
+      prisma.reward_history.count({ where: { userId } }),
     ]);
 
     return {
@@ -104,13 +106,14 @@ export class RewardsService {
 
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Get or create reward points record
-      let rewardPoints = await tx.rewardPoints.findUnique({
+      let rewardPoints = await tx.reward_points.findUnique({
         where: { userId },
       });
 
       if (!rewardPoints) {
-        rewardPoints = await tx.rewardPoints.create({
+        rewardPoints = await tx.reward_points.create({
           data: {
+            id: crypto.randomUUID(),
             userId,
             balance: 0,
             lifetimeEarned: 0,
@@ -125,7 +128,7 @@ export class RewardsService {
       const tierUpdated = newTier !== rewardPoints.tier;
 
       // Update points
-      const updated = await tx.rewardPoints.update({
+      const updated = await tx.reward_points.update({
         where: { userId },
         data: {
           balance: { increment: input.points },
@@ -138,6 +141,7 @@ export class RewardsService {
       // Record history
       await tx.reward_history.create({
         data: {
+          id: crypto.randomUUID(),
           userId,
           type: 'earned',
           points: input.points,
@@ -174,7 +178,7 @@ export class RewardsService {
     }
 
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      const updated = await tx.rewardPoints.update({
+      const updated = await tx.reward_points.update({
         where: { userId },
         data: {
           balance: { decrement: points },
@@ -183,6 +187,7 @@ export class RewardsService {
 
       await tx.reward_history.create({
         data: {
+          id: crypto.randomUUID(),
           userId,
           type: 'redeemed',
           points: -points,
@@ -272,7 +277,7 @@ export class RewardsService {
 
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Deduct points
-      await tx.rewardPoints.update({
+      await tx.reward_points.update({
         where: { userId },
         data: {
           balance: { decrement: reward.pointsCost },
@@ -281,7 +286,7 @@ export class RewardsService {
 
       // Decrement stock if applicable
       if (reward.stock !== null) {
-        await tx.reward.update({
+        await tx.rewards.update({
           where: { id: reward.id },
           data: {
             stock: { decrement: 1 },
@@ -292,6 +297,7 @@ export class RewardsService {
       // Record history
       await tx.reward_history.create({
         data: {
+          id: crypto.randomUUID(),
           userId,
           type: 'redeemed',
           points: -reward.pointsCost,

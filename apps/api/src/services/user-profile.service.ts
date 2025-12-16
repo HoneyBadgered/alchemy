@@ -5,6 +5,7 @@
 
 import { prisma } from '../utils/prisma';
 import { hashPassword, verifyPassword } from '../utils/password';
+import crypto from 'crypto';
 
 export interface UpdateProfileInput {
   firstName?: string;
@@ -86,14 +87,15 @@ export class UserProfileService {
     }
 
     // Check if profile exists
-    const existingProfile = await prisma.users.profiles.findUnique({
+    const existingProfile = await prisma.user_profiles.findUnique({
       where: { userId },
     });
 
     if (!existingProfile) {
       // Create profile if it doesn't exist
-      const profile = await prisma.users.profiles.create({
+      const profile = await prisma.user_profiles.create({
         data: {
+          id: crypto.randomUUID(),
           userId,
           ...input,
         },
@@ -102,7 +104,7 @@ export class UserProfileService {
     }
 
     // Update existing profile
-    const profile = await prisma.users.profiles.update({
+    const profile = await prisma.user_profiles.update({
       where: { userId },
       data: input,
     });

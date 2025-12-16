@@ -4,6 +4,7 @@
  */
 
 import { prisma } from '../utils/prisma';
+import crypto from 'crypto';
 
 export interface AddToWishlistInput {
   userId: string;
@@ -52,11 +53,12 @@ export class WishlistService {
     // Add to wishlist
     const item = await prisma.wishlist_items.create({
       data: {
+        id: crypto.randomUUID(),
         userId,
         productId,
       },
       include: {
-        product: {
+        products: {
           select: {
             id: true,
             name: true,
@@ -116,7 +118,7 @@ export class WishlistService {
         take: perPage,
         orderBy: { createdAt: 'desc' },
         include: {
-          product: {
+          products: {
             select: {
               id: true,
               name: true,
@@ -139,7 +141,7 @@ export class WishlistService {
     ]);
 
     // Filter out inactive products
-    const activeItems = items.filter((item) => item.product.isActive);
+    const activeItems = items.filter((item) => item.products.isActive);
 
     return {
       items: activeItems,
