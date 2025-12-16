@@ -5,6 +5,7 @@
 
 import { prisma } from '../utils/prisma';
 import type { Prisma } from '@prisma/client';
+import crypto from 'crypto';
 
 export interface AchievementProgress {
   id: string;
@@ -156,6 +157,7 @@ export class AchievementsService {
       // Create new progress record
       await prisma.user_achievements.create({
         data: {
+          id: crypto.randomUUID(),
           userId,
           achievementId,
           progress: newProgress,
