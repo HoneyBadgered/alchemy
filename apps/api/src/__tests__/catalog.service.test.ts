@@ -31,8 +31,8 @@ describe('CatalogService', () => {
         { id: '2', name: 'Product 2', price: 20.99, isActive: true, stock: 2, lowStockThreshold: 5, trackInventory: true, compareAtPrice: 25.99 },
       ];
 
-      prisma.product.findMany.mockResolvedValue(mockProducts);
-      prisma.product.count.mockResolvedValue(2);
+      prisma.products.findMany.mockResolvedValue(mockProducts);
+      prisma.products.count.mockResolvedValue(2);
 
       const result = await catalogService.getProducts({ page: 1, perPage: 20 });
 
@@ -51,7 +51,7 @@ describe('CatalogService', () => {
         total: 2,
         totalPages: 1,
       });
-      expect(prisma.product.findMany).toHaveBeenCalledWith({
+      expect(prisma.products.findMany).toHaveBeenCalledWith({
         where: { isActive: true },
         skip: 0,
         take: 20,
@@ -61,12 +61,12 @@ describe('CatalogService', () => {
 
     it('should filter by category', async () => {
       const { prisma } = require('../utils/prisma');
-      prisma.product.findMany.mockResolvedValue([]);
-      prisma.product.count.mockResolvedValue(0);
+      prisma.products.findMany.mockResolvedValue([]);
+      prisma.products.count.mockResolvedValue(0);
 
       await catalogService.getProducts({ category: 'teas' });
 
-      expect(prisma.product.findMany).toHaveBeenCalledWith({
+      expect(prisma.products.findMany).toHaveBeenCalledWith({
         where: { isActive: true, category: 'teas' },
         skip: 0,
         take: 20,
@@ -88,7 +88,7 @@ describe('CatalogService', () => {
         trackInventory: true 
       };
 
-      prisma.product.findUnique.mockResolvedValue(mockProduct);
+      prisma.products.findUnique.mockResolvedValue(mockProduct);
 
       const result = await catalogService.getProduct('1');
 
@@ -97,21 +97,21 @@ describe('CatalogService', () => {
       expect(result.stockStatus).toBeDefined();
       expect(result.stockStatus.status).toBe('in_stock');
       expect(result.isOnSale).toBe(false);
-      expect(prisma.product.findUnique).toHaveBeenCalledWith({
+      expect(prisma.products.findUnique).toHaveBeenCalledWith({
         where: { id: '1' },
       });
     });
 
     it('should throw error if product not found', async () => {
       const { prisma } = require('../utils/prisma');
-      prisma.product.findUnique.mockResolvedValue(null);
+      prisma.products.findUnique.mockResolvedValue(null);
 
       await expect(catalogService.getProduct('999')).rejects.toThrow('Product not found');
     });
 
     it('should throw error if product is not active', async () => {
       const { prisma } = require('../utils/prisma');
-      prisma.product.findUnique.mockResolvedValue({ id: '1', isActive: false });
+      prisma.products.findUnique.mockResolvedValue({ id: '1', isActive: false });
 
       await expect(catalogService.getProduct('1')).rejects.toThrow('Product is not available');
     });

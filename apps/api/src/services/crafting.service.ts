@@ -17,7 +17,7 @@ export class CraftingService {
     }
 
     // Get player state to check level
-    const playerState = await prisma.playerState.findUnique({
+    const playerState = await prisma.player_states.findUnique({
       where: { userId },
     });
 
@@ -26,7 +26,7 @@ export class CraftingService {
     }
 
     // Get all active recipes
-    const recipes = await prisma.recipe.findMany({
+    const recipes = await prisma.recipes.findMany({
       where: {
         isActive: true,
       },
@@ -48,7 +48,7 @@ export class CraftingService {
     const { recipeId } = input;
 
     // Get recipe
-    const recipe = await prisma.recipe.findUnique({
+    const recipe = await prisma.recipes.findUnique({
       where: { id: recipeId },
     });
 
@@ -66,10 +66,10 @@ export class CraftingService {
 
     // Get player state and inventory
     const [playerState, inventory] = await Promise.all([
-      prisma.playerState.findUnique({
+      prisma.player_states.findUnique({
         where: { userId },
       }),
-      prisma.playerInventory.findMany({
+      prisma.player_inventory.findMany({
         where: { userId },
       }),
     ]);
@@ -172,7 +172,7 @@ export class CraftingService {
 
       // Update player XP
       const newTotalXp = playerState.totalXp + recipe.xpGained;
-      await tx.playerState.update({
+      await tx.player_states.update({
         where: { userId },
         data: {
           totalXp: newTotalXp,

@@ -66,7 +66,7 @@ describe('GamificationService', () => {
         lastDailyRewardAt: new Date('2024-01-01'),
       };
 
-      mockPrisma.playerState.findUnique.mockResolvedValue(mockPlayerState);
+      mockPrisma.player_states.findUnique.mockResolvedValue(mockPlayerState);
 
       const result = await gamificationService.getProgress('user-1');
 
@@ -82,7 +82,7 @@ describe('GamificationService', () => {
     });
 
     it('should throw error if player state not found', async () => {
-      mockPrisma.playerState.findUnique.mockResolvedValue(null);
+      mockPrisma.player_states.findUnique.mockResolvedValue(null);
 
       await expect(
         gamificationService.getProgress('user-1')
@@ -119,7 +119,7 @@ describe('GamificationService', () => {
         },
       ];
 
-      mockPrisma.playerState.findUnique.mockResolvedValue(mockPlayerState);
+      mockPrisma.player_states.findUnique.mockResolvedValue(mockPlayerState);
       mockPrisma.playerQuest.findMany.mockResolvedValue(mockPlayerQuests);
 
       const result = await gamificationService.getQuests('user-1');
@@ -131,7 +131,7 @@ describe('GamificationService', () => {
     });
 
     it('should throw error if player state not found', async () => {
-      mockPrisma.playerState.findUnique.mockResolvedValue(null);
+      mockPrisma.player_states.findUnique.mockResolvedValue(null);
 
       await expect(
         gamificationService.getQuests('user-1')
@@ -205,7 +205,7 @@ describe('GamificationService', () => {
       mockPrisma.playerQuest.findUnique.mockResolvedValue(mockPlayerQuest);
 
       mockPrisma.$transaction.mockImplementation(async (callback: any) => {
-        mockPrisma.playerState.findUnique.mockResolvedValue(mockPlayerState);
+        mockPrisma.player_states.findUnique.mockResolvedValue(mockPlayerState);
         mockPrisma.playerCosmetics.findUnique.mockResolvedValue({
           userId: 'user-1',
           unlockedThemes: [],
@@ -224,7 +224,7 @@ describe('GamificationService', () => {
       mockPrisma.playerQuest.findUnique.mockResolvedValue(mockPlayerQuest);
 
       mockPrisma.$transaction.mockImplementation(async (callback: any) => {
-        mockPrisma.playerState.findUnique.mockResolvedValue(mockPlayerState);
+        mockPrisma.player_states.findUnique.mockResolvedValue(mockPlayerState);
         mockPrisma.playerCosmetics.findUnique.mockResolvedValue({
           userId: 'user-1',
           unlockedThemes: [],

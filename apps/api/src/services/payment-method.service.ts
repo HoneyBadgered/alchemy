@@ -26,7 +26,7 @@ export class PaymentMethodService {
    * Get all payment methods for a user
    */
   async getPaymentMethods(userId: string) {
-    const methods = await prisma.paymentMethod.findMany({
+    const methods = await prisma.payment_methods.findMany({
       where: { userId },
       orderBy: [
         { isDefault: 'desc' },
@@ -53,7 +53,7 @@ export class PaymentMethodService {
    * Get a single payment method by ID
    */
   async getPaymentMethod(userId: string, paymentMethodId: string) {
-    const method = await prisma.paymentMethod.findFirst({
+    const method = await prisma.payment_methods.findFirst({
       where: {
         id: paymentMethodId,
         userId,
@@ -94,7 +94,7 @@ export class PaymentMethodService {
     }
 
     // Check if payment method already exists
-    const existing = await prisma.paymentMethod.findUnique({
+    const existing = await prisma.payment_methods.findUnique({
       where: { stripePaymentId: input.stripePaymentId },
     });
 
@@ -104,7 +104,7 @@ export class PaymentMethodService {
 
     // Validate billing address if provided
     if (input.billingAddressId) {
-      const address = await prisma.address.findFirst({
+      const address = await prisma.addresses.findFirst({
         where: {
           id: input.billingAddressId,
           userId,
@@ -118,17 +118,17 @@ export class PaymentMethodService {
 
     // If this is set as default, unset other defaults
     if (input.isDefault) {
-      await prisma.paymentMethod.updateMany({
+      await prisma.payment_methods.updateMany({
         where: { userId, isDefault: true },
         data: { isDefault: false },
       });
     }
 
     // If this is the first payment method, make it default
-    const existingMethods = await prisma.paymentMethod.count({ where: { userId } });
+    const existingMethods = await prisma.payment_methods.count({ where: { userId } });
     const isDefault = input.isDefault || existingMethods === 0;
 
-    const method = await prisma.paymentMethod.create({
+    const method = await prisma.payment_methods.create({
       data: {
         userId,
         ...input,
@@ -155,7 +155,7 @@ export class PaymentMethodService {
    */
   async updatePaymentMethod(userId: string, paymentMethodId: string, input: UpdatePaymentMethodInput) {
     // Check if payment method exists and belongs to user
-    const existing = await prisma.paymentMethod.findFirst({
+    const existing = await prisma.payment_methods.findFirst({
       where: {
         id: paymentMethodId,
         userId,
@@ -168,7 +168,7 @@ export class PaymentMethodService {
 
     // Validate billing address if provided
     if (input.billingAddressId) {
-      const address = await prisma.address.findFirst({
+      const address = await prisma.addresses.findFirst({
         where: {
           id: input.billingAddressId,
           userId,
@@ -182,13 +182,13 @@ export class PaymentMethodService {
 
     // If setting as default, unset other defaults
     if (input.isDefault) {
-      await prisma.paymentMethod.updateMany({
+      await prisma.payment_methods.updateMany({
         where: { userId, isDefault: true, id: { not: paymentMethodId } },
         data: { isDefault: false },
       });
     }
 
-    const method = await prisma.paymentMethod.update({
+    const method = await prisma.payment_methods.update({
       where: { id: paymentMethodId },
       data: input,
       select: {
@@ -212,7 +212,7 @@ export class PaymentMethodService {
    */
   async removePaymentMethod(userId: string, paymentMethodId: string) {
     // Check if payment method exists and belongs to user
-    const existing = await prisma.paymentMethod.findFirst({
+    const existing = await prisma.payment_methods.findFirst({
       where: {
         id: paymentMethodId,
         userId,
@@ -223,19 +223,19 @@ export class PaymentMethodService {
       throw new Error('Payment method not found');
     }
 
-    await prisma.paymentMethod.delete({
+    await prisma.payment_methods.delete({
       where: { id: paymentMethodId },
     });
 
     // If deleted method was default, set another as default
     if (existing.isDefault) {
-      const nextMethod = await prisma.paymentMethod.findFirst({
+      const nextMethod = await prisma.payment_methods.findFirst({
         where: { userId },
         orderBy: { createdAt: 'desc' },
       });
 
       if (nextMethod) {
-        await prisma.paymentMethod.update({
+        await prisma.payment_methods.update({
           where: { id: nextMethod.id },
           data: { isDefault: true },
         });
@@ -250,7 +250,7 @@ export class PaymentMethodService {
    */
   async setDefaultPaymentMethod(userId: string, paymentMethodId: string) {
     // Check if payment method exists and belongs to user
-    const existing = await prisma.paymentMethod.findFirst({
+    const existing = await prisma.payment_methods.findFirst({
       where: {
         id: paymentMethodId,
         userId,
@@ -262,13 +262,13 @@ export class PaymentMethodService {
     }
 
     // Unset other defaults
-    await prisma.paymentMethod.updateMany({
+    await prisma.payment_methods.updateMany({
       where: { userId, isDefault: true },
       data: { isDefault: false },
     });
 
     // Set this method as default
-    const method = await prisma.paymentMethod.update({
+    const method = await prisma.payment_methods.update({
       where: { id: paymentMethodId },
       data: { isDefault: true },
       select: {
@@ -291,7 +291,7 @@ export class PaymentMethodService {
    * Get the default payment method for a user
    */
   async getDefaultPaymentMethod(userId: string) {
-    const method = await prisma.paymentMethod.findFirst({
+    const method = await prisma.payment_methods.findFirst({
       where: {
         userId,
         isDefault: true,
@@ -316,7 +316,7 @@ export class PaymentMethodService {
    * Get stripe payment ID (internal use only)
    */
   async getStripePaymentId(userId: string, paymentMethodId: string): Promise<string | null> {
-    const method = await prisma.paymentMethod.findFirst({
+    const method = await prisma.payment_methods.findFirst({
       where: {
         id: paymentMethodId,
         userId,

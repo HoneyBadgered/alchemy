@@ -61,7 +61,7 @@ export class AuthService {
     const normalizedEmail = input.email.toLowerCase();
 
     // Check if user already exists
-    const existingUser = await prisma.user.findFirst({
+    const existingUser = await prisma.users.findFirst({
       where: {
         OR: [
           { email: normalizedEmail },
@@ -83,7 +83,7 @@ export class AuthService {
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     // Create user with initial player state and profile
-    const user = await prisma.user.create({
+    const user = await prisma.users.create({
       data: {
         email: normalizedEmail,
         password: hashedPassword,
@@ -153,7 +153,7 @@ export class AuthService {
     const normalizedEmail = input.email.toLowerCase();
 
     // Find user
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { email: normalizedEmail },
     });
 
@@ -169,7 +169,7 @@ export class AuthService {
     }
 
     // Update last login
-    await prisma.playerState.update({
+    await prisma.player_states.update({
       where: { userId: user.id },
       data: { lastLoginAt: new Date() },
     });
@@ -204,7 +204,7 @@ export class AuthService {
   async logout(userId: string, refreshToken: string) {
     // Remove the specific refresh token
     const hashedToken = hashToken(refreshToken);
-    await prisma.refreshToken.deleteMany({
+    await prisma.refresh_tokens.deleteMany({
       where: {
         userId,
         token: hashedToken,
@@ -213,7 +213,7 @@ export class AuthService {
   }
 
   async getMe(userId: string) {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -243,7 +243,7 @@ export class AuthService {
     // Normalize email to lowercase for case-insensitive comparison
     const normalizedEmail = input.email.toLowerCase();
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { email: normalizedEmail },
     });
 
@@ -258,7 +258,7 @@ export class AuthService {
     const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
     // Store reset token
-    await prisma.user.update({
+    await prisma.users.update({
       where: { id: user.id },
       data: {
         passwordResetToken: hashedResetToken,
@@ -283,7 +283,7 @@ export class AuthService {
     const hashedToken = hashToken(input.token);
 
     // Find user with valid reset token
-    const user = await prisma.user.findFirst({
+    const user = await prisma.users.findFirst({
       where: {
         passwordResetToken: hashedToken,
         passwordResetExpires: {
@@ -300,7 +300,7 @@ export class AuthService {
     const hashedPassword = await hashPassword(input.newPassword);
 
     // Update password and clear reset token
-    await prisma.user.update({
+    await prisma.users.update({
       where: { id: user.id },
       data: {
         password: hashedPassword,
@@ -310,7 +310,7 @@ export class AuthService {
     });
 
     // Invalidate all refresh tokens for security
-    await prisma.refreshToken.deleteMany({
+    await prisma.refresh_tokens.deleteMany({
       where: { userId: user.id },
     });
 
@@ -321,7 +321,7 @@ export class AuthService {
     const hashedToken = hashToken(token);
 
     // Find user with valid verification token
-    const user = await prisma.user.findFirst({
+    const user = await prisma.users.findFirst({
       where: {
         emailVerificationToken: hashedToken,
         emailVerificationExpires: {
@@ -335,7 +335,7 @@ export class AuthService {
     }
 
     // Mark email as verified and clear token
-    await prisma.user.update({
+    await prisma.users.update({
       where: { id: user.id },
       data: {
         emailVerified: true,
@@ -351,7 +351,7 @@ export class AuthService {
     // Normalize email to lowercase for case-insensitive comparison
     const normalizedEmail = email.toLowerCase();
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { email: normalizedEmail },
     });
 
@@ -369,7 +369,7 @@ export class AuthService {
     const hashedVerificationToken = hashToken(verificationToken);
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-    await prisma.user.update({
+    await prisma.users.update({
       where: { id: user.id },
       data: {
         emailVerificationToken: hashedVerificationToken,
@@ -390,7 +390,7 @@ export class AuthService {
   async verifyRefreshToken(refreshToken: string) {
     const hashedToken = hashToken(refreshToken);
 
-    const storedToken = await prisma.refreshToken.findUnique({
+    const storedToken = await prisma.refresh_tokens.findUnique({
       where: {
         token: hashedToken,
         expiresAt: {
@@ -422,7 +422,7 @@ export class AuthService {
     const hashedToken = hashToken(refreshToken);
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-    await prisma.refreshToken.create({
+    await prisma.refresh_tokens.create({
       data: {
         token: hashedToken,
         userId,

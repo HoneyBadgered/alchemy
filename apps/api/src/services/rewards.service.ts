@@ -30,13 +30,13 @@ export class RewardsService {
    * Get user's reward points and tier
    */
   async getRewardPoints(userId: string) {
-    let rewardPoints = await prisma.rewardPoints.findUnique({
+    let rewardPoints = await prisma.reward_points.findUnique({
       where: { userId },
     });
 
     // Create reward points record if it doesn't exist
     if (!rewardPoints) {
-      rewardPoints = await prisma.rewardPoints.create({
+      rewardPoints = await prisma.reward_points.create({
         data: {
           userId,
           balance: 0,
@@ -74,13 +74,13 @@ export class RewardsService {
     const skip = (page - 1) * perPage;
 
     const [history, total] = await Promise.all([
-      prisma.rewardHistory.findMany({
+      prisma.rewards.history.findMany({
         where: { userId },
         skip,
         take: perPage,
         orderBy: { createdAt: 'desc' },
       }),
-      prisma.rewardHistory.count({ where: { userId } }),
+      prisma.rewards.history.count({ where: { userId } }),
     ]);
 
     return {
@@ -136,7 +136,7 @@ export class RewardsService {
       });
 
       // Record history
-      await tx.rewardHistory.create({
+      await tx.reward_history.create({
         data: {
           userId,
           type: 'earned',
@@ -165,7 +165,7 @@ export class RewardsService {
       throw new Error('Points must be positive');
     }
 
-    const rewardPoints = await prisma.rewardPoints.findUnique({
+    const rewardPoints = await prisma.reward_points.findUnique({
       where: { userId },
     });
 
@@ -181,7 +181,7 @@ export class RewardsService {
         },
       });
 
-      await tx.rewardHistory.create({
+      await tx.reward_history.create({
         data: {
           userId,
           type: 'redeemed',
@@ -203,7 +203,7 @@ export class RewardsService {
    * Get available rewards
    */
   async getAvailableRewards(userId: string) {
-    const rewardPoints = await prisma.rewardPoints.findUnique({
+    const rewardPoints = await prisma.reward_points.findUnique({
       where: { userId },
     });
 
@@ -211,7 +211,7 @@ export class RewardsService {
     const tierOrder = ['Novice', 'Adept', 'Alchemist', 'Master', 'Grandmaster'];
     const userTierIndex = tierOrder.indexOf(tier);
 
-    const rewards = await prisma.reward.findMany({
+    const rewards = await prisma.rewards.findMany({
       where: {
         isActive: true,
         OR: [
@@ -241,7 +241,7 @@ export class RewardsService {
    * Redeem a reward
    */
   async redeemReward(userId: string, input: RedeemRewardInput) {
-    const reward = await prisma.reward.findUnique({
+    const reward = await prisma.rewards.findUnique({
       where: { id: input.rewardId },
     });
 
@@ -253,7 +253,7 @@ export class RewardsService {
       throw new Error('Reward is out of stock');
     }
 
-    const rewardPoints = await prisma.rewardPoints.findUnique({
+    const rewardPoints = await prisma.reward_points.findUnique({
       where: { userId },
     });
 
@@ -290,7 +290,7 @@ export class RewardsService {
       }
 
       // Record history
-      await tx.rewardHistory.create({
+      await tx.reward_history.create({
         data: {
           userId,
           type: 'redeemed',

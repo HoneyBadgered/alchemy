@@ -41,7 +41,7 @@ export class PaymentService {
       }
 
       // Get the order
-      const order = await prisma.order.findFirst({
+      const order = await prisma.orders.findFirst({
         where: whereClause,
         include: {
           user: true,
@@ -167,7 +167,7 @@ export class PaymentService {
    * Used when returning from Stripe redirect after payment
    */
   async getOrderByPaymentIntent(paymentIntentId: string, clientSecret?: string) {
-    const order = await prisma.order.findFirst({
+    const order = await prisma.orders.findFirst({
       where: {
         stripePaymentId: paymentIntentId,
       },
@@ -196,6 +196,7 @@ export class PaymentService {
     } catch (error: any) {
       console.error('Failed to retrieve payment intent from Stripe:', error);
       throw new PaymentError(`Unable to retrieve payment status: ${error.message}`);
+    }
 
     // Update order status if payment status changed (graceful error handling)
     if (paymentIntent.status !== order.stripePaymentStatus) {
@@ -226,7 +227,7 @@ export class PaymentService {
       whereClause.sessionId = sessionId;
     }
 
-    const order = await prisma.order.findFirst({
+    const order = await prisma.orders.findFirst({
       where: whereClause,
     });
 
@@ -244,19 +245,6 @@ export class PaymentService {
 
     // Get latest status from Stripe
     let paymentIntent: Stripe.PaymentIntent;
-    try {
-      paymentIntent = await stripe.paymentIntents.retrieve(order.stripePaymentId);
-    } catch (error: any) {
-      console.error('Failed to retrieve payment intent from Stripe:', error);
-      // Return last known status instead of failing completely
-      return {
-        status: order.stripePaymentStatus || 'unknown',
-        orderId: order.id,
-        orderStatus: order.status,
-        paymentIntentId: order.stripePaymentId,
-        error: 'Unable to retrieve latest payment status from Stripe',
-      };
-    }
     try {
       paymentIntent = await stripe.paymentIntents.retrieve(order.stripePaymentId);
     } catch (error: any) {
@@ -288,7 +276,7 @@ export class PaymentService {
    * Update order payment status based on Stripe PaymentIntent
    */
   async updateOrderPaymentStatus(orderId: string, paymentIntent: Stripe.PaymentIntent) {
-    const order = await prisma.order.findUnique({
+    const order = await prisma.orders.findUnique({
       where: { id: orderId },
     });
 
@@ -353,7 +341,7 @@ export class PaymentService {
   async handleWebhookEvent(event: Stripe.Event) {
     try {
       // Store webhook event for idempotency
-      const existingEvent = await prisma.stripeWebhookEvent.findUnique({
+      const existingEvent = await prisma.stripe_webhook_events.findUnique({
         where: { eventId: event.id },
       });
 
@@ -364,7 +352,7 @@ export class PaymentService {
       }
 
       // Create or update webhook event record
-      const webhookEvent = await prisma.stripeWebhookEvent.upsert({
+      const webhookEvent = await prisma.stripe_webhook_events.upsert({
         where: { eventId: event.id },
         create: {
           eventId: event.id,
@@ -396,7 +384,7 @@ export class PaymentService {
         }
 
         // Mark as processed
-        await prisma.stripeWebhookEvent.update({
+        await prisma.stripe_webhook_events.update({
           where: { id: webhookEvent.id },
           data: {
             processed: true,
@@ -408,7 +396,7 @@ export class PaymentService {
         console.error(`Failed to process webhook event ${event.id}:`, error);
         
         // Mark as failed
-        await prisma.stripeWebhookEvent.update({
+        await prisma.stripe_webhook_events.update({
           where: { id: webhookEvent.id },
           data: {
             error: errorMessage,

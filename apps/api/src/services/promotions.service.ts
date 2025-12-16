@@ -28,7 +28,7 @@ export class PromotionsService {
   async validateCoupon(input: ValidateCouponInput) {
     const { code, subtotal } = input;
 
-    const coupon = await prisma.discountCode.findUnique({
+    const coupon = await prisma.discount_codes.findUnique({
       where: { code: code.toUpperCase() },
     });
 
@@ -86,7 +86,7 @@ export class PromotionsService {
   async getActiveCoupons() {
     const now = new Date();
 
-    return prisma.discountCode.findMany({
+    return prisma.discount_codes.findMany({
       where: {
         isActive: true,
         OR: [
@@ -112,13 +112,13 @@ export class PromotionsService {
     };
 
     const [products, total] = await Promise.all([
-      prisma.product.findMany({
+      prisma.products.findMany({
         where,
         skip,
         take: perPage,
         orderBy: { createdAt: 'desc' },
       }),
-      prisma.product.count({ where }),
+      prisma.products.count({ where }),
     ]);
 
     // Calculate discount percentages
@@ -149,7 +149,7 @@ export class PromotionsService {
    * Check if a product is on sale
    */
   async isProductOnSale(productId: string): Promise<boolean> {
-    const product = await prisma.product.findUnique({
+    const product = await prisma.products.findUnique({
       where: { id: productId },
       select: { compareAtPrice: true, price: true },
     });

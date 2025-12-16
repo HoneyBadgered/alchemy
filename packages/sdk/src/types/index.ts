@@ -123,6 +123,8 @@ export interface BlendingIngredient {
   incrementAmount?: number;
 }
 
+export interface LabelDesignResponse {
+  id: string;
   orderId: string;
   name: string;
   tagline: string;

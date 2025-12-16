@@ -10,7 +10,7 @@ export class AdminSettingsService {
   // ============================================
 
   async getSiteSettings() {
-    const settings = await prisma.siteSettings.findMany({
+    const settings = await prisma.site_settings.findMany({
       orderBy: { category: 'asc' },
     });
 
@@ -18,7 +18,7 @@ export class AdminSettingsService {
   }
 
   async getSiteSetting(key: string) {
-    const setting = await prisma.siteSettings.findUnique({
+    const setting = await prisma.site_settings.findUnique({
       where: { key },
     });
 
@@ -30,7 +30,7 @@ export class AdminSettingsService {
   }
 
   async updateSiteSetting(key: string, value: string) {
-    const setting = await prisma.siteSettings.upsert({
+    const setting = await prisma.site_settings.upsert({
       where: { key },
       create: {
         key,
@@ -49,7 +49,7 @@ export class AdminSettingsService {
     description?: string;
     category?: string;
   }) {
-    const setting = await prisma.siteSettings.create({
+    const setting = await prisma.site_settings.create({
       data: {
         key: data.key,
         value: data.value,
@@ -66,7 +66,7 @@ export class AdminSettingsService {
   // ============================================
 
   async getShippingMethods() {
-    const methods = await prisma.shippingMethod.findMany({
+    const methods = await prisma.shipping_methods.findMany({
       orderBy: { sortOrder: 'asc' },
     });
 
@@ -74,7 +74,7 @@ export class AdminSettingsService {
   }
 
   async getShippingMethod(id: string) {
-    const method = await prisma.shippingMethod.findUnique({
+    const method = await prisma.shipping_methods.findUnique({
       where: { id },
     });
 
@@ -93,7 +93,7 @@ export class AdminSettingsService {
     isActive?: boolean;
     sortOrder?: number;
   }) {
-    const method = await prisma.shippingMethod.create({
+    const method = await prisma.shipping_methods.create({
       data: {
         name: data.name,
         description: data.description,
@@ -115,7 +115,7 @@ export class AdminSettingsService {
     isActive?: boolean;
     sortOrder?: number;
   }) {
-    const method = await prisma.shippingMethod.update({
+    const method = await prisma.shipping_methods.update({
       where: { id },
       data,
     });
@@ -124,7 +124,7 @@ export class AdminSettingsService {
   }
 
   async deleteShippingMethod(id: string) {
-    await prisma.shippingMethod.delete({
+    await prisma.shipping_methods.delete({
       where: { id },
     });
 
@@ -136,7 +136,7 @@ export class AdminSettingsService {
   // ============================================
 
   async getTaxRates() {
-    const rates = await prisma.taxRate.findMany({
+    const rates = await prisma.tax_rates.findMany({
       orderBy: { region: 'asc' },
     });
 
@@ -144,7 +144,7 @@ export class AdminSettingsService {
   }
 
   async getTaxRate(id: string) {
-    const rate = await prisma.taxRate.findUnique({
+    const rate = await prisma.tax_rates.findUnique({
       where: { id },
     });
 
@@ -161,7 +161,7 @@ export class AdminSettingsService {
     rate: number;
     isActive?: boolean;
   }) {
-    const taxRate = await prisma.taxRate.create({
+    const taxRate = await prisma.tax_rates.create({
       data: {
         name: data.name,
         region: data.region,
@@ -179,7 +179,7 @@ export class AdminSettingsService {
     rate?: number;
     isActive?: boolean;
   }) {
-    const taxRate = await prisma.taxRate.update({
+    const taxRate = await prisma.tax_rates.update({
       where: { id },
       data,
     });
@@ -188,7 +188,7 @@ export class AdminSettingsService {
   }
 
   async deleteTaxRate(id: string) {
-    await prisma.taxRate.delete({
+    await prisma.tax_rates.delete({
       where: { id },
     });
 
@@ -200,7 +200,7 @@ export class AdminSettingsService {
   // ============================================
 
   async getDiscountCodes() {
-    const codes = await prisma.discountCode.findMany({
+    const codes = await prisma.discount_codes.findMany({
       orderBy: { createdAt: 'desc' },
     });
 
@@ -208,7 +208,7 @@ export class AdminSettingsService {
   }
 
   async getDiscountCode(id: string) {
-    const code = await prisma.discountCode.findUnique({
+    const code = await prisma.discount_codes.findUnique({
       where: { id },
     });
 
@@ -230,7 +230,7 @@ export class AdminSettingsService {
     validUntil?: Date;
     isActive?: boolean;
   }) {
-    const discountCode = await prisma.discountCode.create({
+    const discountCode = await prisma.discount_codes.create({
       data: {
         code: data.code,
         description: data.description,
@@ -258,7 +258,7 @@ export class AdminSettingsService {
     validUntil?: Date;
     isActive?: boolean;
   }) {
-    const discountCode = await prisma.discountCode.update({
+    const discountCode = await prisma.discount_codes.update({
       where: { id },
       data,
     });
@@ -267,7 +267,7 @@ export class AdminSettingsService {
   }
 
   async deleteDiscountCode(id: string) {
-    await prisma.discountCode.delete({
+    await prisma.discount_codes.delete({
       where: { id },
     });
 
@@ -279,7 +279,7 @@ export class AdminSettingsService {
   // ============================================
 
   async getEmailTemplates() {
-    const templates = await prisma.emailTemplate.findMany({
+    const templates = await prisma.email_templates.findMany({
       orderBy: { name: 'asc' },
     });
 
@@ -287,7 +287,7 @@ export class AdminSettingsService {
   }
 
   async getEmailTemplate(id: string) {
-    const template = await prisma.emailTemplate.findUnique({
+    const template = await prisma.email_templates.findUnique({
       where: { id },
     });
 
@@ -305,7 +305,7 @@ export class AdminSettingsService {
     bodyText?: string;
     isActive?: boolean;
   }) {
-    const template = await prisma.emailTemplate.create({
+    const template = await prisma.email_templates.create({
       data: {
         name: data.name,
         subject: data.subject,
@@ -325,7 +325,7 @@ export class AdminSettingsService {
     bodyText?: string;
     isActive?: boolean;
   }) {
-    const template = await prisma.emailTemplate.update({
+    const template = await prisma.email_templates.update({
       where: { id },
       data,
     });
@@ -334,7 +334,7 @@ export class AdminSettingsService {
   }
 
   async deleteEmailTemplate(id: string) {
-    await prisma.emailTemplate.delete({
+    await prisma.email_templates.delete({
       where: { id },
     });
 

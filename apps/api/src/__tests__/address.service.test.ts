@@ -36,12 +36,12 @@ describe('AddressService', () => {
         { id: '2', label: 'Work', isDefault: false, firstName: 'John' },
       ];
 
-      prisma.address.findMany.mockResolvedValue(mockAddresses);
+      prisma.addresses.findMany.mockResolvedValue(mockAddresses);
 
       const result = await addressService.getAddresses('user_123');
 
       expect(result).toHaveLength(2);
-      expect(prisma.address.findMany).toHaveBeenCalledWith({
+      expect(prisma.addresses.findMany).toHaveBeenCalledWith({
         where: { userId: 'user_123' },
         orderBy: [
           { isDefault: 'desc' },
@@ -55,7 +55,7 @@ describe('AddressService', () => {
     it('should return address if it belongs to user', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.address.findFirst.mockResolvedValue({
+      prisma.addresses.findFirst.mockResolvedValue({
         id: 'addr_123',
         userId: 'user_123',
         firstName: 'John',
@@ -70,7 +70,7 @@ describe('AddressService', () => {
     it('should throw error if address not found', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.address.findFirst.mockResolvedValue(null);
+      prisma.addresses.findFirst.mockResolvedValue(null);
 
       await expect(
         addressService.getAddress('user_123', 'invalid_addr')
@@ -82,8 +82,8 @@ describe('AddressService', () => {
     it('should create first address as default', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.address.count.mockResolvedValue(0);
-      prisma.address.create.mockResolvedValue({
+      prisma.addresses.count.mockResolvedValue(0);
+      prisma.addresses.create.mockResolvedValue({
         id: 'addr_123',
         userId: 'user_123',
         firstName: 'John',
@@ -112,9 +112,9 @@ describe('AddressService', () => {
     it('should unset other defaults when adding new default address', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.address.count.mockResolvedValue(2);
-      prisma.address.updateMany.mockResolvedValue({});
-      prisma.address.create.mockResolvedValue({
+      prisma.addresses.count.mockResolvedValue(2);
+      prisma.addresses.updateMany.mockResolvedValue({});
+      prisma.addresses.create.mockResolvedValue({
         id: 'addr_123',
         isDefault: true,
       });
@@ -130,7 +130,7 @@ describe('AddressService', () => {
         isDefault: true,
       });
 
-      expect(prisma.address.updateMany).toHaveBeenCalledWith({
+      expect(prisma.addresses.updateMany).toHaveBeenCalledWith({
         where: { userId: 'user_123', isDefault: true },
         data: { isDefault: false },
       });
@@ -167,11 +167,11 @@ describe('AddressService', () => {
     it('should update address fields', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.address.findFirst.mockResolvedValue({
+      prisma.addresses.findFirst.mockResolvedValue({
         id: 'addr_123',
         userId: 'user_123',
       });
-      prisma.address.update.mockResolvedValue({
+      prisma.addresses.update.mockResolvedValue({
         id: 'addr_123',
         firstName: 'Jane',
       });
@@ -186,7 +186,7 @@ describe('AddressService', () => {
     it('should throw error if address not found', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.address.findFirst.mockResolvedValue(null);
+      prisma.addresses.findFirst.mockResolvedValue(null);
 
       await expect(
         addressService.updateAddress('user_123', 'invalid', { firstName: 'Jane' })
@@ -199,12 +199,12 @@ describe('AddressService', () => {
       const { prisma } = require('../utils/prisma');
       jest.clearAllMocks();
       
-      prisma.address.findFirst.mockResolvedValue({
+      prisma.addresses.findFirst.mockResolvedValue({
         id: 'addr_123',
         userId: 'user_123',
         isDefault: false,
       });
-      prisma.address.delete.mockResolvedValue({});
+      prisma.addresses.delete.mockResolvedValue({});
 
       const result = await addressService.deleteAddress('user_123', 'addr_123');
 
@@ -215,7 +215,7 @@ describe('AddressService', () => {
       const { prisma } = require('../utils/prisma');
       jest.clearAllMocks();
       
-      prisma.address.findFirst
+      prisma.addresses.findFirst
         .mockResolvedValueOnce({
           id: 'addr_123',
           userId: 'user_123',
@@ -226,12 +226,12 @@ describe('AddressService', () => {
           userId: 'user_123',
           isDefault: false,
         });
-      prisma.address.delete.mockResolvedValue({});
-      prisma.address.update.mockResolvedValue({});
+      prisma.addresses.delete.mockResolvedValue({});
+      prisma.addresses.update.mockResolvedValue({});
 
       await addressService.deleteAddress('user_123', 'addr_123');
 
-      expect(prisma.address.update).toHaveBeenCalledWith({
+      expect(prisma.addresses.update).toHaveBeenCalledWith({
         where: { id: 'addr_456' },
         data: { isDefault: true },
       });
@@ -242,12 +242,12 @@ describe('AddressService', () => {
     it('should set address as default', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.address.findFirst.mockResolvedValue({
+      prisma.addresses.findFirst.mockResolvedValue({
         id: 'addr_123',
         userId: 'user_123',
       });
-      prisma.address.updateMany.mockResolvedValue({});
-      prisma.address.update.mockResolvedValue({
+      prisma.addresses.updateMany.mockResolvedValue({});
+      prisma.addresses.update.mockResolvedValue({
         id: 'addr_123',
         isDefault: true,
       });
@@ -255,7 +255,7 @@ describe('AddressService', () => {
       const result = await addressService.setDefaultAddress('user_123', 'addr_123');
 
       expect(result.isDefault).toBe(true);
-      expect(prisma.address.updateMany).toHaveBeenCalledWith({
+      expect(prisma.addresses.updateMany).toHaveBeenCalledWith({
         where: { userId: 'user_123', isDefault: true },
         data: { isDefault: false },
       });
@@ -267,7 +267,7 @@ describe('AddressService', () => {
       const { prisma } = require('../utils/prisma');
       jest.clearAllMocks();
       
-      prisma.address.findFirst.mockResolvedValue({
+      prisma.addresses.findFirst.mockResolvedValue({
         id: 'addr_123',
         isDefault: true,
         firstName: 'John',
@@ -276,7 +276,7 @@ describe('AddressService', () => {
       const result = await addressService.getDefaultAddress('user_123');
 
       expect(result?.isDefault).toBe(true);
-      expect(prisma.address.findFirst).toHaveBeenCalledWith({
+      expect(prisma.addresses.findFirst).toHaveBeenCalledWith({
         where: { userId: 'user_123', isDefault: true },
       });
     });
@@ -285,7 +285,7 @@ describe('AddressService', () => {
       const { prisma } = require('../utils/prisma');
       jest.clearAllMocks();
       
-      prisma.address.findFirst.mockResolvedValue(null);
+      prisma.addresses.findFirst.mockResolvedValue(null);
 
       const result = await addressService.getDefaultAddress('user_123');
 

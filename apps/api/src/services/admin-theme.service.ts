@@ -33,7 +33,7 @@ export class AdminThemeService {
    * Get all themes
    */
   async getThemes() {
-    const themes = await prisma.theme.findMany({
+    const themes = await prisma.themes.findMany({
       include: {
         tableSkins: true,
       },
@@ -47,7 +47,7 @@ export class AdminThemeService {
    * Get single theme by ID
    */
   async getTheme(id: string) {
-    const theme = await prisma.theme.findUnique({
+    const theme = await prisma.themes.findUnique({
       where: { id },
       include: {
         tableSkins: true,
@@ -65,7 +65,7 @@ export class AdminThemeService {
    * Create new theme
    */
   async createTheme(data: CreateThemeInput) {
-    const theme = await prisma.theme.create({
+    const theme = await prisma.themes.create({
       data: {
         name: data.name,
         description: data.description,
@@ -86,7 +86,7 @@ export class AdminThemeService {
    * Update theme
    */
   async updateTheme(id: string, data: UpdateThemeInput) {
-    const theme = await prisma.theme.update({
+    const theme = await prisma.themes.update({
       where: { id },
       data,
     });
@@ -99,7 +99,7 @@ export class AdminThemeService {
    */
   async deleteTheme(id: string) {
     // Check if theme has table skins
-    const theme = await prisma.theme.findUnique({
+    const theme = await prisma.themes.findUnique({
       where: { id },
       include: {
         tableSkins: true,
@@ -114,7 +114,7 @@ export class AdminThemeService {
       throw new Error('Cannot delete theme with associated table skins. Delete table skins first.');
     }
 
-    await prisma.theme.delete({
+    await prisma.themes.delete({
       where: { id },
     });
 
@@ -135,7 +135,7 @@ export class AdminThemeService {
     price?: number;
     isActive?: boolean;
   }) {
-    const tableSkin = await prisma.tableSkin.create({
+    const tableSkin = await prisma.table_skins.create({
       data: {
         name: data.name,
         description: data.description,
@@ -166,7 +166,7 @@ export class AdminThemeService {
     price?: number;
     isActive?: boolean;
   }) {
-    const tableSkin = await prisma.tableSkin.update({
+    const tableSkin = await prisma.table_skins.update({
       where: { id },
       data,
     });
@@ -178,7 +178,7 @@ export class AdminThemeService {
    * Delete table skin
    */
   async deleteTableSkin(id: string) {
-    await prisma.tableSkin.delete({
+    await prisma.table_skins.delete({
       where: { id },
     });
 

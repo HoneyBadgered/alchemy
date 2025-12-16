@@ -7,7 +7,6 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { ReviewsService } from '../services/reviews.service';
 import { authMiddleware } from '../middleware/auth';
-import { NotFoundError, ConflictError, ForbiddenError, BadRequestError } from '../utils/errors';
 
 const createReviewSchema = z.object({
   productId: z.string().min(1),

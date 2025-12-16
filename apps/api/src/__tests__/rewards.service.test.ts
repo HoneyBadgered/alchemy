@@ -38,7 +38,7 @@ describe('RewardsService', () => {
     it('should return existing reward points with tier info', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.rewardPoints.findUnique.mockResolvedValue({
+      prisma.reward_points.findUnique.mockResolvedValue({
         userId: 'user_123',
         balance: 500,
         lifetimeEarned: 750,
@@ -57,8 +57,8 @@ describe('RewardsService', () => {
     it('should create reward points if not exists', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.rewardPoints.findUnique.mockResolvedValue(null);
-      prisma.rewardPoints.create.mockResolvedValue({
+      prisma.reward_points.findUnique.mockResolvedValue(null);
+      prisma.reward_points.create.mockResolvedValue({
         userId: 'user_123',
         balance: 0,
         lifetimeEarned: 0,
@@ -71,13 +71,13 @@ describe('RewardsService', () => {
       expect(result.balance).toBe(0);
       expect(result.tier).toBe('Novice');
       expect(result.nextTier).toBe('Adept');
-      expect(prisma.rewardPoints.create).toHaveBeenCalled();
+      expect(prisma.reward_points.create).toHaveBeenCalled();
     });
 
     it('should return null for next tier at Grandmaster', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.rewardPoints.findUnique.mockResolvedValue({
+      prisma.reward_points.findUnique.mockResolvedValue({
         userId: 'user_123',
         balance: 15000,
         lifetimeEarned: 15000,
@@ -103,8 +103,8 @@ describe('RewardsService', () => {
         { id: '2', type: 'redeemed', points: -50, description: 'Reward', createdAt: new Date() },
       ];
 
-      prisma.rewardHistory.findMany.mockResolvedValue(mockHistory);
-      prisma.rewardHistory.count.mockResolvedValue(10);
+      prisma.rewards.history.findMany.mockResolvedValue(mockHistory);
+      prisma.rewards.history.count.mockResolvedValue(10);
 
       const result = await rewardsService.getRewardHistory('user_123', { page: 1, perPage: 2 });
 
@@ -118,13 +118,13 @@ describe('RewardsService', () => {
     it('should add points and update tier', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.rewardPoints.findUnique.mockResolvedValue({
+      prisma.reward_points.findUnique.mockResolvedValue({
         userId: 'user_123',
         balance: 400,
         lifetimeEarned: 400,
         tier: 'Novice',
       });
-      prisma.rewardPoints.update.mockResolvedValue({
+      prisma.reward_points.update.mockResolvedValue({
         balance: 600,
         tier: 'Adept',
       });
@@ -137,7 +137,7 @@ describe('RewardsService', () => {
 
       expect(result.pointsAdded).toBe(200);
       expect(result.tierUpdated).toBe(true);
-      expect(prisma.rewardHistory.create).toHaveBeenCalled();
+      expect(prisma.rewards.history.create).toHaveBeenCalled();
     });
 
     it('should reject non-positive points', async () => {
@@ -159,14 +159,14 @@ describe('RewardsService', () => {
     it('should create reward points record if not exists', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.rewardPoints.findUnique.mockResolvedValue(null);
-      prisma.rewardPoints.create.mockResolvedValue({
+      prisma.reward_points.findUnique.mockResolvedValue(null);
+      prisma.reward_points.create.mockResolvedValue({
         userId: 'user_123',
         balance: 0,
         lifetimeEarned: 0,
         tier: 'Novice',
       });
-      prisma.rewardPoints.update.mockResolvedValue({
+      prisma.reward_points.update.mockResolvedValue({
         balance: 100,
         tier: 'Novice',
       });
@@ -176,7 +176,7 @@ describe('RewardsService', () => {
         description: 'Welcome bonus',
       });
 
-      expect(prisma.rewardPoints.create).toHaveBeenCalled();
+      expect(prisma.reward_points.create).toHaveBeenCalled();
     });
   });
 
@@ -184,12 +184,12 @@ describe('RewardsService', () => {
     it('should deduct points from balance', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.rewardPoints.findUnique.mockResolvedValue({
+      prisma.reward_points.findUnique.mockResolvedValue({
         userId: 'user_123',
         balance: 500,
         tier: 'Adept',
       });
-      prisma.rewardPoints.update.mockResolvedValue({
+      prisma.reward_points.update.mockResolvedValue({
         balance: 400,
       });
 
@@ -202,7 +202,7 @@ describe('RewardsService', () => {
     it('should reject if insufficient balance', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.rewardPoints.findUnique.mockResolvedValue({
+      prisma.reward_points.findUnique.mockResolvedValue({
         userId: 'user_123',
         balance: 50,
       });
@@ -217,13 +217,13 @@ describe('RewardsService', () => {
     it('should return rewards with eligibility status', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.rewardPoints.findUnique.mockResolvedValue({
+      prisma.reward_points.findUnique.mockResolvedValue({
         userId: 'user_123',
         balance: 300,
         tier: 'Adept',
       });
 
-      prisma.reward.findMany.mockResolvedValue([
+      prisma.rewards.findMany.mockResolvedValue([
         { id: '1', name: 'Free Tea', pointsCost: 100, minimumTier: 'Novice', isActive: true },
         { id: '2', name: 'Premium Tea', pointsCost: 500, minimumTier: 'Novice', isActive: true },
         { id: '3', name: 'Exclusive', pointsCost: 200, minimumTier: 'Master', isActive: true },
@@ -242,7 +242,7 @@ describe('RewardsService', () => {
     it('should redeem reward successfully', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.reward.findUnique.mockResolvedValue({
+      prisma.rewards.findUnique.mockResolvedValue({
         id: 'reward_123',
         name: 'Free Tea',
         pointsCost: 100,
@@ -253,14 +253,14 @@ describe('RewardsService', () => {
         discountValue: 10,
       });
 
-      prisma.rewardPoints.findUnique.mockResolvedValue({
+      prisma.reward_points.findUnique.mockResolvedValue({
         userId: 'user_123',
         balance: 500,
         tier: 'Adept',
       });
 
-      prisma.rewardPoints.update.mockResolvedValue({});
-      prisma.reward.update.mockResolvedValue({});
+      prisma.reward_points.update.mockResolvedValue({});
+      prisma.rewards.update.mockResolvedValue({});
 
       const result = await rewardsService.redeemReward('user_123', { rewardId: 'reward_123' });
 
@@ -272,7 +272,7 @@ describe('RewardsService', () => {
     it('should reject if reward not found', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.reward.findUnique.mockResolvedValue(null);
+      prisma.rewards.findUnique.mockResolvedValue(null);
 
       await expect(
         rewardsService.redeemReward('user_123', { rewardId: 'invalid' })
@@ -282,7 +282,7 @@ describe('RewardsService', () => {
     it('should reject if out of stock', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.reward.findUnique.mockResolvedValue({
+      prisma.rewards.findUnique.mockResolvedValue({
         id: 'reward_123',
         name: 'Limited Edition',
         pointsCost: 100,
@@ -299,7 +299,7 @@ describe('RewardsService', () => {
     it('should reject if insufficient points', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.reward.findUnique.mockResolvedValue({
+      prisma.rewards.findUnique.mockResolvedValue({
         id: 'reward_123',
         name: 'Expensive Tea',
         pointsCost: 1000,
@@ -308,7 +308,7 @@ describe('RewardsService', () => {
         stock: null,
       });
 
-      prisma.rewardPoints.findUnique.mockResolvedValue({
+      prisma.reward_points.findUnique.mockResolvedValue({
         userId: 'user_123',
         balance: 100,
         tier: 'Novice',
@@ -322,7 +322,7 @@ describe('RewardsService', () => {
     it('should reject if tier too low', async () => {
       const { prisma } = require('../utils/prisma');
       
-      prisma.reward.findUnique.mockResolvedValue({
+      prisma.rewards.findUnique.mockResolvedValue({
         id: 'reward_123',
         name: 'Master Only',
         pointsCost: 100,
@@ -331,7 +331,7 @@ describe('RewardsService', () => {
         stock: null,
       });
 
-      prisma.rewardPoints.findUnique.mockResolvedValue({
+      prisma.reward_points.findUnique.mockResolvedValue({
         userId: 'user_123',
         balance: 500,
         tier: 'Adept',

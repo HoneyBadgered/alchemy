@@ -38,7 +38,7 @@ export class AddressService {
    * Get all addresses for a user
    */
   async getAddresses(userId: string) {
-    const addresses = await prisma.address.findMany({
+    const addresses = await prisma.addresses.findMany({
       where: { userId },
       orderBy: [
         { isDefault: 'desc' },
@@ -53,7 +53,7 @@ export class AddressService {
    * Get a single address by ID
    */
   async getAddress(userId: string, addressId: string) {
-    const address = await prisma.address.findFirst({
+    const address = await prisma.addresses.findFirst({
       where: {
         id: addressId,
         userId,
@@ -76,17 +76,17 @@ export class AddressService {
 
     // If this is set as default, unset other defaults
     if (input.isDefault) {
-      await prisma.address.updateMany({
+      await prisma.addresses.updateMany({
         where: { userId, isDefault: true },
         data: { isDefault: false },
       });
     }
 
     // If this is the first address, make it default
-    const existingAddresses = await prisma.address.count({ where: { userId } });
+    const existingAddresses = await prisma.addresses.count({ where: { userId } });
     const isDefault = input.isDefault || existingAddresses === 0;
 
-    const address = await prisma.address.create({
+    const address = await prisma.addresses.create({
       data: {
         userId,
         ...input,
@@ -102,7 +102,7 @@ export class AddressService {
    */
   async updateAddress(userId: string, addressId: string, input: UpdateAddressInput) {
     // Check if address exists and belongs to user
-    const existing = await prisma.address.findFirst({
+    const existing = await prisma.addresses.findFirst({
       where: {
         id: addressId,
         userId,
@@ -115,13 +115,13 @@ export class AddressService {
 
     // If setting as default, unset other defaults
     if (input.isDefault) {
-      await prisma.address.updateMany({
+      await prisma.addresses.updateMany({
         where: { userId, isDefault: true, id: { not: addressId } },
         data: { isDefault: false },
       });
     }
 
-    const address = await prisma.address.update({
+    const address = await prisma.addresses.update({
       where: { id: addressId },
       data: input,
     });
@@ -134,7 +134,7 @@ export class AddressService {
    */
   async deleteAddress(userId: string, addressId: string) {
     // Check if address exists and belongs to user
-    const existing = await prisma.address.findFirst({
+    const existing = await prisma.addresses.findFirst({
       where: {
         id: addressId,
         userId,
@@ -145,19 +145,19 @@ export class AddressService {
       throw new Error('Address not found');
     }
 
-    await prisma.address.delete({
+    await prisma.addresses.delete({
       where: { id: addressId },
     });
 
     // If deleted address was default, set another as default
     if (existing.isDefault) {
-      const nextAddress = await prisma.address.findFirst({
+      const nextAddress = await prisma.addresses.findFirst({
         where: { userId },
         orderBy: { createdAt: 'desc' },
       });
 
       if (nextAddress) {
-        await prisma.address.update({
+        await prisma.addresses.update({
           where: { id: nextAddress.id },
           data: { isDefault: true },
         });
@@ -172,7 +172,7 @@ export class AddressService {
    */
   async setDefaultAddress(userId: string, addressId: string) {
     // Check if address exists and belongs to user
-    const existing = await prisma.address.findFirst({
+    const existing = await prisma.addresses.findFirst({
       where: {
         id: addressId,
         userId,
@@ -184,13 +184,13 @@ export class AddressService {
     }
 
     // Unset other defaults
-    await prisma.address.updateMany({
+    await prisma.addresses.updateMany({
       where: { userId, isDefault: true },
       data: { isDefault: false },
     });
 
     // Set this address as default
-    const address = await prisma.address.update({
+    const address = await prisma.addresses.update({
       where: { id: addressId },
       data: { isDefault: true },
     });
@@ -202,7 +202,7 @@ export class AddressService {
    * Get the default address for a user
    */
   async getDefaultAddress(userId: string) {
-    const address = await prisma.address.findFirst({
+    const address = await prisma.addresses.findFirst({
       where: {
         userId,
         isDefault: true,

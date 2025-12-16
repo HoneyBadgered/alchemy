@@ -21,13 +21,13 @@ export class NotificationPreferencesService {
    * Get user's notification preferences
    */
   async getPreferences(userId: string) {
-    let preferences = await prisma.notificationPreference.findUnique({
+    let preferences = await prisma.notification_preferences.findUnique({
       where: { userId },
     });
 
     // Create default preferences if they don't exist
     if (!preferences) {
-      preferences = await prisma.notificationPreference.create({
+      preferences = await prisma.notification_preferences.create({
         data: {
           userId,
           emailEnabled: true,
@@ -60,7 +60,7 @@ export class NotificationPreferencesService {
   async updatePreferences(userId: string, input: UpdateNotificationPreferencesInput) {
     // Validate phone number if SMS is enabled
     if (input.smsEnabled === true && !input.phoneNumber) {
-      const existing = await prisma.notificationPreference.findUnique({
+      const existing = await prisma.notification_preferences.findUnique({
         where: { userId },
       });
       if (!existing?.phoneNumber) {
@@ -86,13 +86,13 @@ export class NotificationPreferencesService {
     }
 
     // Check if preferences exist
-    const existing = await prisma.notificationPreference.findUnique({
+    const existing = await prisma.notification_preferences.findUnique({
       where: { userId },
     });
 
     if (!existing) {
       // Create with provided values and defaults
-      const preferences = await prisma.notificationPreference.create({
+      const preferences = await prisma.notification_preferences.create({
         data: {
           userId,
           emailEnabled: input.emailEnabled ?? true,
@@ -109,7 +109,7 @@ export class NotificationPreferencesService {
     }
 
     // Update existing preferences
-    const preferences = await prisma.notificationPreference.update({
+    const preferences = await prisma.notification_preferences.update({
       where: { userId },
       data: input,
     });
@@ -131,7 +131,7 @@ export class NotificationPreferencesService {
    * Check if user has opted in to a specific notification type
    */
   async isOptedIn(userId: string, notificationType: string): Promise<boolean> {
-    const preferences = await prisma.notificationPreference.findUnique({
+    const preferences = await prisma.notification_preferences.findUnique({
       where: { userId },
     });
 
@@ -172,7 +172,7 @@ export class NotificationPreferencesService {
    * Get phone number for SMS notifications (if enabled)
    */
   async getSmsPhoneNumber(userId: string): Promise<string | null> {
-    const preferences = await prisma.notificationPreference.findUnique({
+    const preferences = await prisma.notification_preferences.findUnique({
       where: { userId },
       select: {
         smsEnabled: true,

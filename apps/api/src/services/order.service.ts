@@ -63,7 +63,7 @@ export class OrderService {
 
     try {
       // Get user's cart
-      const cart = await prisma.cart.findFirst({
+      const cart = await prisma.carts.findFirst({
         where: userId ? { userId } : { sessionId },
         include: {
           items: {
@@ -106,7 +106,7 @@ export class OrderService {
 
       let shippingCost = 0;
       if (shippingMethod) {
-        const shippingMethodData = await prisma.shippingMethod.findUnique({
+        const shippingMethodData = await prisma.shipping_methods.findUnique({
           where: { name: shippingMethod },
         });
         if (shippingMethodData && shippingMethodData.isActive) {
@@ -116,7 +116,7 @@ export class OrderService {
 
       // Calculate tax (simplified - could be enhanced with region-based tax)
       let taxAmount = 0;
-      const taxRate = await prisma.taxRate.findFirst({
+      const taxRate = await prisma.tax_rates.findFirst({
         where: { 
           region: shippingAddress?.state || 'Global',
           isActive: true,
@@ -130,7 +130,7 @@ export class OrderService {
       let discountAmount = 0;
       let validDiscountCode = null;
       if (discountCode) {
-        const discount = await prisma.discountCode.findUnique({
+        const discount = await prisma.discount_codes.findUnique({
           where: { code: discountCode },
         });
 
@@ -307,7 +307,7 @@ export class OrderService {
     }
 
     const [orders, total] = await Promise.all([
-      prisma.order.findMany({
+      prisma.orders.findMany({
         where,
         skip,
         take: perPage,
@@ -320,7 +320,7 @@ export class OrderService {
           },
         },
       }),
-      prisma.order.count({ where }),
+      prisma.orders.count({ where }),
     ]);
 
     return {
@@ -338,7 +338,7 @@ export class OrderService {
    * Get a single order by ID (for the authenticated user)
    */
   async getOrder(orderId: string, userId: string) {
-    const order = await prisma.order.findFirst({
+    const order = await prisma.orders.findFirst({
       where: {
         id: orderId,
         userId,
