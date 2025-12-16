@@ -13,15 +13,16 @@ if (existsSync(envPath)) {
   dotenv.config();
 } else {
   // Only warn if .env file is missing - environment variables may be provided by Docker/system
-  console.log('ℹ️  No .env file found, using environment variables from system/Docker');
+  console.log('ℹ️  No .env file found, using default development values');
+  console.log('   To customize configuration, create an .env file: cp .env.example .env');
 }
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('3000'),
-  DATABASE_URL: z.string(),
-  JWT_SECRET: z.string(),
-  JWT_REFRESH_SECRET: z.string(),
+  DATABASE_URL: z.string().default('postgresql://alchemy:alchemy_password@localhost:5432/alchemy?schema=public'),
+  JWT_SECRET: z.string().default('dev-secret-key-change-in-production'),
+  JWT_REFRESH_SECRET: z.string().default('dev-refresh-secret-key-change-in-production'),
   APP_URL: z.string().default('http://localhost:3001'),
   EMAIL_HOST: z.string().optional(),
   EMAIL_PORT: z.string().optional(),
