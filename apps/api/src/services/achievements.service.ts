@@ -99,20 +99,20 @@ export class AchievementsService {
         earnedAt: { not: null },
       },
       include: {
-        achievement: true,
+        achievements: true,
       },
       orderBy: { earnedAt: 'desc' },
     });
 
     return earned.map((ua) => ({
-      id: ua.achievement.id,
-      name: ua.achievement.name,
-      description: ua.achievement.description,
-      iconUrl: ua.achievement.iconUrl,
-      category: ua.achievement.category,
+      id: ua.achievements.id,
+      name: ua.achievements.name,
+      description: ua.achievements.description,
+      iconUrl: ua.achievements.iconUrl,
+      category: ua.achievements.category,
       earnedAt: ua.earnedAt,
-      xpReward: ua.achievement.xpReward,
-      pointsReward: ua.achievement.pointsReward,
+      xpReward: ua.achievements.xpReward,
+      pointsReward: ua.achievements.pointsReward,
     }));
   }
 
@@ -322,7 +322,7 @@ export class AchievementsService {
         earnedAt: { not: null },
       },
       include: {
-        achievement: {
+        achievements: {
           select: {
             xpReward: true,
             pointsReward: true,
@@ -332,11 +332,11 @@ export class AchievementsService {
     });
 
     const totalXpEarned = earnedAchievements.reduce(
-      (sum, ua) => sum + ua.achievement.xpReward,
+      (sum, ua) => sum + ua.achievements.xpReward,
       0
     );
     const totalPointsEarned = earnedAchievements.reduce(
-      (sum, ua) => sum + ua.achievement.pointsReward,
+      (sum, ua) => sum + ua.achievements.pointsReward,
       0
     );
 

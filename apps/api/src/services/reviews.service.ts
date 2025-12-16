@@ -5,7 +5,7 @@
 
 import { prisma } from '../utils/prisma';
 import type { Prisma } from '@prisma/client';
-import { NotFoundError, ConflictError, BadRequestError, ForbiddenError } from '../utils/errors';
+import { NotFoundError, ConflictError, BadRequestError } from '../utils/errors';
 import sanitizeHtml from 'sanitize-html';
 
 // Sanitization config for review content
@@ -79,7 +79,7 @@ export class ReviewsService {
     }
 
     // Check if user has purchased this product (verified review)
-    const hasPurchased = await prisma.orders.items.findFirst({
+    const hasPurchased = await prisma.order_items.findFirst({
       where: {
         productId,
         order: {
@@ -125,7 +125,7 @@ export class ReviewsService {
     const skip = (page - 1) * perPage;
 
     // Determine sort order
-    let orderBy: Prisma.ReviewOrderByWithRelationInput;
+    let orderBy: Prisma.reviewsOrderByWithRelationInput;
     switch (sort) {
       case 'oldest':
         orderBy = { createdAt: 'asc' };
@@ -230,6 +230,10 @@ export class ReviewsService {
         throw new Error('Rating must be an integer between 1 and 5');
       }
     }
+
+    // Sanitize user input to prevent XSS attacks
+    const sanitizedTitle = input.title ? sanitizeHtml(input.title, sanitizeConfig).trim() : undefined;
+    const sanitizedContent = input.content ? sanitizeHtml(input.content, sanitizeConfig).trim() : undefined;
 
     const updatedReview = await prisma.reviews.update({
       where: { id: reviewId },

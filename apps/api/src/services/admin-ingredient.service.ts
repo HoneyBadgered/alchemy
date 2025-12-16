@@ -114,7 +114,7 @@ export class AdminIngredientService {
     const skip = (page - 1) * perPage;
 
     // Build where clause
-    const where: Prisma.IngredientWhereInput = {};
+    const where: Prisma.ingredientsWhereInput = {};
 
     if (search) {
       where.OR = [
@@ -150,7 +150,7 @@ export class AdminIngredientService {
     // The where clause filtering is done in the post-fetch processing below
 
     // Build orderBy
-    let orderBy: Prisma.IngredientOrderByWithRelationInput = {};
+    let orderBy: Prisma.ingredientsOrderByWithRelationInput = {};
     switch (sortBy) {
       case 'stock':
         orderBy = { inventoryAmount: sortOrder };
