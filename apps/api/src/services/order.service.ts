@@ -4,6 +4,7 @@
  */
 
 import { prisma } from '../utils/prisma';
+import crypto from 'crypto';
 import { Prisma } from '@prisma/client';
 import { 
   BadRequestError, 
@@ -161,7 +162,7 @@ export class OrderService {
       const order = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         // Double-check stock levels inside transaction to prevent race conditions
         for (const item of cart.items) {
-          const currentProduct = await tx.product.findUnique({
+          const currentProduct = await tx.products.findUnique({
             where: { id: item.productId },
             select: { stock: true, isActive: true },
           });
@@ -183,7 +184,7 @@ export class OrderService {
         }
 
         // Create order
-        const newOrder = await tx.order.create({
+        const newOrder = await tx.orders.create({
           data: {
             userId: userId || null,
             guestEmail: guestEmail || null,
@@ -215,7 +216,7 @@ export class OrderService {
 
       // Update product inventory
       for (const item of cart.items) {
-        await tx.product.update({
+        await tx.products.update({
           where: { id: item.productId },
           data: {
             stock: {
@@ -227,7 +228,7 @@ export class OrderService {
 
       // Update discount code usage if applicable
       if (validDiscountCode) {
-        await tx.discountCode.update({
+        await tx.discount_codes.update({
           where: { id: validDiscountCode.id },
           data: {
             usedCount: {
@@ -238,7 +239,7 @@ export class OrderService {
       }
 
       // Create initial status log
-      await tx.orderStatusLog.create({
+      await tx.order_status_logs.create({
         data: {
           orderId: newOrder.id,
           fromStatus: null,
@@ -249,7 +250,7 @@ export class OrderService {
       });
 
       // Clear the cart
-      await tx.cartItem.deleteMany({
+      await tx.cart_items.deleteMany({
         where: { cartId: cart.id },
       });
 

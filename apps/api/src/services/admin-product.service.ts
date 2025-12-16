@@ -3,6 +3,7 @@
  */
 
 import { prisma } from '../utils/prisma';
+import crypto from 'crypto';
 import type { Prisma } from '@prisma/client';
 
 export interface ProductFilters {
@@ -104,7 +105,7 @@ export class AdminProductService {
     const product = await prisma.products.findUnique({
       where: { id },
       include: {
-        orderItems: {
+        order_items: {
           include: {
             order: {
               select: {

@@ -148,7 +148,7 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
-      user: {
+      users: {
         id: user.id,
         email: user.email,
         username: user.username,
@@ -201,7 +201,7 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
-      user: {
+      users: {
         id: user.id,
         email: user.email,
         username: user.username,

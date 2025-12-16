@@ -72,7 +72,7 @@ export class AdminDashboardService {
           totalAmount: true,
           createdAt: true,
           guestEmail: true,
-          user: {
+          users: {
             select: {
               id: true,
               email: true,

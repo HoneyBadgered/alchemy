@@ -3,6 +3,7 @@
  */
 
 import { prisma } from '../utils/prisma';
+import crypto from 'crypto';
 
 export class AdminSettingsService {
   // ============================================
