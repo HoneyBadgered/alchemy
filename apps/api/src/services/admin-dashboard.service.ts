@@ -26,7 +26,7 @@ export class AdminDashboardService {
       totalOrders,
     ] = await Promise.all([
       // Today's revenue
-      prisma.orders.aggregate({
+      prisma.order.aggregate({
         where: {
           createdAt: {
             gte: today,
@@ -40,7 +40,7 @@ export class AdminDashboardService {
       }),
 
       // Today's order count
-      prisma.orders.count({
+      prisma.order.count({
         where: {
           createdAt: {
             gte: today,
@@ -50,7 +50,7 @@ export class AdminDashboardService {
       }),
 
       // Low stock products (stock <= 10)
-      prisma.products.findMany({
+      prisma.product.findMany({
         where: {
           stock: { lte: 10 },
           isActive: true,
@@ -63,7 +63,7 @@ export class AdminDashboardService {
       this.getTopSellingProducts(30, 5),
 
       // Recent orders
-      prisma.orders.findMany({
+      prisma.order.findMany({
         take: 10,
         orderBy: { createdAt: 'desc' },
         select: {
@@ -92,17 +92,17 @@ export class AdminDashboardService {
       }),
 
       // Total customers
-      prisma.users.count(),
+      prisma.user.count(),
 
       // Total products
-      prisma.products.count(),
+      prisma.product.count(),
 
       // Total orders
-      prisma.orders.count(),
+      prisma.order.count(),
     ]);
 
     // Recent customers with their order history
-    const recentCustomers = await prisma.users.findMany({
+    const recentCustomers = await prisma.user.findMany({
       take: 10,
       orderBy: { createdAt: 'desc' },
       select: {
@@ -165,7 +165,7 @@ export class AdminDashboardService {
 
     // Get product details
     const productIds = orderItems.map((item) => item.productId);
-    const products = await prisma.products.findMany({
+    const products = await prisma.product.findMany({
       where: {
         id: {
           in: productIds,
@@ -193,7 +193,7 @@ export class AdminDashboardService {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    const orders = await prisma.orders.findMany({
+    const orders = await prisma.order.findMany({
       where: {
         createdAt: {
           gte: startDate,
@@ -231,7 +231,7 @@ export class AdminDashboardService {
    * Get orders by status
    */
   async getOrdersByStatus() {
-    const statusCounts = await prisma.orders.groupBy({
+    const statusCounts = await prisma.order.groupBy({
       by: ['status'],
       _count: {
         _all: true,
@@ -251,7 +251,7 @@ export class AdminDashboardService {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    const users = await prisma.users.findMany({
+    const users = await prisma.user.findMany({
       where: {
         createdAt: {
           gte: startDate,

@@ -62,7 +62,7 @@ export class AuthService {
     const normalizedEmail = input.email.toLowerCase();
 
     // Check if user already exists
-    const existingUser = await prisma.users.findFirst({
+    const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
           { email: normalizedEmail },
@@ -85,7 +85,7 @@ export class AuthService {
 
     // Create user with initial player state and profile
     const userId = crypto.randomUUID();
-    const user = await prisma.users.create({
+    const user = await prisma.user.create({
       data: {
         id: userId,
         email: normalizedEmail,
@@ -164,7 +164,7 @@ export class AuthService {
     const normalizedEmail = input.email.toLowerCase();
 
     // Find user
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
 
@@ -224,7 +224,7 @@ export class AuthService {
   }
 
   async getMe(userId: string) {
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -254,7 +254,7 @@ export class AuthService {
     // Normalize email to lowercase for case-insensitive comparison
     const normalizedEmail = input.email.toLowerCase();
 
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
 
@@ -269,7 +269,7 @@ export class AuthService {
     const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
     // Store reset token
-    await prisma.users.update({
+    await prisma.user.update({
       where: { id: user.id },
       data: {
         passwordResetToken: hashedResetToken,
@@ -294,7 +294,7 @@ export class AuthService {
     const hashedToken = hashToken(input.token);
 
     // Find user with valid reset token
-    const user = await prisma.users.findFirst({
+    const user = await prisma.user.findFirst({
       where: {
         passwordResetToken: hashedToken,
         passwordResetExpires: {
@@ -311,7 +311,7 @@ export class AuthService {
     const hashedPassword = await hashPassword(input.newPassword);
 
     // Update password and clear reset token
-    await prisma.users.update({
+    await prisma.user.update({
       where: { id: user.id },
       data: {
         password: hashedPassword,
@@ -332,7 +332,7 @@ export class AuthService {
     const hashedToken = hashToken(token);
 
     // Find user with valid verification token
-    const user = await prisma.users.findFirst({
+    const user = await prisma.user.findFirst({
       where: {
         emailVerificationToken: hashedToken,
         emailVerificationExpires: {
@@ -346,7 +346,7 @@ export class AuthService {
     }
 
     // Mark email as verified and clear token
-    await prisma.users.update({
+    await prisma.user.update({
       where: { id: user.id },
       data: {
         emailVerified: true,
@@ -362,7 +362,7 @@ export class AuthService {
     // Normalize email to lowercase for case-insensitive comparison
     const normalizedEmail = email.toLowerCase();
 
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
 
@@ -380,7 +380,7 @@ export class AuthService {
     const hashedVerificationToken = hashToken(verificationToken);
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-    await prisma.users.update({
+    await prisma.user.update({
       where: { id: user.id },
       data: {
         emailVerificationToken: hashedVerificationToken,

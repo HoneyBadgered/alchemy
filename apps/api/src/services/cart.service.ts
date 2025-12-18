@@ -3,8 +3,7 @@
  * Handles cart operations for both authenticated users and guests
  */
 
-import { PrismaClient } from '@prisma/client';
-import crypto from 'crypto';
+import { prisma } from '../utils/prisma';
 import {
   getIngredientById,
   getIngredientBaseAmount,
@@ -15,9 +14,7 @@ import {
   NotFoundError,
   InsufficientStockError,
   CartError,
-} from '../utils/errors.js';
-
-const prisma = new PrismaClient();
+} from '../utils/errors';
 
 // Constants for custom blend products
 const CUSTOM_BLEND_BASE_PRICE = 12.99;
@@ -60,7 +57,7 @@ export class CartService {
     }
 
     // Try to find existing cart
-    let cart = await prisma.carts.findFirst({
+    let cart = await prisma.cart.findFirst({
       where: userId ? { userId } : { sessionId },
       include: {
         items: {
@@ -73,7 +70,7 @@ export class CartService {
 
     // Create cart if it doesn't exist
     if (!cart) {
-      cart = await prisma.carts.create({
+      cart = await prisma.cart.create({
         data: {
           userId: userId || null,
           sessionId: sessionId || null,
@@ -121,7 +118,7 @@ export class CartService {
     }
 
     // Validate product exists and is active
-    const product = await prisma.products.findUnique({
+    const product = await prisma.product.findUnique({
       where: { id: productId },
     });
 
@@ -143,7 +140,7 @@ export class CartService {
     const cart = await this.getOrCreateCart(userId, sessionId);
 
     // Check if item already exists in cart
-    const existingItem = await prisma.carts.tem.findUnique({
+    const existingItem = await prisma.cartItem.findUnique({
       where: {
         cartId_productId: {
           cartId: cart.id,
@@ -164,13 +161,13 @@ export class CartService {
           );
         }
 
-        await prisma.carts.tem.update({
+        await prisma.cartItem.update({
           where: { id: existingItem.id },
           data: { quantity: newQuantity },
         });
       } else {
         // Create new cart item
-        await prisma.carts.tem.create({
+        await prisma.cartItem.create({
           data: {
             cartId: cart.id,
             productId,
@@ -203,7 +200,7 @@ export class CartService {
 
     const cart = await this.getOrCreateCart(userId, sessionId);
 
-    const cartItem = await prisma.carts.tem.findUnique({
+    const cartItem = await prisma.cartItem.findUnique({
       where: {
         cartId_productId: {
           cartId: cart.id,
@@ -231,7 +228,7 @@ export class CartService {
     }
 
     try {
-      await prisma.carts.tem.update({
+      await prisma.cartItem.update({
         where: { id: cartItem.id },
         data: { quantity },
       });
@@ -249,7 +246,7 @@ export class CartService {
   async removeFromCart({ productId, userId, sessionId }: RemoveFromCartParams) {
     const cart = await this.getOrCreateCart(userId, sessionId);
 
-    await prisma.carts.tem.deleteMany({
+    await prisma.cartItem.deleteMany({
       where: {
         cartId: cart.id,
         productId,
@@ -265,7 +262,7 @@ export class CartService {
   async clearCart({ userId, sessionId }: GetCartParams) {
     const cart = await this.getOrCreateCart(userId, sessionId);
 
-    await prisma.carts.tem.deleteMany({
+    await prisma.cartItem.deleteMany({
       where: {
         cartId: cart.id,
       },
@@ -278,7 +275,7 @@ export class CartService {
    * Merge guest cart with user cart (after login)
    */
   async mergeGuestCart(userId: string, sessionId: string) {
-    const guestCart = await prisma.carts.findUnique({
+    const guestCart = await prisma.cart.findUnique({
       where: { sessionId },
       include: {
         items: true,
@@ -297,7 +294,7 @@ export class CartService {
       await prisma.$transaction(async (tx) => {
         // Merge items
         for (const guestItem of guestCart.items) {
-          const existingItem = await tx.cart_items.findUnique({
+          const existingItem = await tx.cartItem.findUnique({
             where: {
               cartId_productId: {
                 cartId: userCart.id,
@@ -308,13 +305,13 @@ export class CartService {
 
           if (existingItem) {
             // Update quantity
-            await tx.cart_items.update({
+            await tx.cartItem.update({
               where: { id: existingItem.id },
               data: { quantity: existingItem.quantity + guestItem.quantity },
             });
           } else {
-            // Move item to user cart
-            await tx.cart_items.update({
+            // Add new item to user cart
+            await tx.cartItem.update({
               where: { id: guestItem.id },
               data: { cartId: userCart.id },
             });
@@ -353,7 +350,7 @@ export class CartService {
     const blendKey = this.generateBlendKey(baseTeaId, addIns);
     
     // Look for existing blend product with same composition
-    let product = await prisma.products.findFirst({
+    let product = await prisma.product.findFirst({
       where: {
         category: 'custom-blend',
         tags: { has: blendKey },
@@ -368,7 +365,7 @@ export class CartService {
       // Generate blend name
       const blendName = this.generateBlendName(baseTeaId, addIns);
 
-      product = await prisma.products.create({
+      product = await prisma.product.create({
         data: {
           name: blendName,
           description: `Custom blend with ${baseTeaId} base and ${addIns.length} add-in${addIns.length === 1 ? '' : 's'}`,

@@ -62,11 +62,11 @@ export class OrderService {
   async placeOrder(input: PlaceOrderInput) {
     const { userId, sessionId, guestEmail, shippingAddress, shippingMethod, customerNotes, discountCode } = input;
 
-    let cart: Awaited<ReturnType<typeof prisma.carts.findFirst>> | null = null;
+    let cart: Awaited<ReturnType<typeof prisma.cart.findFirst>> | null = null;
 
     try {
       // Get user's cart
-      cart = await prisma.carts.findFirst({
+      cart = await prisma.cart.findFirst({
         where: userId ? { userId } : { sessionId },
         include: {
           items: {
@@ -310,7 +310,7 @@ export class OrderService {
     }
 
     const [orders, total] = await Promise.all([
-      prisma.orders.findMany({
+      prisma.order.findMany({
         where,
         skip,
         take: perPage,
@@ -323,7 +323,7 @@ export class OrderService {
           },
         },
       }),
-      prisma.orders.count({ where }),
+      prisma.order.count({ where }),
     ]);
 
     return {
@@ -341,7 +341,7 @@ export class OrderService {
    * Get a single order by ID (for the authenticated user)
    */
   async getOrder(orderId: string, userId: string) {
-    const order = await prisma.orders.findFirst({
+    const order = await prisma.order.findFirst({
       where: {
         id: orderId,
         userId,

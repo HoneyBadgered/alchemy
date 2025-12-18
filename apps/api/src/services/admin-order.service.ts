@@ -67,7 +67,7 @@ export class AdminOrderService {
 
     // Get orders and total count
     const [orders, total] = await Promise.all([
-      prisma.orders.findMany({
+      prisma.order.findMany({
         where,
         skip,
         take: perPage,
@@ -91,7 +91,7 @@ export class AdminOrderService {
           },
         },
       }),
-      prisma.orders.count({ where }),
+      prisma.order.count({ where }),
     ]);
 
     return {
@@ -109,7 +109,7 @@ export class AdminOrderService {
    * Get single order by ID with full details
    */
   async getOrder(id: string) {
-    const order = await prisma.orders.findUnique({
+    const order = await prisma.order.findUnique({
       where: { id },
       include: {
         users: {
@@ -150,7 +150,7 @@ export class AdminOrderService {
    * Update order status and log the change
    */
   async updateOrderStatus(orderId: string, userId: string, input: UpdateOrderStatusInput) {
-    const order = await prisma.orders.findUnique({
+    const order = await prisma.order.findUnique({
       where: { id: orderId },
     });
 
@@ -204,7 +204,7 @@ export class AdminOrderService {
    * Get order status logs
    */
   async getOrderStatusLogs(orderId: string) {
-    const logs = await prisma.orders.tatusLog.findMany({
+    const logs = await prisma.order.tatusLog.findMany({
       where: { orderId },
       include: {
         users: {
@@ -243,17 +243,17 @@ export class AdminOrderService {
       statusCounts,
       averageOrderValue,
     ] = await Promise.all([
-      prisma.orders.count({ where }),
-      prisma.orders.aggregate({
+      prisma.order.count({ where }),
+      prisma.order.aggregate({
         where,
         _sum: { totalAmount: true },
       }),
-      prisma.orders.groupBy({
+      prisma.order.groupBy({
         by: ['status'],
         where,
         _count: true,
       }),
-      prisma.orders.aggregate({
+      prisma.order.aggregate({
         where,
         _avg: { totalAmount: true },
       }),
@@ -274,7 +274,7 @@ export class AdminOrderService {
    * Get recent customers
    */
   async getRecentCustomers(limit: number = 10) {
-    const customers = await prisma.users.findMany({
+    const customers = await prisma.user.findMany({
       where: {
         orders: {
           some: {},

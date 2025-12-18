@@ -23,7 +23,7 @@ export interface LabelUpdateInput {
 export class LabelsService {
   async getOrderLabels(userId: string, orderId: string) {
     // Verify order belongs to user
-    const order = await prisma.orders.findFirst({
+    const order = await prisma.order.findFirst({
       where: {
         id: orderId,
         userId,
@@ -45,7 +45,7 @@ export class LabelsService {
 
   async generateLabel(userId: string, orderId: string, input: LabelGenerationInput) {
     // Verify order belongs to user and is paid
-    const order = await prisma.orders.findFirst({
+    const order = await prisma.order.findFirst({
       where: {
         id: orderId,
         userId,

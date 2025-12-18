@@ -112,13 +112,13 @@ export class PromotionsService {
     };
 
     const [products, total] = await Promise.all([
-      prisma.products.findMany({
+      prisma.product.findMany({
         where,
         skip,
         take: perPage,
         orderBy: { createdAt: 'desc' },
       }),
-      prisma.products.count({ where }),
+      prisma.product.count({ where }),
     ]);
 
     // Calculate discount percentages
@@ -149,7 +149,7 @@ export class PromotionsService {
    * Check if a product is on sale
    */
   async isProductOnSale(productId: string): Promise<boolean> {
-    const product = await prisma.products.findUnique({
+    const product = await prisma.product.findUnique({
       where: { id: productId },
       select: { compareAtPrice: true, price: true },
     });

@@ -31,7 +31,7 @@ export class UserProfileService {
    * Get user profile details
    */
   async getProfile(userId: string) {
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -116,7 +116,7 @@ export class UserProfileService {
    * Update user account details (email, username, password)
    */
   async updateAccount(userId: string, input: UpdateAccountInput) {
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
     });
 
@@ -129,7 +129,7 @@ export class UserProfileService {
     // Handle email update
     if (input.email && input.email !== user.email) {
       const normalizedEmail = input.email.toLowerCase();
-      const existingUser = await prisma.users.findUnique({
+      const existingUser = await prisma.user.findUnique({
         where: { email: normalizedEmail },
       });
       if (existingUser) {
@@ -140,7 +140,7 @@ export class UserProfileService {
 
     // Handle username update
     if (input.username && input.username !== user.username) {
-      const existingUser = await prisma.users.findUnique({
+      const existingUser = await prisma.user.findUnique({
         where: { username: input.username },
       });
       if (existingUser) {
@@ -172,7 +172,7 @@ export class UserProfileService {
       throw new Error('No valid fields to update');
     }
 
-    const updatedUser = await prisma.users.update({
+    const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: updateData,
       select: {
@@ -193,7 +193,7 @@ export class UserProfileService {
    * Delete user account
    */
   async deleteAccount(userId: string, password: string) {
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
     });
 
@@ -208,7 +208,7 @@ export class UserProfileService {
     }
 
     // Delete user (cascades to all related data)
-    await prisma.users.delete({
+    await prisma.user.delete({
       where: { id: userId },
     });
 

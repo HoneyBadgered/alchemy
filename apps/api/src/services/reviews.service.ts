@@ -7,7 +7,6 @@ import { prisma } from '../utils/prisma';
 import type { Prisma } from '@prisma/client';
 import { NotFoundError, ConflictError, BadRequestError } from '../utils/errors';
 import sanitizeHtml from 'sanitize-html';
-import crypto from 'crypto';
 
 // Sanitization config for review content
 const sanitizeConfig = {
@@ -53,7 +52,7 @@ export class ReviewsService {
     const sanitizedContent = content ? sanitizeHtml(content, sanitizeConfig).trim() : undefined;
 
     // Check if product exists and is active
-    const product = await prisma.products.findUnique({
+    const product = await prisma.product.findUnique({
       where: { id: productId },
     });
 
@@ -66,7 +65,7 @@ export class ReviewsService {
     }
 
     // Check if user already reviewed this product
-    const existingReview = await prisma.reviews.findUnique({
+    const existingReview = await prisma.review.findUnique({
       where: {
         userId_productId: {
           userId,
@@ -93,7 +92,7 @@ export class ReviewsService {
     });
 
     // Create the review
-    const review = await prisma.reviews.create({
+    const review = await prisma.review.create({
       data: {
         id: crypto.randomUUID(),
         userId,
@@ -150,7 +149,7 @@ export class ReviewsService {
     };
 
     const [reviews, total] = await Promise.all([
-      prisma.reviews.findMany({
+      prisma.review.findMany({
         where,
         skip,
         take: perPage,
@@ -164,11 +163,11 @@ export class ReviewsService {
           },
         },
       }),
-      prisma.reviews.count({ where }),
+      prisma.review.count({ where }),
     ]);
 
     // Get rating distribution
-    const ratingDistribution = await prisma.reviews.groupBy({
+    const ratingDistribution = await prisma.review.groupBy({
       by: ['rating'],
       where: {
         productId,
@@ -200,7 +199,7 @@ export class ReviewsService {
    * Get a user's review for a specific product
    */
   async getUserReview(userId: string, productId: string) {
-    return prisma.reviews.findUnique({
+    return prisma.review.findUnique({
       where: {
         userId_productId: {
           userId,
@@ -214,7 +213,7 @@ export class ReviewsService {
    * Update a review
    */
   async updateReview(reviewId: string, userId: string, input: UpdateReviewInput) {
-    const review = await prisma.reviews.findUnique({
+    const review = await prisma.review.findUnique({
       where: { id: reviewId },
     });
 
@@ -237,7 +236,7 @@ export class ReviewsService {
     const sanitizedTitle = input.title ? sanitizeHtml(input.title, sanitizeConfig).trim() : undefined;
     const sanitizedContent = input.content ? sanitizeHtml(input.content, sanitizeConfig).trim() : undefined;
 
-    const updatedReview = await prisma.reviews.update({
+    const updatedReview = await prisma.review.update({
       where: { id: reviewId },
       data: {
         rating: input.rating,
@@ -266,7 +265,7 @@ export class ReviewsService {
    * Delete a review
    */
   async deleteReview(reviewId: string, userId: string) {
-    const review = await prisma.reviews.findUnique({
+    const review = await prisma.review.findUnique({
       where: { id: reviewId },
     });
 
@@ -278,7 +277,7 @@ export class ReviewsService {
       throw new Error('You can only delete your own reviews');
     }
 
-    await prisma.reviews.delete({
+    await prisma.review.delete({
       where: { id: reviewId },
     });
 
@@ -292,7 +291,7 @@ export class ReviewsService {
    * Update product's cached average rating and review count
    */
   private async updateProductRating(productId: string) {
-    const stats = await prisma.reviews.aggregate({
+    const stats = await prisma.review.aggregate({
       where: {
         productId,
         isApproved: true,
@@ -305,7 +304,7 @@ export class ReviewsService {
       },
     });
 
-    await prisma.products.update({
+    await prisma.product.update({
       where: { id: productId },
       data: {
         averageRating: stats._avg.rating ? Math.round(stats._avg.rating * 10) / 10 : null,
