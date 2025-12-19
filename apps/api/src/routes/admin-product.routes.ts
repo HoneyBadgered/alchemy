@@ -6,6 +6,7 @@ import { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { adminMiddleware } from '../middleware/admin.middleware';
 import { AdminProductService } from '../services/admin-product.service';
+import { ProductImportService } from '../services/product-import.service';
 
 const productFiltersSchema = z.object({
   page: z.coerce.number().int().min(1).optional(),
@@ -43,6 +44,7 @@ const updateProductSchema = z.object({
 
 export async function adminProductRoutes(fastify: FastifyInstance) {
   const productService = new AdminProductService();
+  const importService = new ProductImportService();
 
   // GET /admin/products - List all products with filtering
   fastify.get('/admin/products', {
@@ -156,6 +158,60 @@ export async function adminProductRoutes(fastify: FastifyInstance) {
       return reply.send(result);
     } catch (error) {
       return reply.status(500).send({ message: (error as Error).message });
+    }
+  });
+
+  // GET /admin/products/import/template - Download CSV template
+  fastify.get('/admin/products/import/template', {
+    preHandler: adminMiddleware,
+  }, async (_request: FastifyRequest, reply) => {
+    try {
+      const template = importService.generateCSVTemplate();
+      reply.header('Content-Type', 'text/csv');
+      reply.header('Content-Disposition', 'attachment; filename="product-import-template.csv"');
+      return reply.send(template);
+    } catch (error) {
+      return reply.status(500).send({ message: (error as Error).message });
+    }
+  });
+
+  // POST /admin/products/import/validate - Validate CSV before import
+  fastify.post('/admin/products/import/validate', {
+    preHandler: adminMiddleware,
+  }, async (request: FastifyRequest, reply) => {
+    try {
+      const data = await request.file();
+      
+      if (!data) {
+        return reply.status(400).send({ message: 'No file uploaded' });
+      }
+
+      const csvContent = await data.toBuffer();
+      const validation = await importService.validateCSV(csvContent.toString('utf-8'));
+      
+      return reply.send(validation);
+    } catch (error) {
+      return reply.status(400).send({ message: (error as Error).message });
+    }
+  });
+
+  // POST /admin/products/import - Import products from CSV
+  fastify.post('/admin/products/import', {
+    preHandler: adminMiddleware,
+  }, async (request: FastifyRequest, reply) => {
+    try {
+      const data = await request.file();
+      
+      if (!data) {
+        return reply.status(400).send({ message: 'No file uploaded' });
+      }
+
+      const csvContent = await data.toBuffer();
+      const result = await importService.importFromCSV(csvContent.toString('utf-8'));
+      
+      return reply.send(result);
+    } catch (error) {
+      return reply.status(400).send({ message: (error as Error).message });
     }
   });
 }

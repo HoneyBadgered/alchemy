@@ -176,6 +176,34 @@ npm install <package> --workspace=@alchemy/web
 - **Efficient builds**: Turborepo caches and parallelizes builds
 - **Consistent versions**: Ensures dependency version consistency across packages
 
+## ✨ Key Features
+
+### Product Inventory Management
+
+The platform includes a comprehensive product inventory management system for admins:
+
+- **Image Upload System**
+  - Upload product images directly from the admin panel
+  - Support for JPG, PNG, WebP, and GIF formats (up to 5MB)
+  - Image preview before saving
+  - Option to use uploaded files or external URLs
+
+- **Bulk Product Import**
+  - Import multiple products at once via CSV
+  - Download CSV template with example data
+  - Validate CSV before importing
+  - Detailed error reporting per row
+  - Partial import support (continues on errors)
+
+- **Admin Product Management UI**
+  - Complete CRUD operations for products
+  - Filter and search functionality
+  - Low stock indicators
+  - Category management
+  - Product visibility controls
+
+📘 **For detailed API documentation, see [PRODUCT_INVENTORY_API.md](PRODUCT_INVENTORY_API.md)**
+
 ## 📝 Migration Notes
 
 ### Fastify v5 Upgrade (November 2025)
