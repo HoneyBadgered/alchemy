@@ -140,6 +140,54 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   ⚙️ Settings
                 </Link>
               </li>
+              
+              {/* Content Management Section */}
+              <li className="pt-4 border-t border-gray-200">
+                <div className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  Content
+                </div>
+              </li>
+              <li>
+                <Link
+                  href="/admin/blog"
+                  className="block px-4 py-2 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-900 transition"
+                >
+                  📚 All Posts
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/admin/blog?type=log"
+                  className="block px-4 py-2 pl-8 rounded-lg hover:bg-purple-50 text-gray-600 hover:text-purple-900 transition text-sm"
+                >
+                  📝 Log Book
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/admin/blog?type=grimoire"
+                  className="block px-4 py-2 pl-8 rounded-lg hover:bg-purple-50 text-gray-600 hover:text-purple-900 transition text-sm"
+                >
+                  📖 Grimoire
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/admin/blog/tags"
+                  className="block px-4 py-2 pl-8 rounded-lg hover:bg-purple-50 text-gray-600 hover:text-purple-900 transition text-sm"
+                >
+                  🏷️ Tags
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/admin/blog/stats"
+                  className="block px-4 py-2 pl-8 rounded-lg hover:bg-purple-50 text-gray-600 hover:text-purple-900 transition text-sm"
+                >
+                  📈 Statistics
+                </Link>
+              </li>
+              
               <li className="pt-4 border-t border-gray-200">
                 <Link
                   href="/dashboard"
