@@ -7,6 +7,9 @@ import rateLimit from '@fastify/rate-limit';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import rawBody from 'fastify-raw-body';
+import multipart from '@fastify/multipart';
+import fastifyStatic from '@fastify/static';
+import path from 'path';
 import { config } from './config';
 import { prisma } from './utils/prisma';
 import { authRoutes } from './routes/auth.routes';
@@ -39,6 +42,7 @@ import { achievementsRoutes } from './routes/achievements.routes';
 import { purchaseHistoryRoutes } from './routes/purchase-history.routes';
 import adminBlogRoutes from './routes/admin-blog.routes';
 import blogRoutes from './routes/blog.routes';
+import { fileUploadRoutes } from './routes/file-upload.routes';
 import { errorHandlerPlugin } from './plugins/error-handler';
 
 const fastify = Fastify({
@@ -67,6 +71,20 @@ fastify.register(rawBody, {
 // Register cookie support
 fastify.register(cookie);
 
+// Register multipart support for file uploads
+fastify.register(multipart, {
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+    files: 10, // Max 10 files per request
+  },
+});
+
+// Register static file serving for uploads
+fastify.register(fastifyStatic, {
+  root: path.join(__dirname, '..', 'uploads'),
+  prefix: '/uploads/',
+});
+
 // Register rate limiting
 fastify.register(rateLimit, {
   max: 100, // 100 requests
@@ -85,6 +103,7 @@ fastify.register(craftingRoutes);
 fastify.register(gamificationRoutes);
 fastify.register(cosmeticsRoutes);
 fastify.register(labelsRoutes);
+fastify.register(fileUploadRoutes);
 fastify.register(adminProductRoutes);
 fastify.register(adminOrderRoutes);
 fastify.register(adminThemeRoutes);
