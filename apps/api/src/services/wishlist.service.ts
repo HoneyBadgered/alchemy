@@ -24,7 +24,7 @@ export class WishlistService {
     const { userId, productId } = input;
 
     // Check if product exists and is active
-    const product = await prisma.product.findUnique({
+    const product = await prisma.products.findUnique({
       where: { id: productId },
     });
 

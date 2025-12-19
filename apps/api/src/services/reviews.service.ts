@@ -52,7 +52,7 @@ export class ReviewsService {
     const sanitizedContent = content ? sanitizeHtml(content, sanitizeConfig).trim() : undefined;
 
     // Check if product exists and is active
-    const product = await prisma.product.findUnique({
+    const product = await prisma.products.findUnique({
       where: { id: productId },
     });
 
@@ -304,7 +304,7 @@ export class ReviewsService {
       },
     });
 
-    await prisma.product.update({
+    await prisma.products.update({
       where: { id: productId },
       data: {
         averageRating: stats._avg.rating ? Math.round(stats._avg.rating * 10) / 10 : null,

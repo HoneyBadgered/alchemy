@@ -46,7 +46,7 @@ export class PurchaseHistoryService {
     const skip = (page - 1) * perPage;
 
     // Get all completed orders for the user
-    const orders = await prisma.order.findMany({
+    const orders = await prisma.orders.findMany({
       where: {
         userId,
         status: { in: ['paid', 'processing', 'shipped', 'completed'] },
@@ -94,7 +94,7 @@ export class PurchaseHistoryService {
     }>();
 
     for (const order of orders) {
-      for (const item of order.items) {
+      for (const item of order.order_items) {
         const existing = productPurchases.get(item.productId);
         if (existing) {
           existing.totalQuantity += item.quantity;
@@ -167,7 +167,7 @@ export class PurchaseHistoryService {
    */
   async getPurchaseFrequencyMetrics(userId: string): Promise<PurchaseFrequencyMetrics[]> {
     // Get all completed orders for the user
-    const orders = await prisma.order.findMany({
+    const orders = await prisma.orders.findMany({
       where: {
         userId,
         status: { in: ['paid', 'processing', 'shipped', 'completed'] },
@@ -191,13 +191,13 @@ export class PurchaseHistoryService {
     const productPurchaseDates = new Map<string, { name: string; dates: Date[] }>();
 
     for (const order of orders) {
-      for (const item of order.items) {
+      for (const item of order.order_items) {
         const existing = productPurchaseDates.get(item.productId);
         if (existing) {
           existing.dates.push(order.createdAt);
         } else {
           productPurchaseDates.set(item.productId, {
-            name: item.product.name,
+            name: item.products.name,
             dates: [order.createdAt],
           });
         }
@@ -251,7 +251,7 @@ export class PurchaseHistoryService {
    */
   async getRecommendations(userId: string, limit: number = 10) {
     // Get user's purchase history
-    const orders = await prisma.order.findMany({
+    const orders = await prisma.orders.findMany({
       where: {
         userId,
         status: { in: ['paid', 'processing', 'shipped', 'completed'] },
@@ -266,7 +266,7 @@ export class PurchaseHistoryService {
     );
 
     // Get categories the user has purchased from
-    const purchasedProducts = await prisma.product.findMany({
+    const purchasedProducts = await prisma.products.findMany({
       where: {
         id: { in: Array.from(purchasedProductIds) },
       },
@@ -278,7 +278,7 @@ export class PurchaseHistoryService {
     )] as string[];
 
     // Get recommendations: products from preferred categories not yet purchased
-    const recommendations = await prisma.product.findMany({
+    const recommendations = await prisma.products.findMany({
       where: {
         isActive: true,
         id: { notIn: Array.from(purchasedProductIds) },
@@ -304,7 +304,7 @@ export class PurchaseHistoryService {
 
     // If not enough from preferred categories, add top-rated products
     if (recommendations.length < limit) {
-      const additional = await prisma.product.findMany({
+      const additional = await prisma.products.findMany({
         where: {
           isActive: true,
           id: { notIn: [...purchasedProductIds, ...recommendations.map((r) => r.id)] },
@@ -340,7 +340,7 @@ export class PurchaseHistoryService {
    * Get purchase statistics for a user
    */
   async getPurchaseStats(userId: string) {
-    const orders = await prisma.order.findMany({
+    const orders = await prisma.orders.findMany({
       where: {
         userId,
         status: { in: ['paid', 'processing', 'shipped', 'completed'] },
@@ -373,7 +373,7 @@ export class PurchaseHistoryService {
     // Find favorite category using already-included product data
     const categoryCount = new Map<string, number>();
     for (const order of orders) {
-      for (const item of order.items) {
+      for (const item of order.order_items) {
         const category = item.product?.category;
         if (category) {
           categoryCount.set(
@@ -407,7 +407,7 @@ export class PurchaseHistoryService {
    * Get reorder data for an order
    */
   async getReorderData(userId: string, orderId: string) {
-    const order = await prisma.order.findFirst({
+    const order = await prisma.orders.findFirst({
       where: {
         id: orderId,
         userId,
@@ -434,16 +434,16 @@ export class PurchaseHistoryService {
       throw new Error('Order not found');
     }
 
-    const reorderItems = order.items.map((item) => ({
+    const reorderItems = order.order_items.map((item) => ({
       productId: item.productId,
-      name: item.product.name,
+      name: item.products.name,
       quantity: item.quantity,
       originalPrice: Number(item.price),
-      currentPrice: Number(item.product.price),
-      priceChanged: Number(item.price) !== Number(item.product.price),
-      imageUrl: item.product.imageUrl,
-      isAvailable: item.product.isActive && item.product.stock >= item.quantity,
-      availableStock: item.product.stock,
+      currentPrice: Number(item.products.price),
+      priceChanged: Number(item.price) !== Number(item.products.price),
+      imageUrl: item.products.imageUrl,
+      isAvailable: item.products.isActive && item.products.stock >= item.quantity,
+      availableStock: item.products.stock,
     }));
 
     const allAvailable = reorderItems.every((item) => item.isAvailable);

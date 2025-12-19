@@ -62,38 +62,38 @@ export class OrderService {
   async placeOrder(input: PlaceOrderInput) {
     const { userId, sessionId, guestEmail, shippingAddress, shippingMethod, customerNotes, discountCode } = input;
 
-    let cart: Awaited<ReturnType<typeof prisma.cart.findFirst>> | null = null;
+    let cart: Awaited<ReturnType<typeof prisma.carts.findFirst>> | null = null;
 
     try {
       // Get user's cart
-      cart = await prisma.cart.findFirst({
+      cart = await prisma.carts.findFirst({
         where: userId ? { userId } : { sessionId },
         include: {
-          items: {
+          cart_items: {
             include: {
-              product: true,
+              products: true,
             },
           },
         },
       });
 
-      if (!cart || cart.items.length === 0) {
+      if (!cart || cart.cart_items.length === 0) {
         throw new BadRequestError('Cart is empty');
       }
 
       // Validate all products are available and have sufficient stock BEFORE transaction
       const stockValidation: Array<{ productName: string; issue: string }> = [];
-      for (const item of cart.items) {
-        if (!item.product.isActive) {
+      for (const item of cart.cart_items) {
+        if (!item.products.isActive) {
           stockValidation.push({
-            productName: item.product.name,
+            productName: item.products.name,
             issue: 'no longer available',
           });
         }
-        if (item.product.stock < item.quantity) {
+        if (item.products.stock < item.quantity) {
           stockValidation.push({
-            productName: item.product.name,
-            issue: `insufficient stock (requested: ${item.quantity}, available: ${item.product.stock})`,
+            productName: item.products.name,
+            issue: `insufficient stock (requested: ${item.quantity}, available: ${item.products.stock})`,
           });
         }
       }
@@ -103,8 +103,8 @@ export class OrderService {
       }
 
       // Calculate order totals
-      const subtotal = cart.items.reduce((sum: number, item: CartItemWithProduct) => {
-        return sum + Number(item.product.price) * item.quantity;
+      const subtotal = cart.cart_items.reduce((sum: number, item: CartItemWithProduct) => {
+        return sum + Number(item.products.price) * item.quantity;
       }, 0);
 
       let shippingCost = 0;
@@ -161,21 +161,21 @@ export class OrderService {
       // Create order and update inventory in a transaction with proper error handling
       const order = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         // Double-check stock levels inside transaction to prevent race conditions
-        for (const item of cart.items) {
+        for (const item of cart.cart_items) {
           const currentProduct = await tx.products.findUnique({
-            where: { id: item.productId },
+            where: { id: item.productsId },
             select: { stock: true, isActive: true },
           });
 
           if (!currentProduct || !currentProduct.isActive) {
-            throw new OrderValidationError(`Product ${item.product.name} is no longer available`);
+            throw new OrderValidationError(`Product ${item.products.name} is no longer available`);
           }
 
           if (currentProduct.stock < item.quantity) {
             throw new InsufficientStockError(
-              `Insufficient stock for ${item.product.name}`,
+              `Insufficient stock for ${item.products.name}`,
               { 
-                productId: item.productId,
+                productId: item.productsId,
                 requested: item.quantity,
                 available: currentProduct.stock,
               }
@@ -197,27 +197,27 @@ export class OrderService {
           discountCode: validDiscountCode?.code,
           discountAmount,
           customerNotes,
-          items: {
-            create: cart.items.map((item: CartItemWithProduct) => ({
-              productId: item.productId,
+          order_items: {
+            create: cart.cart_items.map((item: CartItemWithProduct) => ({
+              productId: item.productsId,
               quantity: item.quantity,
-              price: item.product.price,
+              price: item.products.price,
             })),
           },
         },
         include: {
-          items: {
+          order_items: {
             include: {
-              product: true,
+              products: true,
             },
           },
         },
       });
 
       // Update product inventory
-      for (const item of cart.items) {
+      for (const item of cart.cart_items) {
         await tx.products.update({
-          where: { id: item.productId },
+          where: { id: item.productsId },
           data: {
             stock: {
               decrement: item.quantity,
@@ -310,20 +310,20 @@ export class OrderService {
     }
 
     const [orders, total] = await Promise.all([
-      prisma.order.findMany({
+      prisma.orders.findMany({
         where,
         skip,
         take: perPage,
         orderBy: { createdAt: 'desc' },
         include: {
-          items: {
+          order_items: {
             include: {
-              product: true,
+              products: true,
             },
           },
         },
       }),
-      prisma.order.count({ where }),
+      prisma.orders.count({ where }),
     ]);
 
     return {
@@ -341,15 +341,15 @@ export class OrderService {
    * Get a single order by ID (for the authenticated user)
    */
   async getOrder(orderId: string, userId: string) {
-    const order = await prisma.order.findFirst({
+    const order = await prisma.orders.findFirst({
       where: {
         id: orderId,
         userId,
       },
       include: {
-        items: {
+        order_items: {
           include: {
-            product: true,
+            products: true,
           },
         },
         statusLogs: {

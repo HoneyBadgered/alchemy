@@ -30,7 +30,7 @@ export class BundlesService {
     const where = { isActive: true };
 
     const [bundles, total] = await Promise.all([
-      prisma.product.bundles.findMany({
+      prisma.products.bundles.findMany({
         where,
         skip,
         take: perPage,
@@ -54,7 +54,7 @@ export class BundlesService {
           },
         },
       }),
-      prisma.product.bundles.count({ where }),
+      prisma.products.bundles.count({ where }),
     ]);
 
     // Calculate bundle prices
@@ -89,7 +89,7 @@ export class BundlesService {
    * Get a specific bundle
    */
   async getBundle(bundleId: string) {
-    const bundle = await prisma.product.bundles.findUnique({
+    const bundle = await prisma.products.bundles.findUnique({
       where: { id: bundleId },
       include: {
         items: {
@@ -150,7 +150,7 @@ export class BundlesService {
       where.relationType = relationType;
     }
 
-    const relations = await prisma.product.elation.findMany({
+    const relations = await prisma.products.elation.findMany({
       where,
       orderBy: { sortOrder: 'asc' },
       include: {
@@ -191,7 +191,7 @@ export class BundlesService {
     }
 
     // Get the current product's category
-    const product = await prisma.product.findUnique({
+    const product = await prisma.products.findUnique({
       where: { id: productId },
       select: { category: true },
     });
@@ -200,7 +200,7 @@ export class BundlesService {
     const remaining = limit - explicitRecommendations.length;
     const excludeIds = [productId, ...explicitRecommendations.map((p) => p.id)];
 
-    const categoryRecommendations = await prisma.product.findMany({
+    const categoryRecommendations = await prisma.products.findMany({
       where: {
         id: { notIn: excludeIds },
         isActive: true,
@@ -232,7 +232,7 @@ export class BundlesService {
 
     if (stillRemaining > 0) {
       const allExcludeIds = [...excludeIds, ...categoryRecommendations.map((p) => p.id)];
-      popularProducts = await prisma.product.findMany({
+      popularProducts = await prisma.products.findMany({
         where: {
           id: { notIn: allExcludeIds },
           isActive: true,
@@ -270,7 +270,7 @@ export class BundlesService {
    */
   async getCartUpsells(productIds: string[], limit: number = 4) {
     // Get all upsells for products in cart
-    const upsells = await prisma.product.elation.findMany({
+    const upsells = await prisma.products.elation.findMany({
       where: {
         sourceProductId: { in: productIds },
         relationType: 'upsell',

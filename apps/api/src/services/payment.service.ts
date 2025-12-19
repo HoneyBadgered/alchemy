@@ -41,7 +41,7 @@ export class PaymentService {
       }
 
       // Get the order
-      const order = await prisma.order.findFirst({
+      const order = await prisma.orders.findFirst({
         where: whereClause,
         include: {
           users: true,
@@ -167,7 +167,7 @@ export class PaymentService {
    * Used when returning from Stripe redirect after payment
    */
   async getOrderByPaymentIntent(paymentIntentId: string, clientSecret?: string) {
-    const order = await prisma.order.findFirst({
+    const order = await prisma.orders.findFirst({
       where: {
         stripePaymentId: paymentIntentId,
       },
@@ -227,7 +227,7 @@ export class PaymentService {
       whereClause.sessionId = sessionId;
     }
 
-    const order = await prisma.order.findFirst({
+    const order = await prisma.orders.findFirst({
       where: whereClause,
     });
 
@@ -276,7 +276,7 @@ export class PaymentService {
    * Update order payment status based on Stripe PaymentIntent
    */
   async updateOrderPaymentStatus(orderId: string, paymentIntent: Stripe.PaymentIntent) {
-    const order = await prisma.order.findUnique({
+    const order = await prisma.orders.findUnique({
       where: { id: orderId },
     });
 

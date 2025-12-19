@@ -78,13 +78,13 @@ export class AdminProductService {
 
     // Get products and total count
     const [products, total] = await Promise.all([
-      prisma.product.findMany({
+      prisma.products.findMany({
         where,
         skip,
         take: perPage,
         orderBy: { [sortBy]: sortOrder },
       }),
-      prisma.product.count({ where }),
+      prisma.products.count({ where }),
     ]);
 
     return {
@@ -102,7 +102,7 @@ export class AdminProductService {
    * Get single product by ID
    */
   async getProduct(id: string) {
-    const product = await prisma.product.findUnique({
+    const product = await prisma.products.findUnique({
       where: { id },
       include: {
         order_items: {
@@ -132,7 +132,7 @@ export class AdminProductService {
    * Create new product
    */
   async createProduct(data: CreateProductInput) {
-    const product = await prisma.product.create({
+    const product = await prisma.products.create({
       data: {
         id: crypto.randomUUID(),
         name: data.name,
@@ -155,7 +155,7 @@ export class AdminProductService {
    * Update product
    */
   async updateProduct(id: string, data: UpdateProductInput) {
-    const product = await prisma.product.update({
+    const product = await prisma.products.update({
       where: { id },
       data,
     });
@@ -167,7 +167,7 @@ export class AdminProductService {
    * Delete product
    */
   async deleteProduct(id: string) {
-    await prisma.product.delete({
+    await prisma.products.delete({
       where: { id },
     });
 
@@ -178,7 +178,7 @@ export class AdminProductService {
    * Toggle product visibility
    */
   async toggleProductVisibility(id: string) {
-    const product = await prisma.product.findUnique({
+    const product = await prisma.products.findUnique({
       where: { id },
     });
 
@@ -186,7 +186,7 @@ export class AdminProductService {
       throw new Error('Product not found');
     }
 
-    const updated = await prisma.product.update({
+    const updated = await prisma.products.update({
       where: { id },
       data: { isActive: !product.isActive },
     });
@@ -198,7 +198,7 @@ export class AdminProductService {
    * Get product categories
    */
   async getCategories() {
-    const products = await prisma.product.findMany({
+    const products = await prisma.products.findMany({
       select: { category: true },
       distinct: ['category'],
       where: {
@@ -216,7 +216,7 @@ export class AdminProductService {
    * Get low stock products
    */
   async getLowStockProducts(threshold: number = 10) {
-    const products = await prisma.product.findMany({
+    const products = await prisma.products.findMany({
       where: {
         stock: { lte: threshold },
         isActive: true,
