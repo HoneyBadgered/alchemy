@@ -333,18 +333,20 @@ export class CartService {
 
   /**
    * Add custom blend to cart
-   * Creates a product for the blend if it doesn't exist, then adds to cart
+   * Creates a product for the blend if it doesn't exist, saves the blend, then adds to cart
    */
   async addBlendToCart({
     baseTeaId,
     addIns,
     userId,
     sessionId,
+    blendName,
   }: {
     baseTeaId: string;
     addIns: Array<{ ingredientId: string; quantity: number }>;
     userId?: string;
     sessionId?: string;
+    blendName?: string;
   }) {
     // Generate a unique product ID based on blend composition
     const blendKey = this.generateBlendKey(baseTeaId, addIns);
@@ -363,11 +365,11 @@ export class CartService {
       const totalPrice = this.calculateBlendPrice(addIns);
 
       // Generate blend name
-      const blendName = this.generateBlendName(baseTeaId, addIns);
+      const productName = blendName || this.generateBlendName(baseTeaId, addIns);
 
       product = await prisma.product.create({
         data: {
-          name: blendName,
+          name: productName,
           description: `Custom blend with ${baseTeaId} base and ${addIns.length} add-in${addIns.length === 1 ? '' : 's'}`,
           price: totalPrice,
           category: 'custom-blend',
@@ -377,6 +379,18 @@ export class CartService {
         },
       });
     }
+
+    // Save the blend record for persistence
+    await prisma.blends.create({
+      data: {
+        userId: userId || null,
+        sessionId: sessionId || null,
+        name: blendName || null,
+        baseTeaId,
+        addIns: addIns as any,
+        productId: product.id,
+      },
+    });
 
     // Add the blend product to cart
     return this.addToCart({
