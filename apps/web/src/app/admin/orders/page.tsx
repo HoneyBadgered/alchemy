@@ -178,7 +178,7 @@ export default function AdminOrdersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
+                      {order.order_items.length} {order.order_items.length === 1 ? 'item' : 'items'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       ${Number(order.totalAmount).toFixed(2)}

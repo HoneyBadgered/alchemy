@@ -463,13 +463,13 @@ export default function CheckoutPage() {
 
                 {/* Cart Items */}
                 <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
-                  {cart.cart.items.map((item) => (
+                  {cart.cart.cart_items.map((item) => (
                     <div key={item.id} className="flex gap-3">
                       <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-                        {item.product.imageUrl ? (
+                        {item.products.imageUrl ? (
                           <img
-                            src={item.product.imageUrl}
-                            alt={item.product.name}
+                            src={item.products.imageUrl}
+                            alt={item.products.name}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -480,14 +480,14 @@ export default function CheckoutPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm line-clamp-1">
-                          {item.product.name}
+                          {item.products.name}
                         </p>
                         <p className="text-xs text-gray-600">
-                          Qty: {item.quantity} × ${Number(item.product.price).toFixed(2)}
+                          Qty: {item.quantity} × ${Number(item.products.price).toFixed(2)}
                         </p>
                       </div>
                       <div className="text-sm font-semibold">
-                        ${(Number(item.product.price) * item.quantity).toFixed(2)}
+                        ${(Number(item.products.price) * item.quantity).toFixed(2)}
                       </div>
                     </div>
                   ))}

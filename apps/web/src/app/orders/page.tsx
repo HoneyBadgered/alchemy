@@ -114,15 +114,15 @@ export default function OrdersPage() {
 
                   {/* Order Items Preview */}
                   <div className="flex gap-3 mb-4 overflow-x-auto">
-                    {order.items.slice(0, 3).map((item) => (
+                    {order.order_items.slice(0, 3).map((item) => (
                       <div
                         key={item.id}
                         className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden"
                       >
-                        {item.product.imageUrl ? (
+                        {item.products.imageUrl ? (
                           <img
-                            src={item.product.imageUrl}
-                            alt={item.product.name}
+                            src={item.products.imageUrl}
+                            alt={item.products.name}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -132,10 +132,10 @@ export default function OrdersPage() {
                         )}
                       </div>
                     ))}
-                    {order.items.length > 3 && (
+                    {order.order_items.length > 3 && (
                       <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center">
                         <span className="text-sm font-semibold text-gray-600">
-                          +{order.items.length - 3}
+                          +{order.order_items.length - 3}
                         </span>
                       </div>
                     )}
@@ -144,7 +144,7 @@ export default function OrdersPage() {
                   {/* Order Summary */}
                   <div className="flex items-center justify-between pt-4 border-t">
                     <div className="text-sm text-gray-600">
-                      {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
+                      {order.order_items.length} {order.order_items.length === 1 ? 'item' : 'items'}
                     </div>
                     <div className="text-lg font-bold text-purple-600">
                       ${Number(order.totalAmount).toFixed(2)}

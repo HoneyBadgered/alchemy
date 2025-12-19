@@ -115,8 +115,8 @@ export default function WishlistPage() {
 
         {data && data.items.length > 0 && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {data.items.map((item) => {
-              const product = item.product;
+            {data.order_items.map((item) => {
+              const product = item.products;
               const stockStatus = getStockStatus(
                 product.stock,
                 product.lowStockThreshold || 5,

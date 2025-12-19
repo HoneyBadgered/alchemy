@@ -26,7 +26,7 @@ export interface CartItem {
   quantity: number;
   createdAt: string;
   updatedAt: string;
-  product: Product;
+  products: Product;
 }
 
 export interface Cart {
@@ -35,7 +35,7 @@ export interface Cart {
   sessionId?: string;
   createdAt: string;
   updatedAt: string;
-  items: CartItem[];
+  cart_items: CartItem[];
 }
 
 export interface CartResponse {
@@ -64,7 +64,8 @@ export const cartApi = {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch cart');
+      const errorData = await response.json().catch(() => ({ message: 'Failed to fetch cart' }));
+      throw new Error(errorData.message || 'Failed to fetch cart');
     }
 
     return response.json();
@@ -211,7 +212,8 @@ export const cartApi = {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to merge cart');
+      const errorData = await response.json().catch(() => ({ message: 'Failed to merge cart' }));
+      throw new Error(errorData.message || 'Failed to merge cart');
     }
 
     return response.json();

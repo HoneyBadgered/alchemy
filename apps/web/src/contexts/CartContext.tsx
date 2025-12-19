@@ -28,7 +28,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const { accessToken, isAuthenticated } = useAuthStore();
   const [cart, setCart] = useState<CartResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState<string>('');
+  const [sessionId, setSessionId] = useState<string>(() => {
+    // Initialize session ID immediately for guests
+    if (typeof window !== 'undefined') {
+      let guestSessionId = localStorage.getItem('cartSessionId');
+      if (!guestSessionId) {
+        guestSessionId = crypto.randomUUID();
+        localStorage.setItem('cartSessionId', guestSessionId);
+      }
+      return guestSessionId;
+    }
+    return '';
+  });
 
   // Initialize or get session ID for guest users
   useEffect(() => {
@@ -66,7 +77,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const mergeGuestCart = async () => {
       const guestSessionId = localStorage.getItem('cartSessionId');
-      if (isAuthenticated && accessToken && guestSessionId) {
+      if (isAuthenticated && accessToken && guestSessionId && sessionId === guestSessionId) {
         try {
           await cartApi.mergeCart(guestSessionId, accessToken);
           localStorage.removeItem('cartSessionId');
@@ -74,12 +85,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           await fetchCart();
         } catch (error) {
           console.error('Failed to merge cart:', error);
+          // Still fetch the user's cart even if merge fails
+          await fetchCart();
         }
       }
     };
 
     mergeGuestCart();
-  }, [isAuthenticated, accessToken, fetchCart]);
+  }, [isAuthenticated, accessToken, fetchCart, sessionId]);
 
   const addToCart = async (productId: string, quantity: number) => {
     setIsLoading(true);

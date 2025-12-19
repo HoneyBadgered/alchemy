@@ -69,7 +69,7 @@ function OrderHistoryContent() {
     setReordering(order.id);
     try {
       // Add all items from the order to cart
-      for (const item of order.items) {
+      for (const item of order.order_items) {
         await addToCart(item.productId, item.quantity);
       }
       router.push('/cart');
@@ -207,7 +207,7 @@ function OrderHistoryContent() {
                         ${Number(order.totalAmount).toFixed(2)}
                       </p>
                       <p className="text-purple-300/60 text-sm">
-                        {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
+                        {order.order_items.length} {order.order_items.length === 1 ? 'item' : 'items'}
                       </p>
                     </div>
                   </div>
@@ -216,16 +216,16 @@ function OrderHistoryContent() {
                 {/* Order Items Preview */}
                 <div className="p-5 bg-slate-900/30">
                   <div className="flex gap-3 overflow-x-auto pb-2">
-                    {order.items.slice(0, 4).map((item) => (
+                    {order.order_items.slice(0, 4).map((item) => (
                       <div
                         key={item.id}
                         className="flex-shrink-0 w-16 h-16 bg-slate-700/50 rounded-lg overflow-hidden border border-purple-500/20"
-                        title={item.product.name}
+                        title={item.products.name}
                       >
-                        {item.product.imageUrl ? (
+                        {item.products.imageUrl ? (
                           <img
-                            src={item.product.imageUrl}
-                            alt={item.product.name}
+                            src={item.products.imageUrl}
+                            alt={item.products.name}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -235,10 +235,10 @@ function OrderHistoryContent() {
                         )}
                       </div>
                     ))}
-                    {order.items.length > 4 && (
+                    {order.order_items.length > 4 && (
                       <div className="flex-shrink-0 w-16 h-16 bg-slate-700/50 rounded-lg flex items-center justify-center border border-purple-500/20">
                         <span className="text-purple-300 text-sm font-medium">
-                          +{order.items.length - 4}
+                          +{order.order_items.length - 4}
                         </span>
                       </div>
                     )}

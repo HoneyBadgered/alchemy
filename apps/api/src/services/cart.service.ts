@@ -72,8 +72,10 @@ export class CartService {
     if (!cart) {
       cart = await prisma.carts.create({
         data: {
+          id: crypto.randomUUID(),
           userId: userId || null,
           sessionId: sessionId || null,
+          updatedAt: new Date(),
         },
         include: {
           cart_items: {
@@ -169,9 +171,11 @@ export class CartService {
         // Create new cart item
         await prisma.cart_items.create({
           data: {
+            id: crypto.randomUUID(),
             cartId: cart.id,
             productId,
             quantity,
+            updatedAt: new Date(),
           },
         });
       }
@@ -369,6 +373,7 @@ export class CartService {
 
       product = await prisma.products.create({
         data: {
+          id: crypto.randomUUID(),
           name: productName,
           description: `Custom blend with ${baseTeaId} base and ${addIns.length} add-in${addIns.length === 1 ? '' : 's'}`,
           price: totalPrice,
@@ -376,6 +381,7 @@ export class CartService {
           tags: [blendKey, 'custom', 'blend'],
           isActive: true,
           stock: CUSTOM_BLEND_STOCK,
+          updatedAt: new Date(),
         },
       });
     }
@@ -383,6 +389,7 @@ export class CartService {
     // Save the blend record for persistence
     await prisma.blends.create({
       data: {
+        id: crypto.randomUUID(),
         userId: userId || null,
         sessionId: sessionId || null,
         name: blendName || null,

@@ -141,7 +141,7 @@ export default function CartPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
-              {cart.cart.items.map((item) => (
+              {cart.cart.cart_items.map((item) => (
                 <div
                   key={item.id}
                   className="bg-white rounded-xl shadow-md overflow-hidden"
@@ -149,13 +149,13 @@ export default function CartPage() {
                   <div className="flex gap-4 p-4">
                     {/* Product Image */}
                     <Link
-                      href={`/shop/${item.product.id}`}
+                      href={`/shop/${item.products.id}`}
                       className="flex-shrink-0 w-24 h-24 bg-gray-100 rounded-lg overflow-hidden"
                     >
-                      {item.product.imageUrl ? (
+                      {item.products.imageUrl ? (
                         <img
-                          src={item.product.imageUrl}
-                          alt={item.product.name}
+                          src={item.products.imageUrl}
+                          alt={item.products.name}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -168,18 +168,18 @@ export default function CartPage() {
                     {/* Product Details */}
                     <div className="flex-1 min-w-0">
                       <Link
-                        href={`/shop/${item.product.id}`}
+                        href={`/shop/${item.products.id}`}
                         className="font-bold text-lg mb-1 hover:text-purple-600 line-clamp-1"
                       >
-                        {item.product.name}
+                        {item.products.name}
                       </Link>
-                      {item.product.category && (
+                      {item.products.category && (
                         <div className="text-xs text-purple-600 font-semibold mb-2">
-                          {item.product.category}
+                          {item.products.category}
                         </div>
                       )}
                       <div className="text-2xl font-bold text-purple-600">
-                        ${Number(item.product.price).toFixed(2)}
+                        ${Number(item.products.price).toFixed(2)}
                       </div>
                     </div>
 
@@ -187,8 +187,8 @@ export default function CartPage() {
                     <div className="flex flex-col items-end gap-2">
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => handleQuantityChange(item.product.id, item.quantity - 1)}
-                          disabled={updatingItems.has(item.product.id) || item.quantity <= 1}
+                          onClick={() => handleQuantityChange(item.products.id, item.quantity - 1)}
+                          disabled={updatingItems.has(item.products.id) || item.quantity <= 1}
                           className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center font-bold"
                         >
                           -
@@ -197,8 +197,8 @@ export default function CartPage() {
                           {item.quantity}
                         </span>
                         <button
-                          onClick={() => handleQuantityChange(item.product.id, item.quantity + 1)}
-                          disabled={updatingItems.has(item.product.id) || item.quantity >= item.product.stock}
+                          onClick={() => handleQuantityChange(item.products.id, item.quantity + 1)}
+                          disabled={updatingItems.has(item.products.id) || item.quantity >= item.products.stock}
                           className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center font-bold"
                         >
                           +
@@ -207,8 +207,8 @@ export default function CartPage() {
 
                       <div className="flex gap-2">
                         <button
-                          onClick={() => handleRemove(item.product.id)}
-                          disabled={updatingItems.has(item.product.id)}
+                          onClick={() => handleRemove(item.products.id)}
+                          disabled={updatingItems.has(item.products.id)}
                           className="text-red-600 hover:text-red-700 text-sm font-semibold disabled:opacity-50"
                         >
                           Remove
@@ -217,18 +217,18 @@ export default function CartPage() {
                           <>
                             <span className="text-gray-300">|</span>
                             <button
-                              onClick={() => handleSaveForLater(item.product.id)}
-                              disabled={savingForLater.has(item.product.id)}
+                              onClick={() => handleSaveForLater(item.products.id)}
+                              disabled={savingForLater.has(item.products.id)}
                               className="text-purple-600 hover:text-purple-700 text-sm font-semibold disabled:opacity-50"
                             >
-                              {savingForLater.has(item.product.id) ? 'Saving...' : 'Save for Later'}
+                              {savingForLater.has(item.products.id) ? 'Saving...' : 'Save for Later'}
                             </button>
                           </>
                         )}
                       </div>
 
                       <div className="text-sm text-gray-600 mt-1">
-                        Subtotal: ${(Number(item.product.price) * item.quantity).toFixed(2)}
+                        Subtotal: ${(Number(item.products.price) * item.quantity).toFixed(2)}
                       </div>
                     </div>
                   </div>

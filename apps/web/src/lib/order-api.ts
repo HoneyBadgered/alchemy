@@ -31,7 +31,7 @@ export interface OrderItem {
   quantity: number;
   price: number;
   createdAt: string;
-  product: {
+  products: {
     id: string;
     name: string;
     description: string;
@@ -54,7 +54,7 @@ export interface Order {
   customerNotes?: string;
   createdAt: string;
   updatedAt: string;
-  items: OrderItem[];
+  order_items: OrderItem[];
   statusLogs?: Array<{
     id: string;
     fromStatus?: string;

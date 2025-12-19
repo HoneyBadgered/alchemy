@@ -136,13 +136,13 @@ export default function OrderDetailPage() {
         <div className="bg-white rounded-xl shadow-md p-6 mb-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4">Order Items</h3>
           <div className="space-y-4">
-            {order.items.map((item) => (
+            {order.order_items.map((item) => (
               <div key={item.id} className="flex gap-4 pb-4 border-b last:border-b-0">
                 <div className="w-20 h-20 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-                  {item.product.imageUrl ? (
+                  {item.products.imageUrl ? (
                     <img
-                      src={item.product.imageUrl}
-                      alt={item.product.name}
+                      src={item.products.imageUrl}
+                      alt={item.products.name}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -152,9 +152,9 @@ export default function OrderDetailPage() {
                   )}
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-bold text-gray-900">{item.product.name}</h4>
-                  {item.product.category && (
-                    <p className="text-sm text-purple-600">{item.product.category}</p>
+                  <h4 className="font-bold text-gray-900">{item.products.name}</h4>
+                  {item.products.category && (
+                    <p className="text-sm text-purple-600">{item.products.category}</p>
                   )}
                   <p className="text-sm text-gray-600 mt-1">
                     Quantity: {item.quantity} × ${Number(item.price).toFixed(2)}

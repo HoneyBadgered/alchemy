@@ -79,9 +79,9 @@ export class AdminDashboardService {
               username: true,
             },
           },
-          items: {
+          order_items: {
             include: {
-              product: {
+              products: {
                 select: {
                   name: true,
                 },
