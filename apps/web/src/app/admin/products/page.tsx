@@ -136,12 +136,20 @@ export default function AdminProductsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Products</h1>
           <p className="text-gray-600 mt-1">Manage your product catalog</p>
         </div>
-        <Link
-          href="/admin/products/new"
-          className="px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition"
-        >
-          + Add Product
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/admin/products/import"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+          >
+            📥 Bulk Import
+          </Link>
+          <Link
+            href="/admin/products/new"
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition"
+          >
+            + Add Product
+          </Link>
+        </div>
       </div>
 
       {error && (

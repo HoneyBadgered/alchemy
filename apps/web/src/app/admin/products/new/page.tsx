@@ -8,11 +8,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
+import ImageUpload from '@/components/admin/ImageUpload';
 
 export default function NewProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const { accessToken, hasHydrated } = useAuthStore();
   
   const [formData, setFormData] = useState({
@@ -200,22 +202,38 @@ export default function NewProductPage() {
           />
         </div>
 
-        {/* Main Image URL */}
+        {/* Main Image */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Main Image URL
+            Main Image
           </label>
+          {uploadError && (
+            <div className="mb-2 text-sm text-red-600">{uploadError}</div>
+          )}
+          {hasHydrated && accessToken ? (
+            <ImageUpload
+              currentImage={formData.imageUrl}
+              accessToken={accessToken}
+              onUploadComplete={(url) => {
+                setFormData(prev => ({ ...prev, imageUrl: url }));
+                setUploadError(null);
+              }}
+              onError={(error) => setUploadError(error)}
+            />
+          ) : (
+            <p className="text-sm text-gray-500">Loading...</p>
+          )}
+          <p className="text-sm text-gray-500 mt-1">
+            Upload an image or paste a URL below
+          </p>
           <input
             type="url"
             name="imageUrl"
             value={formData.imageUrl}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            placeholder="https://images.unsplash.com/..."
+            className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            placeholder="https://images.unsplash.com/... (optional)"
           />
-          <p className="text-sm text-gray-500 mt-1">
-            Primary product image URL
-          </p>
         </div>
 
         {/* Additional Images */}
