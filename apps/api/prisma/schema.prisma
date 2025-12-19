@@ -634,6 +634,7 @@ model users {
   createdAt                DateTime                  @default(now())
   updatedAt                DateTime
   addresses                addresses[]
+  blog_posts               blog_posts[]
   carts                    carts?
   notification_preferences notification_preferences?
   order_status_logs        order_status_logs[]
@@ -663,4 +664,56 @@ model wishlist_items {
 
   @@unique([userId, productId])
   @@index([userId])
+}
+
+model blog_posts {
+  id               String            @id
+  type             String
+  title            String
+  slug             String            @unique
+  body             String
+  excerpt          String?
+  category         String?
+  status           String            @default("draft")
+  isFeatured       Boolean           @default(false)
+  authorId         String
+  heroImageUrl     String?
+  readTime         String?
+  publishedAt      DateTime?
+  deletedAt        DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  author           users             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  blog_post_tags   blog_post_tags[]
+
+  @@index([type])
+  @@index([status])
+  @@index([slug])
+  @@index([publishedAt])
+  @@index([category])
+  @@index([isFeatured])
+  @@index([deletedAt])
+}
+
+model tags {
+  id             String           @id
+  name           String           @unique
+  slug           String           @unique
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  blog_post_tags blog_post_tags[]
+
+  @@index([slug])
+}
+
+model blog_post_tags {
+  id     String     @id
+  postId String
+  tagId  String
+  post   blog_posts @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    tags       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, tagId])
+  @@index([postId])
+  @@index([tagId])
 }

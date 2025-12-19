@@ -176,3 +176,6 @@ export interface BlendState {
   baseTeaId?: string; // single base tea
   addIns: SelectedIngredient[]; // multiple add-ins with quantities
 }
+
+// Export blog types
+export * from './blog';
