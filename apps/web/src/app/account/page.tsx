@@ -17,7 +17,7 @@ export default function AccountPage() {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
-        <main className="flex-1 flex items-center justify-center bg-gradient-to-b from-purple-50 to-white">
+        <main id="main-content" className="flex-1 flex items-center justify-center bg-gradient-to-b from-purple-50 to-white">
           <div className="text-purple-900 text-xl">Loading...</div>
         </main>
         <Footer />

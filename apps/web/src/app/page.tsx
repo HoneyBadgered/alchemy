@@ -13,7 +13,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         {/* Hero Section - 75% viewport height with image background */}
         <section 
           className="relative h-screen flex items-center justify-center overflow-hidden"

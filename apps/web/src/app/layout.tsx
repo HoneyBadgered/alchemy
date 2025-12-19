@@ -4,6 +4,17 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { QueryProvider } from "@/components/QueryProvider";
+import { ToastProvider } from "@/components/Toast";
+
+// Load accessibility checker in development
+if (process.env.NODE_ENV === 'development') {
+  import('@/lib/axe-config');
+}
+
+// Initialize axe-core for accessibility testing in development
+if (process.env.NODE_ENV !== 'production') {
+  import('@/lib/axe-init');
+}
 
 export const metadata: Metadata = {
   title: "The Alchemy Table",
@@ -37,15 +48,20 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body className="antialiased font-sans">
-        <ThemeProvider>
-          <QueryProvider>
-            <AuthProvider>
-              <CartProvider>
-                {children}
-              </CartProvider>
-            </AuthProvider>
-          </QueryProvider>
-        </ThemeProvider>
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
+        <ToastProvider>
+          <ThemeProvider>
+            <QueryProvider>
+              <AuthProvider>
+                <CartProvider>
+                  {children}
+                </CartProvider>
+              </AuthProvider>
+            </QueryProvider>
+          </ThemeProvider>
+        </ToastProvider>
       </body>
     </html>
   );

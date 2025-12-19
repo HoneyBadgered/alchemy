@@ -189,6 +189,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
+      {/* ARIA live region for cart updates */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {cart && cart.itemCount > 0
+          ? `Shopping cart updated. ${cart.itemCount} ${cart.itemCount === 1 ? 'item' : 'items'} in cart. Subtotal: $${cart.subtotal.toFixed(2)}`
+          : 'Shopping cart is empty'}
+      </div>
     </CartContext.Provider>
   );
 }

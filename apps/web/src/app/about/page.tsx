@@ -8,7 +8,7 @@ export default function AboutPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
       
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         {/* Hero Section */}
         <section className="bg-gradient-to-br from-purple-900 via-purple-800 to-purple-900 py-16 md:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

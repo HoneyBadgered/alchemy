@@ -21,7 +21,7 @@ export default function LibraryPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
       
-      <main className="flex-1 bg-gradient-to-b from-purple-50 to-white">
+      <main id="main-content" className="flex-1 bg-gradient-to-b from-purple-50 to-white">
         {/* Hero Section */}
         <section className="bg-purple-900 py-16 md:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
