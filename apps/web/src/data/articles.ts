@@ -1,5 +1,10 @@
 /**
  * Static data for library articles.
+ * 
+ * DEPRECATED: Static articles data
+ * Content is now managed via database (see /admin/blog)
+ * This file is kept for reference only
+ * 
  * In production, this would come from a CMS or API.
  */
 
