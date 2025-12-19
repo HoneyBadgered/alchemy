@@ -1,0 +1,608 @@
+# Agent Prompt: Add Native Content Management System to Alchemy
+
+## Overview
+Implement a comprehensive, production-ready Content Management System (CMS) as a native feature of the Alchemy framework. This CMS should provide content creators with an intuitive interface for managing website content while maintaining Alchemy's performance, security, and developer-friendly architecture.
+
+## Core Requirements
+
+### 1. Database Schema & Models
+
+Create the following database tables and Ecto schemas:
+
+#### Content Types
+```elixir
+defmodule Alchemy.CMS.ContentType do
+  use Alchemy.Schema
+  
+  schema "cms_content_types" do
+    field :name, :string
+    field :slug, :string
+    field :description, :text
+    field :icon, :string
+    field :template, :string
+    field :fields_schema, :map  # JSON schema for custom fields
+    field :is_active, :boolean, default: true
+    field :settings, :map
+    
+    has_many :content_items, Alchemy.CMS.ContentItem
+    
+    timestamps()
+  end
+end
+```
+
+#### Content Items
+```elixir
+defmodule Alchemy.CMS.ContentItem do
+  use Alchemy.Schema
+  
+  schema "cms_content_items" do
+    field :title, :string
+    field :slug, :string
+    field :content, :text
+    field :excerpt, :text
+    field :status, :string  # draft, published, archived
+    field :published_at, :utc_datetime
+    field :featured_image, :string
+    field :meta_data, :map  # SEO metadata
+    field :custom_fields, :map  # Dynamic fields based on content type
+    field :version, :integer, default: 1
+    field :locale, :string, default: "en"
+    
+    belongs_to :content_type, Alchemy.CMS.ContentType
+    belongs_to :author, Alchemy.Accounts.User
+    belongs_to :parent, Alchemy.CMS.ContentItem
+    
+    has_many :children, Alchemy.CMS.ContentItem, foreign_key: :parent_id
+    has_many :revisions, Alchemy.CMS.ContentRevision
+    many_to_many :categories, Alchemy.CMS.Category, join_through: "cms_content_categories"
+    many_to_many :tags, Alchemy.CMS.Tag, join_through: "cms_content_tags"
+    
+    timestamps()
+  end
+end
+```
+
+#### Categories
+```elixir
+defmodule Alchemy.CMS.Category do
+  use Alchemy.Schema
+  
+  schema "cms_categories" do
+    field :name, :string
+    field :slug, :string
+    field :description, :text
+    field :parent_id, :id
+    field :order, :integer, default: 0
+    
+    many_to_many :content_items, Alchemy.CMS.ContentItem, join_through: "cms_content_categories"
+    
+    timestamps()
+  end
+end
+```
+
+#### Tags
+```elixir
+defmodule Alchemy.CMS.Tag do
+  use Alchemy.Schema
+  
+  schema "cms_tags" do
+    field :name, :string
+    field :slug, :string
+    
+    many_to_many :content_items, Alchemy.CMS.ContentItem, join_through: "cms_content_tags"
+    
+    timestamps()
+  end
+end
+```
+
+#### Content Revisions
+```elixir
+defmodule Alchemy.CMS.ContentRevision do
+  use Alchemy.Schema
+  
+  schema "cms_content_revisions" do
+    field :title, :string
+    field :content, :text
+    field :custom_fields, :map
+    field :version, :integer
+    field :change_summary, :text
+    
+    belongs_to :content_item, Alchemy.CMS.ContentItem
+    belongs_to :author, Alchemy.Accounts.User
+    
+    timestamps()
+  end
+end
+```
+
+#### Media Library
+```elixir
+defmodule Alchemy.CMS.Media do
+  use Alchemy.Schema
+  
+  schema "cms_media" do
+    field :filename, :string
+    field :original_filename, :string
+    field :mime_type, :string
+    field :file_size, :integer
+    field :width, :integer
+    field :height, :integer
+    field :storage_path, :string
+    field :cdn_url, :string
+    field :alt_text, :string
+    field :caption, :text
+    field :metadata, :map
+    
+    belongs_to :uploaded_by, Alchemy.Accounts.User
+    
+    timestamps()
+  end
+end
+```
+
+### 2. Core Context Module
+
+Create `lib/alchemy/cms.ex` with the following functionality:
+
+```elixir
+defmodule Alchemy.CMS do
+  @moduledoc """
+  The CMS context for managing content, media, and related entities.
+  """
+  
+  import Ecto.Query
+  alias Alchemy.Repo
+  alias Alchemy.CMS.{ContentType, ContentItem, Category, Tag, ContentRevision, Media}
+  
+  # Content Type Functions
+  def list_content_types(opts \\ [])
+  def get_content_type!(id)
+  def get_content_type_by_slug(slug)
+  def create_content_type(attrs)
+  def update_content_type(content_type, attrs)
+  def delete_content_type(content_type)
+  
+  # Content Item Functions
+  def list_content_items(opts \\ [])
+  def get_content_item!(id)
+  def get_content_item_by_slug(slug)
+  def create_content_item(attrs, author)
+  def update_content_item(content_item, attrs, author)
+  def delete_content_item(content_item)
+  def publish_content_item(content_item)
+  def unpublish_content_item(content_item)
+  def archive_content_item(content_item)
+  
+  # Revision Functions
+  def list_revisions(content_item)
+  def get_revision!(id)
+  def create_revision(content_item, author, change_summary)
+  def restore_revision(revision)
+  
+  # Category Functions
+  def list_categories(opts \\ [])
+  def get_category!(id)
+  def get_category_by_slug(slug)
+  def create_category(attrs)
+  def update_category(category, attrs)
+  def delete_category(category)
+  
+  # Tag Functions
+  def list_tags(opts \\ [])
+  def get_tag!(id)
+  def get_or_create_tag(name)
+  def delete_tag(tag)
+  
+  # Media Functions
+  def list_media(opts \\ [])
+  def get_media!(id)
+  def upload_media(file, user, attrs \\ %{})
+  def update_media(media, attrs)
+  def delete_media(media)
+  
+  # Search & Filter
+  def search_content(query_string, opts \\ [])
+  def filter_by_status(queryable, status)
+  def filter_by_content_type(queryable, content_type_id)
+  def filter_by_category(queryable, category_id)
+  def filter_by_tag(queryable, tag_id)
+  def filter_by_author(queryable, author_id)
+  
+  # Publishing & Scheduling
+  def schedule_publication(content_item, datetime)
+  def get_scheduled_items()
+end
+```
+
+### 3. Admin Interface (LiveView)
+
+Create a modern, responsive admin interface using Phoenix LiveView:
+
+#### Dashboard
+- File: `lib/alchemy_web/live/cms/dashboard_live.ex`
+- Overview statistics (total content, published, drafts, scheduled)
+- Recent activity feed
+- Quick actions
+- Analytics preview
+
+#### Content Management
+- File: `lib/alchemy_web/live/cms/content_live/index.ex`
+- List all content with filtering, sorting, and search
+- Bulk actions (publish, unpublish, delete)
+- Status indicators
+- Quick edit capabilities
+
+- File: `lib/alchemy_web/live/cms/content_live/form.ex`
+- Rich text editor (integrate TipTap or similar)
+- Custom field rendering based on content type
+- Real-time autosave
+- Preview functionality
+- SEO metadata editor
+- Featured image upload
+- Category and tag management
+- Publishing controls (save draft, publish, schedule)
+
+#### Content Types
+- File: `lib/alchemy_web/live/cms/content_type_live/index.ex`
+- Manage content types
+- Define custom field schemas
+- Template selection
+
+#### Media Library
+- File: `lib/alchemy_web/live/cms/media_live/index.ex`
+- Grid and list views
+- Drag-and-drop upload
+- Image preview and editing
+- Bulk operations
+- Search and filter by type
+- Folder organization (optional)
+
+#### Categories & Tags
+- File: `lib/alchemy_web/live/cms/category_live/index.ex`
+- Hierarchical category management
+- Drag-and-drop ordering
+- Tag management with usage counts
+
+### 4. File Upload & Storage
+
+Implement flexible file storage with multiple backend support:
+
+```elixir
+defmodule Alchemy.CMS.Storage do
+  @moduledoc """
+  Handles file storage with support for local, S3, and CDN.
+  """
+  
+  @callback store(file :: map(), opts :: keyword()) :: {:ok, String.t()} | {:error, term()}
+  @callback delete(path :: String.t()) :: :ok | {:error, term()}
+  @callback url(path :: String.t(), opts :: keyword()) :: String.t()
+  
+  def store(file, opts \\ []) do
+    adapter().store(file, opts)
+  end
+  
+  def delete(path) do
+    adapter().delete(path)
+  end
+  
+  def url(path, opts \\ []) do
+    adapter().url(path, opts)
+  end
+  
+  defp adapter do
+    Application.get_env(:alchemy, :storage_adapter, Alchemy.CMS.Storage.Local)
+  end
+end
+```
+
+Implement adapters:
+- `Alchemy.CMS.Storage.Local` - Local filesystem storage
+- `Alchemy.CMS.Storage.S3` - AWS S3 storage
+- `Alchemy.CMS.Storage.GCS` - Google Cloud Storage (optional)
+
+### 5. Rich Text Editor
+
+Integrate a modern WYSIWYG editor:
+
+Create `assets/js/hooks/rich_editor.js`:
+```javascript
+export const RichEditor = {
+  mounted() {
+    // Initialize TipTap or similar editor
+    // Handle image uploads
+    // Sync with LiveView
+  },
+  
+  updated() {
+    // Handle updates
+  }
+}
+```
+
+Features needed:
+- Bold, italic, underline, strikethrough
+- Headings (H1-H6)
+- Lists (ordered, unordered)
+- Links
+- Images with upload
+- Code blocks
+- Block quotes
+- Tables
+- Embed (YouTube, Twitter, etc.)
+- HTML view for advanced users
+
+### 6. Permissions & Access Control
+
+Implement role-based access control:
+
+```elixir
+defmodule Alchemy.CMS.Authorization do
+  @moduledoc """
+  Authorization logic for CMS operations.
+  """
+  
+  # Define abilities
+  def can?(%User{role: "admin"}, _action, _resource), do: true
+  def can?(%User{role: "editor"}, action, ContentItem) when action in [:create, :read, :update], do: true
+  def can?(%User{role: "editor"}, :publish, %ContentItem{author_id: user_id}, %User{id: user_id}), do: true
+  def can?(%User{role: "author"}, action, %ContentItem{author_id: user_id}, %User{id: user_id}) 
+    when action in [:read, :update, :delete], do: true
+  def can?(%User{role: "author"}, :create, ContentItem), do: true
+  def can?(_, _, _), do: false
+  
+  # Plug for LiveView
+  def require_cms_access(socket, roles \\ ["admin", "editor", "author"]) do
+    # Implementation
+  end
+end
+```
+
+### 7. API Endpoints
+
+Create RESTful JSON API for headless CMS usage:
+
+```elixir
+# lib/alchemy_web/controllers/api/cms/content_controller.ex
+defmodule AlchemyWeb.API.CMS.ContentController do
+  use AlchemyWeb, :controller
+  
+  def index(conn, params)  # List content with filtering
+  def show(conn, %{"id" => id})  # Get single item
+  def create(conn, %{"content" => params})  # Create (authenticated)
+  def update(conn, %{"id" => id, "content" => params})  # Update (authenticated)
+  def delete(conn, %{"id" => id})  # Delete (authenticated)
+end
+```
+
+API Features:
+- JWT authentication
+- Rate limiting
+- Pagination
+- Filtering by status, type, category, tag
+- Include relationships
+- Field selection
+- JSON:API or standard REST format
+- OpenAPI/Swagger documentation
+
+### 8. Front-End Rendering
+
+Create helpers for rendering CMS content in templates:
+
+```elixir
+defmodule AlchemyWeb.CMS.Helpers do
+  @moduledoc """
+  View helpers for rendering CMS content.
+  """
+  
+  def render_content(content_item)
+  def render_excerpt(content_item, length \\ 200)
+  def content_url(content_item)
+  def featured_image_url(content_item, size \\ :medium)
+  def format_publish_date(content_item, format \\ :long)
+  def render_categories(content_item)
+  def render_tags(content_item)
+  def related_content(content_item, limit \\ 3)
+end
+```
+
+### 9. Caching Strategy
+
+Implement comprehensive caching:
+
+```elixir
+defmodule Alchemy.CMS.Cache do
+  @moduledoc """
+  Caching layer for CMS content.
+  """
+  
+  def get_content(slug, opts \\ [])
+  def invalidate_content(content_item)
+  def warm_cache(content_items)
+  def cache_key(content_item)
+end
+```
+
+- Cache published content items
+- Cache-Control headers for static content
+- CDN integration
+- Automatic cache invalidation on updates
+
+### 10. SEO & Performance
+
+Implement SEO-friendly features:
+
+```elixir
+defmodule Alchemy.CMS.SEO do
+  @moduledoc """
+  SEO utilities for CMS content.
+  """
+  
+  def generate_meta_tags(content_item)
+  def generate_structured_data(content_item)
+  def generate_sitemap()
+  def generate_rss_feed(content_type)
+  def canonical_url(content_item)
+end
+```
+
+Features:
+- Meta title and description
+- Open Graph tags
+- Twitter Cards
+- JSON-LD structured data
+- Automatic sitemap generation
+- RSS/Atom feeds
+- Canonical URLs
+- Image optimization
+
+### 11. Migration Files
+
+Create necessary migrations:
+
+```elixir
+# priv/repo/migrations/[timestamp]_create_cms_tables.exs
+defmodule Alchemy.Repo.Migrations.CreateCMSTables do
+  use Ecto.Migration
+  
+  def change do
+    # Create all CMS tables with proper indexes
+    # Add foreign key constraints
+    # Create join tables
+  end
+end
+```
+
+### 12. Configuration
+
+Add configuration options to `config/config.exs`:
+
+```elixir
+config :alchemy, Alchemy.CMS,
+  storage_adapter: Alchemy.CMS.Storage.Local,
+  upload_path: "priv/static/uploads",
+  max_upload_size: 10_485_760,  # 10MB
+  allowed_mime_types: ["image/jpeg", "image/png", "image/gif", "application/pdf"],
+  image_versions: [
+    thumb: {150, 150},
+    small: {300, 300},
+    medium: {600, 600},
+    large: {1200, 1200}
+  ],
+  cache_ttl: 3600,  # 1 hour
+  default_locale: "en",
+  enable_revisions: true,
+  enable_scheduling: true,
+  enable_api: true
+```
+
+### 13. Testing
+
+Create comprehensive tests:
+
+- `test/alchemy/cms_test.exs` - Context tests
+- `test/alchemy/cms/content_item_test.exs` - Schema tests
+- `test/alchemy_web/live/cms/content_live_test.exs` - LiveView tests
+- `test/alchemy_web/controllers/api/cms/content_controller_test.exs` - API tests
+- `test/alchemy/cms/storage_test.exs` - Storage adapter tests
+
+### 14. Documentation
+
+Create documentation:
+
+- `README_CMS.md` - Complete CMS documentation
+- Inline @doc and @moduledoc for all public functions
+- Usage examples
+- API documentation
+- Configuration guide
+- Deployment guide
+
+## Implementation Order
+
+1. **Phase 1: Foundation**
+   - Create database schemas and migrations
+   - Implement core context module
+   - Basic CRUD operations
+
+2. **Phase 2: Admin Interface**
+   - Dashboard
+   - Content list and basic form
+   - Media library basics
+
+3. **Phase 3: Rich Features**
+   - Rich text editor integration
+   - File upload and storage
+   - Categories and tags
+   - Revisions
+
+4. **Phase 4: Advanced Features**
+   - Permissions and authorization
+   - Content types with custom fields
+   - Publishing and scheduling
+
+5. **Phase 5: API & Integration**
+   - RESTful API
+   - Caching layer
+   - SEO features
+
+6. **Phase 6: Polish & Documentation**
+   - Testing
+   - Documentation
+   - Performance optimization
+
+## Quality Standards
+
+- Follow Elixir and Phoenix best practices
+- Write clean, well-documented code
+- Include comprehensive tests (minimum 80% coverage)
+- Ensure accessibility (WCAG 2.1 AA)
+- Mobile-responsive design
+- Fast performance (sub-100ms for most operations)
+- Secure by default (XSS protection, CSRF, SQL injection prevention)
+- Internationalization support (i18n)
+
+## Additional Considerations
+
+- **Extensibility**: Design for easy addition of custom content types and fields
+- **Scalability**: Optimize for large content libraries (10,000+ items)
+- **User Experience**: Intuitive interface for non-technical users
+- **Developer Experience**: Easy integration into existing Alchemy applications
+- **Backward Compatibility**: Don't break existing Alchemy features
+- **Database Agnostic**: Should work with PostgreSQL, MySQL, and SQLite
+- **Theming**: Allow customization of admin interface
+
+## Success Criteria
+
+The CMS implementation is complete when:
+
+1. All database tables and schemas are created
+2. Core CRUD operations work for all entities
+3. Admin interface is fully functional and user-friendly
+4. File upload and media management works
+5. Rich text editor is integrated
+6. Permissions system is functional
+7. API endpoints are available and documented
+8. Caching is implemented
+9. SEO features are working
+10. Tests pass with good coverage
+11. Documentation is complete
+12. Performance benchmarks are met
+
+## Notes
+
+- Use Phoenix LiveView for real-time, interactive admin interface
+- Leverage Ecto for database operations and validations
+- Use Phoenix PubSub for real-time updates
+- Consider using existing libraries where appropriate (e.g., Arc for uploads, ExAws for S3)
+- Follow SOLID principles and clean architecture
+- Make the system pluggable and configurable
+- Think about multi-tenancy from the start (even if not implemented initially)
+
+---
+
+**Generated**: 2025-12-19 00:36:22 UTC
+**Target Framework**: Alchemy (Phoenix-based)
+**Estimated Complexity**: High
+**Estimated Development Time**: 4-6 weeks for core features, 8-12 weeks for complete implementation
