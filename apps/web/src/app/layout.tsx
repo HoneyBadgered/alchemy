@@ -6,16 +6,6 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { QueryProvider } from "@/components/QueryProvider";
 import { ToastProvider } from "@/components/Toast";
 
-// Load accessibility checker in development
-if (process.env.NODE_ENV === 'development') {
-  import('@/lib/axe-config');
-}
-
-// Initialize axe-core for accessibility testing in development
-if (process.env.NODE_ENV !== 'production') {
-  import('@/lib/axe-init');
-}
-
 export const metadata: Metadata = {
   title: "The Alchemy Table",
   description: "A gamified e-commerce platform for building blends at an alchemy table",

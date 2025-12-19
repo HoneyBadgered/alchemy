@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Axe-core accessibility checker for development
  * Only runs in development mode to catch a11y violations
@@ -6,7 +8,7 @@
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   import('@axe-core/react').then((axe) => {
     import('react').then((React) => {
-      import('react-dom').then((ReactDOM) => {
+      import('react-dom/client').then((ReactDOM) => {
         axe.default(React, ReactDOM, 1000, {
           // Configure rules
           rules: [
