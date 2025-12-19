@@ -120,6 +120,9 @@ export class ProductImportService {
     }
 
     // Create product data
+    // Note: UUID generation could be optimized for large batches by letting
+    // the database generate IDs automatically, but this maintains consistency
+    // with existing product creation patterns in the codebase.
     const productData: Prisma.productsCreateInput = {
       id: crypto.randomUUID(),
       name: row.name.trim(),

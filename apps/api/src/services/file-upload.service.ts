@@ -70,6 +70,9 @@ export class FileUploadService {
     await pipeline(file.file, fs.createWriteStream(filepath));
 
     // Check file size after upload
+    // Note: For production, consider checking Content-Length header before
+    // upload or implementing streaming validation to avoid uploading files
+    // that exceed the size limit.
     const stats = fs.statSync(filepath);
     if (stats.size > this.maxFileSize) {
       // Delete file if too large

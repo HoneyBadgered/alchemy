@@ -9,6 +9,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
 interface ImportResult {
   success: boolean;
   imported: number;
@@ -38,7 +40,7 @@ export default function BulkImportPage() {
     if (!hasHydrated || !accessToken) return;
 
     try {
-      const response = await fetch('http://localhost:3000/admin/products/import/template', {
+      const response = await fetch(`${API_URL}/admin/products/import/template`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
         },
@@ -72,7 +74,7 @@ export default function BulkImportPage() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('http://localhost:3000/admin/products/import/validate', {
+      const response = await fetch(`${API_URL}/admin/products/import/validate`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -105,7 +107,7 @@ export default function BulkImportPage() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('http://localhost:3000/admin/products/import', {
+      const response = await fetch(`${API_URL}/admin/products/import`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,

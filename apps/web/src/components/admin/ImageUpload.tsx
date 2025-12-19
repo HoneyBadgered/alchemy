@@ -7,6 +7,8 @@
 
 import { useState } from 'react';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
 interface ImageUploadProps {
   onUploadComplete: (url: string) => void;
   onError?: (error: string) => void;
@@ -52,7 +54,7 @@ export default function ImageUpload({
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://localhost:3000/upload/product-image', {
+      const response = await fetch(`${API_URL}/upload/product-image`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -65,7 +67,7 @@ export default function ImageUpload({
       }
 
       const data = await response.json();
-      onUploadComplete(`http://localhost:3000${data.url}`);
+      onUploadComplete(`${API_URL}${data.url}`);
     } catch (error) {
       onError?.((error as Error).message);
       setPreview(currentImage || null);
