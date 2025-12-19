@@ -224,7 +224,8 @@ export const cartApi = {
     baseTeaId: string,
     addIns: Array<{ ingredientId: string; quantity: number }>,
     token?: string,
-    sessionId?: string
+    sessionId?: string,
+    name?: string
   ): Promise<CartResponse> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -240,7 +241,7 @@ export const cartApi = {
       method: 'POST',
       headers,
       credentials: 'include',
-      body: JSON.stringify({ baseTeaId, addIns }),
+      body: JSON.stringify({ baseTeaId, addIns, name }),
     });
 
     if (!response.ok) {

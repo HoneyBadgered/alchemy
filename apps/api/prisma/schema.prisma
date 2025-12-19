@@ -371,6 +371,7 @@ model products {
   trackInventory                                                 Boolean             @default(true)
   averageRating                                                  Decimal?            @db.Decimal(2, 1)
   reviewCount                                                    Int                 @default(0)
+  blends                                                         blends[]
   bundle_items                                                   bundle_items[]
   cart_items                                                     cart_items[]
   order_items                                                    order_items[]
@@ -634,6 +635,7 @@ model users {
   createdAt                DateTime                  @default(now())
   updatedAt                DateTime
   addresses                addresses[]
+  blends                   blends[]
   blog_posts               blog_posts[]
   carts                    carts?
   notification_preferences notification_preferences?
@@ -664,6 +666,24 @@ model wishlist_items {
 
   @@unique([userId, productId])
   @@index([userId])
+}
+
+model blends {
+  id          String    @id @default(uuid())
+  userId      String?
+  sessionId   String?
+  name        String?
+  baseTeaId   String
+  addIns      Json
+  productId   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  users       users?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products    products? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([sessionId])
+  @@index([productId])
 }
 
 model blog_posts {

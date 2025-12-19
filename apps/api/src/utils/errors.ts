@@ -209,3 +209,4 @@ export function toApiError(error: unknown): ApiError {
   // Unknown error type
   return new InternalServerError('An unexpected error occurred');
 }
+

@@ -39,6 +39,7 @@ const addBlendToCartSchema = z.object({
     ingredientId: z.string(),
     quantity: intQuantitySchema,
   })),
+  name: z.string().optional(),
 });
 
 export async function cartRoutes(fastify: FastifyInstance) {
@@ -249,7 +250,9 @@ export async function cartRoutes(fastify: FastifyInstance) {
 
       const data = addBlendToCartSchema.parse(request.body);
       const result = await cartService.addBlendToCart({
-        ...data,
+        baseTeaId: data.baseTeaId,
+        addIns: data.addIns,
+        blendName: data.name,
         ...auth,
       });
       return reply.send(result);

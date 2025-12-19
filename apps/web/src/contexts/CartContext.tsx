@@ -15,7 +15,7 @@ interface CartContextValue {
   subtotal: number;
   sessionId: string;
   addToCart: (productId: string, quantity: number) => Promise<void>;
-  addBlendToCart: (baseTeaId: string, addIns: Array<{ ingredientId: string; quantity: number }>) => Promise<void>;
+  addBlendToCart: (baseTeaId: string, addIns: Array<{ ingredientId: string; quantity: number }>, name?: string) => Promise<void>;
   updateCartItem: (productId: string, quantity: number) => Promise<void>;
   removeFromCart: (productId: string) => Promise<void>;
   clearCart: () => Promise<void>;
@@ -99,14 +99,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const addBlendToCart = async (baseTeaId: string, addIns: Array<{ ingredientId: string; quantity: number }>) => {
+  const addBlendToCart = async (baseTeaId: string, addIns: Array<{ ingredientId: string; quantity: number }>, name?: string) => {
     setIsLoading(true);
     try {
       const result = await cartApi.addBlendToCart(
         baseTeaId,
         addIns,
         accessToken || undefined,
-        sessionId || undefined
+        sessionId || undefined,
+        name
       );
       setCart(result);
     } catch (error) {
