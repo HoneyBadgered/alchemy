@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
-import { PostCategory } from '@alchemy/core/types';
+import { PostCategory } from '@alchemy/core';
 
 const prisma = new PrismaClient();
 
@@ -333,8 +333,8 @@ class AdminBlogService {
       updateData.body = validated.body;
       updateData.readTime = calculateReadTime(validated.body);
     }
-    if (validated.excerpt !== undefined) updateData.excerpt = validated.excerpt;
-    if (validated.category !== undefined) updateData.category = validated.category;
+    if (validated.excerpt !== undefined) updateData.excerpt = validated.excerpt || null;
+    if (validated.category !== undefined) updateData.category = validated.category || null;
     if (validated.heroImageUrl !== undefined) updateData.heroImageUrl = validated.heroImageUrl || null;
     if (validated.status !== undefined) updateData.status = validated.status;
     if (validated.isFeatured !== undefined) updateData.isFeatured = validated.isFeatured;
@@ -348,7 +348,7 @@ class AdminBlogService {
     });
     
     // Handle tag updates
-    if (validated.tagIds !== undefined) {
+    if (validated.tagIds !== undefined && Array.isArray(validated.tagIds)) {
       // Remove existing tags
       await prisma.blog_post_tags.deleteMany({
         where: { postId: id },
@@ -357,7 +357,7 @@ class AdminBlogService {
       // Add new tags
       if (validated.tagIds.length > 0) {
         await Promise.all(
-          validated.tagIds.map(tagId =>
+          validated.tagIds.map((tagId: string) =>
             prisma.blog_post_tags.create({
               data: {
                 id: randomUUID(),

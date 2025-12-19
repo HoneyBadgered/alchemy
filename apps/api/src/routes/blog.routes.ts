@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import adminBlogService from '../services/admin-blog.service';
-import { PostCategory } from '@alchemy/core/types';
+import { PostCategory } from '@alchemy/core';
 
 export default async function blogRoutes(fastify: FastifyInstance) {
   // Public endpoints - no authentication required
@@ -66,7 +66,7 @@ export default async function blogRoutes(fastify: FastifyInstance) {
   });
   
   // GET /blog/categories - Get list of all categories
-  fastify.get('/blog/categories', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get('/blog/categories', async (_request: FastifyRequest, reply: FastifyReply) => {
     try {
       const categories = Object.values(PostCategory);
       return reply.send({ categories });
@@ -76,7 +76,7 @@ export default async function blogRoutes(fastify: FastifyInstance) {
   });
   
   // GET /blog/tags - Get all tags with post counts
-  fastify.get('/blog/tags', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get('/blog/tags', async (_request: FastifyRequest, reply: FastifyReply) => {
     try {
       const tags = await adminBlogService.getTags();
       // Filter to only tags with published posts
