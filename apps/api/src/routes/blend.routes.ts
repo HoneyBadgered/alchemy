@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { BlendService } from '../services/blend.service';
 import { optionalAuthMiddleware } from '../middleware/auth';
 import { isValidSessionId, sanitizeSessionId } from '../utils/session';
+import { isApiError } from '../utils/errors';
 
 // Validation schemas
 const saveBlendSchema = z.object({
@@ -97,8 +98,8 @@ export async function blendRoutes(fastify: FastifyInstance) {
       const blend = await blendService.getBlendById(id, auth.userId, auth.sessionId);
       return reply.send(blend);
     } catch (error) {
-      if ((error as any).statusCode === 404) {
-        return reply.status(404).send({ message: (error as Error).message });
+      if (isApiError(error) && error.statusCode === 404) {
+        return reply.status(404).send({ message: error.message });
       }
       return reply.status(500).send({ message: (error as Error).message });
     }
@@ -154,8 +155,8 @@ export async function blendRoutes(fastify: FastifyInstance) {
       if (error instanceof z.ZodError) {
         return reply.status(400).send({ message: 'Validation error', errors: error.errors });
       }
-      if ((error as any).statusCode === 404) {
-        return reply.status(404).send({ message: (error as Error).message });
+      if (isApiError(error) && error.statusCode === 404) {
+        return reply.status(404).send({ message: error.message });
       }
       return reply.status(400).send({ message: (error as Error).message });
     }
@@ -178,8 +179,8 @@ export async function blendRoutes(fastify: FastifyInstance) {
       const result = await blendService.deleteBlend(id, auth.userId, auth.sessionId);
       return reply.send(result);
     } catch (error) {
-      if ((error as any).statusCode === 404) {
-        return reply.status(404).send({ message: (error as Error).message });
+      if (isApiError(error) && error.statusCode === 404) {
+        return reply.status(404).send({ message: error.message });
       }
       return reply.status(500).send({ message: (error as Error).message });
     }
