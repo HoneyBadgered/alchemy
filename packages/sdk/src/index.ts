@@ -10,6 +10,7 @@ import { GamificationEndpoints } from './endpoints/gamification';
 import { CosmeticsEndpoints } from './endpoints/cosmetics';
 import { LabelsEndpoints } from './endpoints/labels';
 import { IngredientsEndpoints } from './endpoints/ingredients';
+import { BlogEndpoints } from './endpoints/blog';
 
 export class AlchemyClient {
   private http: HttpClient;
@@ -21,6 +22,7 @@ export class AlchemyClient {
   public cosmetics: CosmeticsEndpoints;
   public labels: LabelsEndpoints;
   public ingredients: IngredientsEndpoints;
+  public blog: BlogEndpoints;
 
   constructor(config: HttpClientConfig) {
     this.http = new HttpClient(config);
@@ -32,6 +34,7 @@ export class AlchemyClient {
     this.cosmetics = new CosmeticsEndpoints(this.http);
     this.labels = new LabelsEndpoints(this.http);
     this.ingredients = new IngredientsEndpoints(this.http);
+    this.blog = new BlogEndpoints(this.http);
   }
 
   setAccessToken(token: string | undefined) {

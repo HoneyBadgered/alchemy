@@ -70,8 +70,8 @@ export default async function adminBlogRoutes(fastify: FastifyInstance) {
     }
   });
   
-  // PUT /admin/blog/posts/:id - Update post
-  fastify.put('/admin/blog/posts/:id', {
+  // PATCH /admin/blog/posts/:id - Update post
+  fastify.patch('/admin/blog/posts/:id', {
     preHandler: adminMiddleware,
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
@@ -175,8 +175,8 @@ export default async function adminBlogRoutes(fastify: FastifyInstance) {
     }
   });
   
-  // PUT /admin/blog/tags/:id - Update tag
-  fastify.put('/admin/blog/tags/:id', {
+  // PATCH /admin/blog/tags/:id - Update tag
+  fastify.patch('/admin/blog/tags/:id', {
     preHandler: adminMiddleware,
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
