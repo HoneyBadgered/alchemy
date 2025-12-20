@@ -249,6 +249,10 @@ model orders {
   stripeClientSecret  String?
   guestEmail          String?
   sessionId           String?
+  trackingNumber      String?
+  carrierName         String?
+  shippedAt           DateTime?
+  deliveredAt         DateTime?
   label_designs       label_designs[]
   order_items         order_items[]
   order_status_logs   order_status_logs[]

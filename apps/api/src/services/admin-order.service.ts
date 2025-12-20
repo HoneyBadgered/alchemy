@@ -5,6 +5,7 @@
 import { prisma } from '../utils/prisma';
 import crypto from 'crypto';
 import type { Prisma } from '@prisma/client';
+import { OrderNotificationService } from './order-notification.service';
 
 export interface OrderFilters {
   page?: number;
@@ -22,7 +23,20 @@ export interface UpdateOrderStatusInput {
   notes?: string;
 }
 
+export interface MarkAsShippedInput {
+  trackingNumber: string;
+  carrierName: string;
+  shippedAt?: Date;
+  notes?: string;
+}
+
 export class AdminOrderService {
+  private notificationService: OrderNotificationService;
+
+  constructor() {
+    this.notificationService = new OrderNotificationService();
+  }
+
   /**
    * Get paginated list of orders with filtering
    */
@@ -80,12 +94,12 @@ export class AdminOrderService {
               username: true,
             },
           },
-          items: {
+          order_items: {
             include: {
-              product: true,
+              products: true,
             },
           },
-          statusLogs: {
+          order_status_logs: {
             orderBy: { createdAt: 'desc' },
             take: 1,
           },
@@ -196,6 +210,195 @@ export class AdminOrderService {
 
       return updatedOrder;
     });
+
+    return result;
+  }
+
+  /**
+   * Mark order as shipped with tracking information
+   */
+  async markAsShipped(orderId: string, userId: string, input: MarkAsShippedInput) {
+    const order = await prisma.orders.findUnique({
+      where: { id: orderId },
+      include: {
+        users: {
+          select: {
+            email: true,
+            username: true,
+          },
+        },
+        order_items: {
+          include: {
+            products: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    // Validate order can be shipped
+    if (order.status === 'shipped' || order.status === 'delivered') {
+      throw new Error(`Order is already ${order.status}`);
+    }
+
+    if (order.status === 'cancelled') {
+      throw new Error('Cannot ship a cancelled order');
+    }
+
+    const fromStatus = order.status;
+    const shippedAt = input.shippedAt || new Date();
+
+    // Update order and create status log in a transaction
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      // Update order with shipping details
+      const updatedOrder = await tx.orders.update({
+        where: { id: orderId },
+        data: {
+          status: 'shipped',
+          trackingNumber: input.trackingNumber,
+          carrierName: input.carrierName,
+          shippedAt,
+          updatedAt: new Date(),
+        },
+        include: {
+          users: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+            },
+          },
+          order_items: {
+            include: {
+              products: true,
+            },
+          },
+        },
+      });
+
+      // Create status log
+      await tx.order_status_logs.create({
+        data: {
+          id: crypto.randomUUID(),
+          orderId,
+          fromStatus,
+          toStatus: 'shipped',
+          changedBy: userId,
+          notes: input.notes || `Shipped via ${input.carrierName}. Tracking: ${input.trackingNumber}`,
+        },
+      });
+
+      return updatedOrder;
+    });
+
+    // Send shipping notification email
+    try {
+      const customerEmail = order.guestEmail || order.users?.email;
+      if (customerEmail) {
+        await this.notificationService.sendShippingNotification({
+          orderId: order.id,
+          customerEmail,
+          customerName: order.users?.username,
+          totalAmount: Number(order.totalAmount),
+          items: order.order_items.map((item) => ({
+            productName: item.products.name,
+            quantity: item.quantity,
+            price: Number(item.price),
+          })),
+          trackingNumber: input.trackingNumber,
+          carrierName: input.carrierName,
+          shippedAt,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to send shipping notification:', error);
+      // Don't fail the operation if email fails
+    }
+
+    return result;
+  }
+
+  /**
+   * Mark order as delivered
+   */
+  async markAsDelivered(orderId: string, userId: string, notes?: string) {
+    const order = await prisma.orders.findUnique({
+      where: { id: orderId },
+      include: {
+        users: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    if (order.status === 'delivered') {
+      throw new Error('Order is already delivered');
+    }
+
+    const fromStatus = order.status;
+    const deliveredAt = new Date();
+
+    // Update order and create status log in a transaction
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const updatedOrder = await tx.orders.update({
+        where: { id: orderId },
+        data: {
+          status: 'delivered',
+          deliveredAt,
+          updatedAt: new Date(),
+        },
+        include: {
+          users: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+            },
+          },
+          order_items: {
+            include: {
+              products: true,
+            },
+          },
+        },
+      });
+
+      await tx.order_status_logs.create({
+        data: {
+          id: crypto.randomUUID(),
+          orderId,
+          fromStatus,
+          toStatus: 'delivered',
+          changedBy: userId,
+          notes: notes || 'Order delivered',
+        },
+      });
+
+      return updatedOrder;
+    });
+
+    // Send delivery notification email
+    try {
+      const customerEmail = order.guestEmail || order.users?.email;
+      if (customerEmail) {
+        await this.notificationService.sendDeliveryNotification(orderId, customerEmail);
+      }
+    } catch (error) {
+      console.error('Failed to send delivery notification:', error);
+    }
 
     return result;
   }

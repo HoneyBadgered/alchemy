@@ -40,6 +40,7 @@ export default function OrderDetailPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
+      case 'delivered':
         return 'bg-green-100 text-green-800';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
@@ -52,6 +53,24 @@ export default function OrderDetailPage() {
       default:
         return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const getTrackingUrl = (carrier?: string, trackingNumber?: string): string | null => {
+    if (!carrier || !trackingNumber) return null;
+    
+    const carrierLower = carrier.toLowerCase();
+    
+    if (carrierLower.includes('usps')) {
+      return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${trackingNumber}`;
+    } else if (carrierLower.includes('ups')) {
+      return `https://www.ups.com/track?tracknum=${trackingNumber}`;
+    } else if (carrierLower.includes('fedex')) {
+      return `https://www.fedex.com/fedextrack/?trknbr=${trackingNumber}`;
+    } else if (carrierLower.includes('dhl')) {
+      return `https://www.dhl.com/en/express/tracking.html?AWB=${trackingNumber}`;
+    }
+    
+    return null;
   };
 
   const calculateSubtotal = (order: Order) => {
@@ -127,9 +146,44 @@ export default function OrderDetailPage() {
               {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
             </span>
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600 space-y-2">
             <p>Order placed: {new Date(order.createdAt).toLocaleString()}</p>
+            {order.shippedAt && (
+              <p>Shipped: {new Date(order.shippedAt).toLocaleString()}</p>
+            )}
+            {order.deliveredAt && (
+              <p>Delivered: {new Date(order.deliveredAt).toLocaleString()}</p>
+            )}
           </div>
+          
+          {/* Tracking Information */}
+          {order.trackingNumber && (
+            <div className="mt-4 pt-4 border-t">
+              <h4 className="font-semibold text-gray-900 mb-2">Shipping Information</h4>
+              <div className="bg-purple-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Carrier</p>
+                    <p className="font-semibold">{order.carrierName}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600 mb-1">Tracking Number</p>
+                    <p className="font-mono font-semibold">{order.trackingNumber}</p>
+                  </div>
+                </div>
+                {getTrackingUrl(order.carrierName, order.trackingNumber) && (
+                  <a
+                    href={getTrackingUrl(order.carrierName, order.trackingNumber)!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-block text-sm text-purple-600 hover:text-purple-700 font-medium"
+                  >
+                    Track Package with {order.carrierName} →
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Order Items */}

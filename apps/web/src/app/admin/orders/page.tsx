@@ -13,12 +13,15 @@ interface Order {
   totalAmount: number;
   createdAt: string;
   guestEmail?: string | null;
+  trackingNumber?: string | null;
+  carrierName?: string | null;
+  shippedAt?: string | null;
   user: {
     username: string;
     email: string;
   } | null;
-  items: Array<{
-    product: {
+  order_items: Array<{
+    products: {
       name: string;
     };
     quantity: number;
@@ -26,11 +29,25 @@ interface Order {
   }>;
 }
 
+interface ShippingFormData {
+  trackingNumber: string;
+  carrierName: string;
+  notes?: string;
+}
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState('');
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [showShippingModal, setShowShippingModal] = useState(false);
+  const [shippingForm, setShippingForm] = useState<ShippingFormData>({
+    trackingNumber: '',
+    carrierName: 'USPS',
+    notes: '',
+  });
+  const [submitting, setSubmitting] = useState(false);
   const { accessToken, hasHydrated } = useAuthStore();
 
   useEffect(() => {
@@ -82,6 +99,53 @@ export default function AdminOrdersPage() {
     } catch (err) {
       console.error('Failed to update order status:', err);
     }
+  };
+
+  const handleMarkAsShipped = async () => {
+    if (!selectedOrder || !shippingForm.trackingNumber || !shippingForm.carrierName) {
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const response = await fetch(`http://localhost:3000/admin/orders/${selectedOrder.id}/ship`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(shippingForm),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to mark order as shipped');
+      }
+
+      // Close modal and refresh orders
+      setShowShippingModal(false);
+      setSelectedOrder(null);
+      setShippingForm({
+        trackingNumber: '',
+        carrierName: 'USPS',
+        notes: '',
+      });
+      await fetchOrders();
+    } catch (err) {
+      console.error('Failed to mark as shipped:', err);
+      setError((err as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const openShippingModal = (order: Order) => {
+    setSelectedOrder(order);
+    setShowShippingModal(true);
+    setShippingForm({
+      trackingNumber: '',
+      carrierName: 'USPS',
+      notes: '',
+    });
   };
 
   const filteredOrders = orders;
@@ -205,10 +269,20 @@ export default function AdminOrdersPage() {
                         <option value="cancelled">Cancelled</option>
                       </select>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button className="text-purple-600 hover:text-purple-900">
-                        View Details
-                      </button>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                      {order.status !== 'shipped' && order.status !== 'completed' && order.status !== 'cancelled' && (
+                        <button
+                          onClick={() => openShippingModal(order)}
+                          className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
+                        >
+                          📦 Ship
+                        </button>
+                      )}
+                      {order.trackingNumber && (
+                        <span className="text-xs text-gray-500">
+                          {order.carrierName}: {order.trackingNumber}
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -217,6 +291,96 @@ export default function AdminOrdersPage() {
           </table>
         </div>
       </div>
+
+      {/* Shipping Modal */}
+      {showShippingModal && selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Mark Order as Shipped
+              </h2>
+              
+              <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-600">Order ID</p>
+                <p className="font-mono text-sm font-semibold">{selectedOrder.id.slice(0, 8).toUpperCase()}</p>
+                <p className="text-sm text-gray-600 mt-2">Customer</p>
+                <p className="text-sm font-medium">{selectedOrder.user?.email || selectedOrder.guestEmail}</p>
+                <p className="text-sm text-gray-600 mt-2">Total</p>
+                <p className="text-sm font-semibold">${Number(selectedOrder.totalAmount).toFixed(2)}</p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="carrier" className="block text-sm font-medium text-gray-700 mb-1">
+                    Carrier *
+                  </label>
+                  <select
+                    id="carrier"
+                    value={shippingForm.carrierName}
+                    onChange={(e) => setShippingForm({ ...shippingForm, carrierName: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                  >
+                    <option value="USPS">USPS</option>
+                    <option value="UPS">UPS</option>
+                    <option value="FedEx">FedEx</option>
+                    <option value="DHL">DHL</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="tracking" className="block text-sm font-medium text-gray-700 mb-1">
+                    Tracking Number *
+                  </label>
+                  <input
+                    id="tracking"
+                    type="text"
+                    value={shippingForm.trackingNumber}
+                    onChange={(e) => setShippingForm({ ...shippingForm, trackingNumber: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                    placeholder="Enter tracking number"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+                    Notes (optional)
+                  </label>
+                  <textarea
+                    id="notes"
+                    value={shippingForm.notes}
+                    onChange={(e) => setShippingForm({ ...shippingForm, notes: e.target.value })}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                    placeholder="Add any shipping notes..."
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 flex space-x-3">
+                <button
+                  onClick={() => {
+                    setShowShippingModal(false);
+                    setSelectedOrder(null);
+                  }}
+                  disabled={submitting}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleMarkAsShipped}
+                  disabled={submitting || !shippingForm.trackingNumber || !shippingForm.carrierName}
+                  className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {submitting ? 'Shipping...' : 'Mark as Shipped'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

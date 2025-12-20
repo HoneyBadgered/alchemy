@@ -23,6 +23,17 @@ const updateOrderStatusSchema = z.object({
   notes: z.string().optional(),
 });
 
+const markAsShippedSchema = z.object({
+  trackingNumber: z.string().min(1, 'Tracking number is required'),
+  carrierName: z.string().min(1, 'Carrier name is required'),
+  shippedAt: z.string().transform((str) => new Date(str)).optional(),
+  notes: z.string().optional(),
+});
+
+const markAsDeliveredSchema = z.object({
+  notes: z.string().optional(),
+});
+
 export async function adminOrderRoutes(fastify: FastifyInstance) {
   const orderService = new AdminOrderService();
 
@@ -105,6 +116,42 @@ export async function adminOrderRoutes(fastify: FastifyInstance) {
       const data = updateOrderStatusSchema.parse(request.body);
       const userId = request.user!.userId;
       const order = await orderService.updateOrderStatus(id, userId, data);
+      return reply.send(order);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return reply.status(400).send({ message: 'Validation error', errors: error.errors });
+      }
+      return reply.status(500).send({ message: (error as Error).message });
+    }
+  });
+
+  // POST /admin/orders/:id/ship - Mark order as shipped with tracking
+  fastify.post('/admin/orders/:id/ship', {
+    preHandler: adminMiddleware,
+  }, async (request: FastifyRequest, reply) => {
+    try {
+      const { id } = request.params as { id: string };
+      const data = markAsShippedSchema.parse(request.body);
+      const userId = request.user!.userId;
+      const order = await orderService.markAsShipped(id, userId, data);
+      return reply.send(order);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return reply.status(400).send({ message: 'Validation error', errors: error.errors });
+      }
+      return reply.status(500).send({ message: (error as Error).message });
+    }
+  });
+
+  // POST /admin/orders/:id/deliver - Mark order as delivered
+  fastify.post('/admin/orders/:id/deliver', {
+    preHandler: adminMiddleware,
+  }, async (request: FastifyRequest, reply) => {
+    try {
+      const { id } = request.params as { id: string };
+      const data = markAsDeliveredSchema.parse(request.body);
+      const userId = request.user!.userId;
+      const order = await orderService.markAsDelivered(id, userId, data.notes);
       return reply.send(order);
     } catch (error) {
       if (error instanceof z.ZodError) {

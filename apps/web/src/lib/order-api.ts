@@ -52,8 +52,13 @@ export interface Order {
   discountCode?: string;
   discountAmount?: number;
   customerNotes?: string;
+  trackingNumber?: string;
+  carrierName?: string;
+  shippedAt?: string;
+  deliveredAt?: string;
   createdAt: string;
   updatedAt: string;
+  guestEmail?: string;
   order_items: OrderItem[];
   statusLogs?: Array<{
     id: string;

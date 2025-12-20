@@ -323,7 +323,7 @@ export class CartService {
         }
 
         // Delete guest cart
-        await tx.cart.delete({
+        await tx.carts.delete({
           where: { id: guestCart.id },
         });
       });
