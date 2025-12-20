@@ -8,9 +8,11 @@ import { OrderNotificationService } from '../services/order-notification.service
 async function testEmail() {
   const notificationService = new OrderNotificationService();
   
+  // Accept email as a command-line argument
+  const recipientEmail = process.argv[2] || 'lvbernstein@gmail.com';
   const testData = {
     orderId: 'test-order-123',
-    customerEmail: 'lvbernstein@gmail.com', // Your email to receive it
+    customerEmail: recipientEmail, // Your email to receive it
     customerName: 'Lauren',
     orderNumber: '#12345',
     totalAmount: 59.99,
