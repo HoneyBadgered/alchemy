@@ -179,11 +179,16 @@ export class AuthService {
       throw new Error('Invalid credentials');
     }
 
-    // Update last login
-    await prisma.player_states.update({
-      where: { userId: user.id },
-      data: { lastLoginAt: new Date() },
-    });
+    // Update last login (only if player_states exists - admin users may not have one)
+    try {
+      await prisma.player_states.update({
+        where: { userId: user.id },
+        data: { lastLoginAt: new Date() },
+      });
+    } catch (error) {
+      // Player state doesn't exist - this is fine for admin users
+      console.log(`No player state for user ${user.id} - skipping lastLoginAt update`);
+    }
 
     // Generate tokens
     const accessToken = generateAccessToken({
