@@ -160,61 +160,68 @@ export class AuthService {
   }
 
   async login(input: LoginInput) {
-    // Normalize email to lowercase for case-insensitive comparison
-    const normalizedEmail = input.email.toLowerCase();
-
-    // Find user
-    const user = await prisma.users.findUnique({
-      where: { email: normalizedEmail },
-    });
-
-    if (!user) {
-      throw new Error('Invalid credentials');
-    }
-
-    // Verify password
-    const isValid = await verifyPassword(input.password, user.password);
-
-    if (!isValid) {
-      throw new Error('Invalid credentials');
-    }
-
-    // Update last login (only if player_states exists - admin users may not have one)
     try {
-      await prisma.player_states.update({
-        where: { userId: user.id },
-        data: { lastLoginAt: new Date() },
+      // Normalize email to lowercase for case-insensitive comparison
+      const normalizedEmail = input.email.toLowerCase();
+
+      // Find user
+      const user = await prisma.users.findUnique({
+        where: { email: normalizedEmail },
       });
-    } catch (error) {
-      // Player state doesn't exist - this is fine for admin users
-      console.log(`No player state for user ${user.id} - skipping lastLoginAt update`);
-    }
 
-    // Generate tokens
-    const accessToken = generateAccessToken({
-      userId: user.id,
-      email: user.email,
-    });
-    const refreshToken = generateRefreshToken({
-      userId: user.id,
-      email: user.email,
-    });
+      if (!user) {
+        console.error('Login failed: user not found for', normalizedEmail);
+        throw new Error('Invalid credentials');
+      }
 
-    // Store refresh token
-    await this.storeRefreshToken(user.id, refreshToken);
+      // Verify password
+      const isValid = await verifyPassword(input.password, user.password);
 
-    return {
-      accessToken,
-      refreshToken,
-      users: {
-        id: user.id,
+      if (!isValid) {
+        console.error('Login failed: invalid password for', normalizedEmail);
+        throw new Error('Invalid credentials');
+      }
+
+      // Update last login (only if player_states exists - admin users may not have one)
+      try {
+        await prisma.player_states.update({
+          where: { userId: user.id },
+          data: { lastLoginAt: new Date() },
+        });
+      } catch (error) {
+        // Player state doesn't exist - this is fine for admin users
+        console.log(`No player state for user ${user.id} - skipping lastLoginAt update`);
+      }
+
+      // Generate tokens
+      const accessToken = generateAccessToken({
+        userId: user.id,
         email: user.email,
-        username: user.username,
-        role: user.role,
-        emailVerified: user.emailVerified,
-        createdAt: user.createdAt,
-      },
-    };
+      });
+      const refreshToken = generateRefreshToken({
+        userId: user.id,
+        email: user.email,
+      });
+
+      // Store refresh token
+      await this.storeRefreshToken(user.id, refreshToken);
+
+      return {
+        accessToken,
+        refreshToken,
+        users: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          role: user.role,
+          emailVerified: user.emailVerified,
+          createdAt: user.createdAt,
+        },
+      };
+    } catch (err) {
+      console.error('Login error:', err);
+      throw new Error('Failed to login');
+    }
   }
 
   async logout(userId: string, refreshToken: string) {

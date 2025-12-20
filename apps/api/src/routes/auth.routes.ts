@@ -76,12 +76,15 @@ export async function authRoutes(fastify: FastifyInstance) {
     },
   }, async (request, reply) => {
     try {
+      console.log('LOGIN ATTEMPT:', request.body);
       if (!request.body) {
+        console.log('No request body');
         return reply.status(400).send({ message: 'Request body is required' });
       }
       const body = loginSchema.parse(request.body);
+      console.log('Parsed login body:', body);
       const result = await authService.login(body);
-      
+      console.log('Login result:', result);
       // Set refresh token as httpOnly cookie
       reply.setCookie('refreshToken', result.refreshToken, {
         httpOnly: true,
@@ -93,9 +96,10 @@ export async function authRoutes(fastify: FastifyInstance) {
 
       return reply.send({
         accessToken: result.accessToken,
-        user: result.user,
+        user: result.users || result.user,
       });
     } catch (error) {
+      console.error('LOGIN ERROR:', error);
       if (error instanceof z.ZodError) {
         return reply.status(400).send({ message: 'Validation error', errors: error.errors });
       }

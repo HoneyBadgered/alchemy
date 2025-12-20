@@ -189,9 +189,9 @@ export class AdminOrderService {
               username: true,
             },
           },
-          items: {
+          order_items: {
             include: {
-              product: true,
+              products: true,
             },
           },
         },
