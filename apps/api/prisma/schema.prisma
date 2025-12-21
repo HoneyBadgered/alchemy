@@ -256,7 +256,26 @@ model orders {
   label_designs       label_designs[]
   order_items         order_items[]
   order_status_logs   order_status_logs[]
+  refunds             refunds[]
   users               users?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model refunds {
+  id              String   @id
+  orderId         String
+  stripeRefundId  String   @unique
+  amount          Decimal  @db.Decimal(10, 2)
+  reason          String?
+  status          String   @default("pending")
+  processedBy     String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime
+  orders          orders   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  users           users?   @relation(fields: [processedBy], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([processedBy])
 }
 
 model payment_methods {
@@ -651,6 +670,7 @@ model users {
   player_quests            player_quests[]
   player_states            player_states?
   refresh_tokens           refresh_tokens[]
+  refunds                  refunds[]
   reviews                  reviews[]
   reward_history           reward_history[]
   reward_points            reward_points?

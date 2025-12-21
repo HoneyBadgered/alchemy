@@ -475,4 +475,183 @@ export class PaymentService {
       throw error;
     }
   }
+
+  /**
+   * Create a refund for an order
+   */
+  async createRefund(orderId: string, amount: number, reason?: string, processedBy?: string, notes?: string) {
+    // Get the order
+    const order = await prisma.orders.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order) {
+      throw new NotFoundError('Order not found');
+    }
+
+    if (!order.stripePaymentId) {
+      throw new BadRequestError('Order has no payment to refund');
+    }
+
+    // Check if order was paid
+    if (order.status !== 'paid' && order.status !== 'completed' && order.status !== 'shipped') {
+      throw new BadRequestError('Order must be paid before refunding');
+    }
+
+    // Validate refund amount
+    const orderTotal = Number(order.totalAmount);
+    if (amount <= 0 || amount > orderTotal) {
+      throw new BadRequestError(`Refund amount must be between 0 and ${orderTotal}`);
+    }
+
+    // Check existing refunds
+    const existingRefunds = await prisma.refunds.findMany({
+      where: { orderId, status: 'succeeded' },
+    });
+
+    const totalRefunded = existingRefunds.reduce(
+      (sum, refund) => sum + Number(refund.amount),
+      0
+    );
+
+    if (totalRefunded + amount > orderTotal) {
+      throw new BadRequestError(
+        `Total refund amount (${totalRefunded + amount}) would exceed order total (${orderTotal})`
+      );
+    }
+
+    try {
+      // Create Stripe refund
+      const stripeRefund = await stripe.refunds.create({
+        payment_intent: order.stripePaymentId,
+        amount: Math.round(amount * 100), // Convert to cents
+        reason: reason as Stripe.RefundCreateParams.Reason || undefined,
+        metadata: {
+          orderId,
+          processedBy: processedBy || 'system',
+        },
+      });
+
+      // Create refund record in transaction
+      const refund = await prisma.$transaction(async (tx) => {
+        // Create refund record
+        const newRefund = await tx.refunds.create({
+          data: {
+            id: crypto.randomUUID(),
+            orderId,
+            stripeRefundId: stripeRefund.id,
+            amount,
+            reason: reason || null,
+            status: stripeRefund.status,
+            processedBy: processedBy || null,
+            notes: notes || null,
+            updatedAt: new Date(),
+          },
+        });
+
+        // Update order status if fully refunded
+        const newTotalRefunded = totalRefunded + amount;
+        if (newTotalRefunded >= orderTotal) {
+          await tx.orders.update({
+            where: { id: orderId },
+            data: { status: 'refunded' },
+          });
+
+          // Log status change
+          await tx.order_status_logs.create({
+            data: {
+              id: crypto.randomUUID(),
+              orderId,
+              fromStatus: order.status,
+              toStatus: 'refunded',
+              changedBy: processedBy || null,
+              notes: `Full refund of $${amount}`,
+              createdAt: new Date(),
+            },
+          });
+        } else {
+          // Partial refund - update status to indicate partial refund
+          await tx.order_status_logs.create({
+            data: {
+              id: crypto.randomUUID(),
+              orderId,
+              fromStatus: order.status,
+              toStatus: order.status, // Keep same status
+              changedBy: processedBy || null,
+              notes: `Partial refund of $${amount} (total refunded: $${newTotalRefunded})`,
+              createdAt: new Date(),
+            },
+          });
+        }
+
+        return newRefund;
+      });
+
+      return refund;
+    } catch (error) {
+      // Handle Stripe-specific errors
+      if (error instanceof Stripe.errors.StripeError) {
+        throw new PaymentError(
+          `Stripe refund error: ${error.message}`,
+          { code: error.code, type: error.type }
+        );
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Get refunds for an order
+   */
+  async getOrderRefunds(orderId: string) {
+    const refunds = await prisma.refunds.findMany({
+      where: { orderId },
+      include: {
+        users: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return refunds;
+  }
+
+  /**
+   * Get refund status from Stripe
+   */
+  async getRefundStatus(refundId: string) {
+    try {
+      const refund = await stripe.refunds.retrieve(refundId);
+      
+      // Update local record if status changed
+      const localRefund = await prisma.refunds.findUnique({
+        where: { stripeRefundId: refundId },
+      });
+
+      if (localRefund && localRefund.status !== refund.status) {
+        await prisma.refunds.update({
+          where: { stripeRefundId: refundId },
+          data: { 
+            status: refund.status,
+            updatedAt: new Date(),
+          },
+        });
+      }
+
+      return refund;
+    } catch (error) {
+      if (error instanceof Stripe.errors.StripeError) {
+        throw new PaymentError(
+          `Failed to retrieve refund: ${error.message}`,
+          { code: error.code, type: error.type }
+        );
+      }
+      throw error;
+    }
+  }
 }

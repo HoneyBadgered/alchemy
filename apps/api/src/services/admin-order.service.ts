@@ -6,6 +6,7 @@ import { prisma } from '../utils/prisma';
 import crypto from 'crypto';
 import type { Prisma } from '@prisma/client';
 import { OrderNotificationService } from './order-notification.service';
+import { PaymentService } from './payment.service';
 
 export interface OrderFilters {
   page?: number;
@@ -32,9 +33,11 @@ export interface MarkAsShippedInput {
 
 export class AdminOrderService {
   private notificationService: OrderNotificationService;
+  private paymentService: PaymentService;
 
   constructor() {
     this.notificationService = new OrderNotificationService();
+    this.paymentService = new PaymentService();
   }
 
   /**
@@ -509,5 +512,230 @@ export class AdminOrderService {
     });
 
     return customers;
+  }
+
+  /**
+   * Export orders to CSV format
+   */
+  async exportOrdersToCSV(filters: OrderFilters): Promise<string> {
+    const {
+      status,
+      search,
+      dateFrom,
+      dateTo,
+    } = filters;
+
+    // Build where clause (no pagination for export)
+    const where: Prisma.ordersWhereInput = {};
+
+    if (status) {
+      where.status = status;
+    }
+
+    if (search) {
+      where.OR = [
+        { id: { contains: search, mode: 'insensitive' } },
+        { users: { email: { contains: search, mode: 'insensitive' } } },
+        { users: { username: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
+
+    if (dateFrom || dateTo) {
+      where.createdAt = {};
+      if (dateFrom) {
+        where.createdAt.gte = new Date(dateFrom);
+      }
+      if (dateTo) {
+        where.createdAt.lte = new Date(dateTo);
+      }
+    }
+
+    // Fetch all matching orders
+    const orders = await prisma.orders.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        users: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+          },
+        },
+        order_items: {
+          include: {
+            products: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        shipping_addresses: true,
+      },
+    });
+
+    // Build CSV headers
+    const headers = [
+      'Order ID',
+      'Order Date',
+      'Customer Email',
+      'Customer Name',
+      'Status',
+      'Items Count',
+      'Product Names',
+      'Subtotal',
+      'Shipping Cost',
+      'Tax',
+      'Total Amount',
+      'Payment Status',
+      'Shipping Name',
+      'Shipping Address',
+      'Shipping City',
+      'Shipping State',
+      'Shipping ZIP',
+      'Shipping Country',
+      'Tracking Number',
+      'Carrier',
+      'Notes',
+    ];
+
+    // Build CSV rows
+    const rows = orders.map((order) => {
+      const shippingAddr = order.shipping_addresses;
+      const productNames = order.order_items
+        .map((item) => `${item.products.name} (x${item.quantity})`)
+        .join('; ');
+
+      return [
+        order.id,
+        order.createdAt.toISOString(),
+        order.users?.email || 'Guest',
+        order.users?.username || order.customerName || 'Guest',
+        order.status,
+        order.order_items.length.toString(),
+        `"${productNames}"`,
+        order.subtotal?.toString() || '0',
+        order.shippingCost?.toString() || '0',
+        order.tax?.toString() || '0',
+        order.totalAmount.toString(),
+        order.paymentStatus || 'pending',
+        shippingAddr?.fullName || '',
+        `"${shippingAddr?.addressLine1 || ''} ${shippingAddr?.addressLine2 || ''}"`.trim(),
+        shippingAddr?.city || '',
+        shippingAddr?.state || '',
+        shippingAddr?.postalCode || '',
+        shippingAddr?.country || '',
+        order.trackingNumber || '',
+        order.carrierName || '',
+        `"${order.notes || ''}"`,
+      ];
+    });
+
+    // Combine headers and rows
+    const csvLines = [
+      headers.join(','),
+      ...rows.map((row) => row.join(',')),
+    ];
+
+    return csvLines.join('\n');
+  }
+
+  /**
+   * Cancel an order
+   */
+  async cancelOrder(orderId: string, userId: string, reason?: string, refundAmount?: number) {
+    const order = await prisma.orders.findUnique({
+      where: { id: orderId },
+      include: {
+        users: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    // Validate order can be cancelled
+    if (order.status === 'cancelled' || order.status === 'refunded') {
+      throw new Error(`Order is already ${order.status}`);
+    }
+
+    if (order.status === 'delivered') {
+      throw new Error('Cannot cancel delivered orders. Please process a refund instead.');
+    }
+
+    // Process refund if payment was made and refund amount specified
+    let refundProcessed = false;
+    if (order.stripePaymentId && refundAmount && refundAmount > 0) {
+      try {
+        await this.paymentService.createRefund(
+          orderId,
+          refundAmount,
+          'requested_by_customer',
+          userId,
+          reason || 'Order cancelled'
+        );
+        refundProcessed = true;
+      } catch (error) {
+        console.error('Failed to process refund during cancellation:', error);
+        // Continue with cancellation even if refund fails
+      }
+    }
+
+    // Update order status in transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const updatedOrder = await tx.orders.update({
+        where: { id: orderId },
+        data: { status: 'cancelled' },
+        include: {
+          users: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+            },
+          },
+          order_items: {
+            include: {
+              products: true,
+            },
+          },
+        },
+      });
+
+      // Create status log
+      await tx.order_status_logs.create({
+        data: {
+          id: crypto.randomUUID(),
+          orderId,
+          fromStatus: order.status,
+          toStatus: 'cancelled',
+          changedBy: userId,
+          notes: reason || (refundProcessed ? `Cancelled with refund of $${refundAmount}` : 'Order cancelled'),
+          createdAt: new Date(),
+        },
+      });
+
+      return updatedOrder;
+    });
+
+    // Send cancellation notification
+    if (order.users?.email) {
+      try {
+        await this.notificationService.sendOrderCancelled(order.users.email, {
+          orderId: order.id,
+          refundAmount: refundProcessed ? refundAmount : undefined,
+        });
+      } catch (error) {
+        console.error('Failed to send cancellation notification:', error);
+      }
+    }
+
+    return result;
   }
 }
