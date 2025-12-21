@@ -7,12 +7,26 @@ import { z } from 'zod';
 import { CartService } from '../services/cart.service';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { isValidSessionId, sanitizeSessionId } from '../utils/session';
+import { prisma } from '../utils/prisma';
 
 // Helper schema for integer quantity that accepts floats and converts them to integers
 // Uses Math.round() for more intuitive rounding (e.g., 2.7 -> 3, 2.3 -> 2)
 const intQuantitySchema = z.preprocess(
   (val) => (typeof val === 'number' ? Math.round(val) : val),
   z.number().int().min(1)
+);
+
+// Helper schema for blend ingredient quantities (floats in grams)
+// Accepts floats >= 0.25 and rounds to 2 decimal places
+const blendQuantitySchema = z.preprocess(
+  (val) => {
+    if (typeof val === 'number') {
+      // Round to 2 decimal places
+      return Math.round(val * 100) / 100;
+    }
+    return val;
+  },
+  z.number().min(0.25, 'Ingredient quantity must be at least 0.25g')
 );
 
 const addToCartSchema = z.object({
@@ -34,11 +48,11 @@ const mergeCartSchema = z.object({
 });
 
 const addBlendToCartSchema = z.object({
-  baseTeaId: z.string(),
+  baseTeaId: z.string().min(1, 'Base tea ID is required'),
   addIns: z.array(z.object({
-    ingredientId: z.string(),
-    quantity: intQuantitySchema,
-  })),
+    ingredientId: z.string().min(1, 'Ingredient ID is required'),
+    quantity: blendQuantitySchema,
+  })).min(0, 'At least base tea is required'),
   name: z.string().optional(),
 });
 
@@ -248,7 +262,34 @@ export async function cartRoutes(fastify: FastifyInstance) {
       const auth = validateAuthOrSession(request, reply);
       if (!auth) return;
 
+      fastify.log.info('Blend request body:', request.body);
+
       const data = addBlendToCartSchema.parse(request.body);
+      
+      fastify.log.info('Parsed blend data:', { baseTeaId: data.baseTeaId, addInsCount: data.addIns.length });
+      
+      // Validate baseTeaId exists
+      const baseTea = await prisma.ingredients.findUnique({
+        where: { id: data.baseTeaId },
+      });
+      
+      if (!baseTea) {
+        fastify.log.warn(`Base tea not found: ${data.baseTeaId}`);
+        return reply.status(400).send({ message: `Base tea with ID "${data.baseTeaId}" not found` });
+      }
+
+      // Validate all add-in ingredients exist
+      for (const addIn of data.addIns) {
+        const ingredient = await prisma.ingredients.findUnique({
+          where: { id: addIn.ingredientId },
+        });
+        
+        if (!ingredient) {
+          fastify.log.warn(`Ingredient not found: ${addIn.ingredientId}`);
+          return reply.status(400).send({ message: `Ingredient with ID "${addIn.ingredientId}" not found` });
+        }
+      }
+
       const result = await cartService.addBlendToCart({
         baseTeaId: data.baseTeaId,
         addIns: data.addIns,
@@ -258,8 +299,17 @@ export async function cartRoutes(fastify: FastifyInstance) {
       return reply.send(result);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return reply.status(400).send({ message: 'Validation error', errors: error.errors });
+        fastify.log.error('Validation error:', error.errors);
+        return reply.status(400).send({ 
+          message: 'Validation error', 
+          errors: error.errors.map(e => ({
+            path: e.path.join('.'),
+            message: e.message,
+            received: e.code,
+          }))
+        });
       }
+      fastify.log.error('Blend cart error:', error);
       return reply.status(400).send({ message: (error as Error).message });
     }
   });

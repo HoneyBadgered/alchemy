@@ -239,15 +239,23 @@ export const cartApi = {
       headers['x-session-id'] = sessionId;
     }
 
+    const requestBody = { baseTeaId, addIns, name };
+    console.log('Sending blend to cart:', requestBody);
+
     const response = await fetch(`${API_URL}/cart/blend`, {
       method: 'POST',
       headers,
       credentials: 'include',
-      body: JSON.stringify({ baseTeaId, addIns, name }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
       const error = await response.json();
+      console.error('Blend cart error response:', error);
+      if (error.errors && Array.isArray(error.errors)) {
+        const errorMessages = error.errors.map((e: any) => `${e.path || 'unknown'}: ${e.message}`).join(', ');
+        throw new Error(`Validation error: ${errorMessages}`);
+      }
       throw new Error(error.message || 'Failed to add blend to cart');
     }
 
