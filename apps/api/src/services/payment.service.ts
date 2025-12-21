@@ -79,10 +79,35 @@ export class PaymentService {
       // Get email for receipt (from user or guest email)
       const receiptEmail = order.users?.email || order.guestEmail;
 
+      // Create or retrieve Stripe customer
+      let customerId: string | undefined;
+      if (receiptEmail) {
+        // Search for existing customer by email
+        const existingCustomers = await stripe.customers.list({
+          email: receiptEmail,
+          limit: 1,
+        });
+
+        if (existingCustomers.data.length > 0) {
+          customerId = existingCustomers.data[0].id;
+        } else {
+          // Create new customer
+          const customer = await stripe.customers.create({
+            email: receiptEmail,
+            metadata: {
+              userId: order.userId || 'guest',
+              orderId: order.id,
+            },
+          });
+          customerId = customer.id;
+        }
+      }
+
       // Create new PaymentIntent
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(Number(order.totalAmount) * 100), // Convert to cents
         currency: 'usd',
+        customer: customerId,
         metadata: {
           orderId: order.id,
           userId: order.userId || 'guest',
@@ -92,6 +117,7 @@ export class PaymentService {
         receipt_email: receiptEmail || undefined,
         automatic_payment_methods: {
           enabled: true,
+          allow_redirects: 'never',
         },
       });
 

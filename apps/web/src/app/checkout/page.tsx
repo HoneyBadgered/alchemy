@@ -23,6 +23,13 @@ export default function CheckoutPage() {
   const [paymentClientSecret, setPaymentClientSecret] = useState<string | null>(null);
   const [guestEmail, setGuestEmail] = useState('');
   const [paymentConfigured, setPaymentConfigured] = useState<boolean | null>(null);
+  const [saveInfo, setSaveInfo] = useState(false);
+  const [createAccount, setCreateAccount] = useState(false);
+  const [orderSummary, setOrderSummary] = useState<{
+    items: Array<{ name: string; quantity: number; price: number }>;
+    subtotal: number;
+    total: number;
+  } | null>(null);
 
   const [shippingInfo, setShippingInfo] = useState<ShippingAddress>({
     firstName: '',
@@ -123,6 +130,19 @@ export default function CheckoutPage() {
   const handlePaymentSuccess = async () => {
     setCurrentStep('processing');
     
+    // Save order summary before clearing cart
+    if (cart.cart.cart_items) {
+      setOrderSummary({
+        items: cart.cart.cart_items.map(item => ({
+          name: item.products.name,
+          quantity: item.quantity,
+          price: Number(item.products.price),
+        })),
+        subtotal: subtotal,
+        total: subtotal, // You can add shipping/tax here if available
+      });
+    }
+    
     // Clear the cart
     await clearCart();
     
@@ -149,7 +169,8 @@ export default function CheckoutPage() {
       shippingInfo.city &&
       shippingInfo.state &&
       shippingInfo.zipCode &&
-      shippingInfo.country
+      shippingInfo.country &&
+      shippingInfo.phone
     );
     
     // For guest checkout, also require email
@@ -227,7 +248,7 @@ export default function CheckoutPage() {
               {/* Shipping Form */}
               {currentStep === 'shipping' && (
                 <form onSubmit={handleShippingSubmit}>
-                  {/* Guest Checkout - Email & Sign In Option */}
+                  {/* Guest Checkout - Email & Account Options */}
                   {!isAuthenticated && (
                     <div className="bg-white rounded-xl shadow-md p-6 mb-6">
                       <h2 className="text-xl font-bold text-gray-900 mb-4">Contact Information</h2>
@@ -254,11 +275,25 @@ export default function CheckoutPage() {
                         )}
                         {(!guestEmail || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) && (
                           <p className="text-xs text-gray-500 mt-1">
-                            We'll send your order confirmation to this email
+                            Order confirmation and updates will be sent here
                           </p>
                         )}
                       </div>
-                      <div className="text-sm text-gray-600 p-3 bg-purple-50 rounded-lg">
+
+                      {/* Create Account Option for Guests */}
+                      <label className="flex items-start cursor-pointer mb-4 p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={createAccount}
+                          onChange={(e) => setCreateAccount(e.target.checked)}
+                          className="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                        />
+                        <span className="ml-3 text-sm text-gray-700">
+                          <span className="font-semibold">Create an account</span> to save your information and easily track this order
+                        </span>
+                      </label>
+
+                      <div className="text-sm text-gray-600 p-3 bg-gray-50 rounded-lg border border-gray-200">
                         <span>Already have an account? </span>
                         <Link
                           href="/login?redirect=/checkout"
@@ -383,17 +418,39 @@ export default function CheckoutPage() {
 
                     <div className="col-span-2">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Phone
+                        Phone Number *
                       </label>
                       <input
                         type="tel"
                         value={shippingInfo.phone}
                         onChange={(e) => handleInputChange('phone', e.target.value)}
+                        required
+                        placeholder="(555) 555-5555"
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                       />
+                      <p className="text-xs text-gray-500 mt-1">
+                        For delivery updates and order notifications
+                      </p>
                     </div>
                     </div>
                   </div>
+
+                  {/* Authenticated User - Save Information Option */}
+                  {isAuthenticated && (
+                    <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+                      <label className="flex items-start cursor-pointer p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={saveInfo}
+                          onChange={(e) => setSaveInfo(e.target.checked)}
+                          className="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                        />
+                        <span className="ml-3 text-sm text-gray-700">
+                          <span className="font-semibold">Save this address</span> to my account for future orders
+                        </span>
+                      </label>
+                    </div>
+                  )}
 
                   {/* Order Notes */}
                   <div className="bg-white rounded-xl shadow-md p-6 mb-6">
@@ -466,34 +523,81 @@ export default function CheckoutPage() {
 
               {/* Success State */}
               {currentStep === 'success' && (
-                <div className="bg-white rounded-xl shadow-md p-12">
-                  <div className="text-center">
+                <div className="bg-white rounded-xl shadow-md p-8">
+                  <div className="text-center mb-8">
                     <div className="text-6xl mb-4">✅</div>
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Order Placed Successfully!</h2>
-                    <p className="text-gray-600 mb-6">
-                      Thank you for your purchase! {orderId && `Your order ID is: ${orderId.slice(0, 8)}`}
+                    <p className="text-gray-600 mb-2">
+                      Thank you for your purchase!
                     </p>
-                    {guestEmail && (
-                      <p className="text-gray-600 mb-6">
-                        A confirmation email has been sent to {guestEmail}
+                    {orderId && (
+                      <p className="text-sm text-gray-500 font-mono bg-gray-100 inline-block px-3 py-1 rounded">
+                        Order ID: {orderId.slice(0, 8).toUpperCase()}
                       </p>
                     )}
-                    <div className="flex gap-4 justify-center flex-wrap">
-                      <button
-                        onClick={() => router.push('/products')}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-full font-semibold transition-colors"
-                      >
-                        Continue Shopping
-                      </button>
-                      {isAuthenticated && orderId && (
-                        <button
-                          onClick={() => router.push(`/orders/${orderId}`)}
-                          className="bg-white hover:bg-gray-50 text-purple-600 border border-purple-600 px-6 py-3 rounded-full font-semibold transition-colors"
-                        >
-                          View Order Details
-                        </button>
-                      )}
+                    {guestEmail && (
+                      <p className="text-gray-600 mt-4">
+                        A confirmation email has been sent to <strong>{guestEmail}</strong>
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Order Summary */}
+                  {orderSummary && (
+                    <div className="border-t border-gray-200 pt-6 mb-8">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h3>
+                      <div className="space-y-3 mb-4">
+                        {orderSummary.items.map((item, index) => (
+                          <div key={index} className="flex justify-between items-center">
+                            <div className="flex-1">
+                              <p className="text-gray-900 font-medium">{item.name}</p>
+                              <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
+                            </div>
+                            <p className="text-gray-900 font-semibold">
+                              ${(item.price * item.quantity).toFixed(2)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="border-t border-gray-200 pt-4">
+                        <div className="flex justify-between items-center text-lg font-bold">
+                          <span>Total</span>
+                          <span className="text-purple-600">${orderSummary.total.toFixed(2)}</span>
+                        </div>
+                      </div>
                     </div>
+                  )}
+
+                  {/* Shipping Information */}
+                  {shippingInfo.firstName && (
+                    <div className="border-t border-gray-200 pt-6 mb-8">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Shipping Address</h3>
+                      <div className="text-gray-600">
+                        <p className="font-medium">{shippingInfo.firstName} {shippingInfo.lastName}</p>
+                        <p>{shippingInfo.addressLine1}</p>
+                        {shippingInfo.addressLine2 && <p>{shippingInfo.addressLine2}</p>}
+                        <p>{shippingInfo.city}, {shippingInfo.state} {shippingInfo.zipCode}</p>
+                        <p>{shippingInfo.country}</p>
+                        {shippingInfo.phone && <p className="mt-2">Phone: {shippingInfo.phone}</p>}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-4 justify-center flex-wrap">
+                    <button
+                      onClick={() => router.push('/products')}
+                      className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-full font-semibold transition-colors"
+                    >
+                      Continue Shopping
+                    </button>
+                    {isAuthenticated && orderId && (
+                      <button
+                        onClick={() => router.push(`/orders/${orderId}`)}
+                        className="bg-white hover:bg-gray-50 text-purple-600 border border-purple-600 px-6 py-3 rounded-full font-semibold transition-colors"
+                      >
+                        View Order Details
+                      </button>
+                    )}
                   </div>
                 </div>
               )}

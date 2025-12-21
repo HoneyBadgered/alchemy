@@ -212,7 +212,7 @@ export class CartService {
         },
       },
       include: {
-        product: true,
+        products: true,
       },
     });
 
