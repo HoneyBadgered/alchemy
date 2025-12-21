@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import { useCart } from '@/contexts/CartContext';
+import AddedToCartModal from '@/components/AddedToCartModal';
 import {
   StarRating,
   StockStatusBadge,
@@ -55,6 +56,7 @@ export default function ProductDetailsPage({
   const [selectedImage, setSelectedImage] = useState<string | undefined>();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [showModal, setShowModal] = useState(false);
 
   const { data: product, isLoading, error } = useQuery<Product>({
     queryKey: ['product', id],
@@ -76,6 +78,7 @@ export default function ProductDetailsPage({
     setIsAddingToCart(true);
     try {
       await addToCart(product.id, quantity);
+      setShowModal(true);
     } catch (err) {
       console.error('Failed to add to cart:', err);
       alert('Failed to add to cart. Please try again.');
@@ -317,6 +320,18 @@ export default function ProductDetailsPage({
           </>
         )}
       </div>
+
+      {/* Added to Cart Modal */}
+      {product && (
+        <AddedToCartModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          productName={product.name}
+          productImage={selectedImage}
+          quantity={quantity}
+          price={Number(product.price)}
+        />
+      )}
     </div>
   );
 }

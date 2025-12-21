@@ -128,10 +128,8 @@ export default function CheckoutPage() {
   };
 
   const handlePaymentSuccess = async () => {
-    setCurrentStep('processing');
-    
-    // Save order summary before clearing cart
-    if (cart.cart.cart_items) {
+    // Save order summary FIRST before changing any state
+    if (cart?.cart?.cart_items && cart.cart.cart_items.length > 0) {
       setOrderSummary({
         items: cart.cart.cart_items.map(item => ({
           name: item.products.name,
@@ -142,6 +140,8 @@ export default function CheckoutPage() {
         total: subtotal, // You can add shipping/tax here if available
       });
     }
+    
+    setCurrentStep('processing');
     
     // Clear the cart
     await clearCart();

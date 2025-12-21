@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import BottomNavigation from '@/components/BottomNavigation';
+import AddedToCartModal from '@/components/AddedToCartModal';
 import { apiClient } from '@/lib/api-client';
 import { useCart } from '@/contexts/CartContext';
 import {
@@ -56,6 +57,13 @@ export default function ShopPage() {
   const [page, setPage] = useState(1);
   const { addToCart, itemCount } = useCart();
   const [addingToCart, setAddingToCart] = useState<Set<string>>(new Set());
+  const [showModal, setShowModal] = useState(false);
+  const [addedProduct, setAddedProduct] = useState<{
+    name: string;
+    image?: string;
+    price: number;
+    quantity: number;
+  } | null>(null);
 
   const { data, isLoading, error } = useQuery<ProductsResponse>({
     queryKey: ['products', page, category],
@@ -83,10 +91,22 @@ export default function ShopPage() {
     e.preventDefault();
     e.stopPropagation();
 
+    // Find the product details to show in modal
+    const product = data?.products.find(p => p.id === productId);
+    if (!product) return;
+
     setAddingToCart(prev => new Set(prev).add(productId));
     try {
       await addToCart(productId, 1);
-      // Success feedback could be a toast notification in a production app
+      
+      // Show success modal
+      setAddedProduct({
+        name: product.name,
+        image: product.imageUrl || product.images?.[0],
+        price: Number(product.price),
+        quantity: 1,
+      });
+      setShowModal(true);
     } catch (error) {
       console.error('Failed to add to cart:', error);
       alert('Failed to add to cart. Please try again.');
@@ -297,6 +317,18 @@ export default function ShopPage() {
       </div>
 
       <BottomNavigation />
+
+      {/* Added to Cart Modal */}
+      {addedProduct && (
+        <AddedToCartModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          productName={addedProduct.name}
+          productImage={addedProduct.image}
+          quantity={addedProduct.quantity}
+          price={addedProduct.price}
+        />
+      )}
     </div>
   );
 }

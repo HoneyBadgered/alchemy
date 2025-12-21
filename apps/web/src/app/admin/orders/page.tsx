@@ -614,7 +614,7 @@ export default function AdminOrdersPage() {
                             📦 Ship
                           </button>
                         )}
-                        {(order.status === 'paid' || order.status === 'completed' || order.status === 'shipped') && (
+                        {order.status !== 'pending' && order.status !== 'cancelled' && order.status !== 'refunded' && (
                           <button
                             onClick={() => {
                               setSelectedOrder(order);
