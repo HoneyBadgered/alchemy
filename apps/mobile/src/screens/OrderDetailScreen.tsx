@@ -5,8 +5,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function OrderDetailScreen({ navigation, route }: any) {
   // TODO: This would fetch the actual order from the API

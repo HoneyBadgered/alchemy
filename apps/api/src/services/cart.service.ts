@@ -295,7 +295,7 @@ export class CartService {
       const userCart = await this.getOrCreateCart(userId);
 
       // Merge items and delete guest cart in a transaction
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: any) => {
         // Merge items
         for (const guestItem of guestCart.cart_items) {
           const existingItem = await tx.cart_items.findUnique({

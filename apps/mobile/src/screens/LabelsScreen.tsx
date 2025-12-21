@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function LabelsScreen() {
   const [customName, setCustomName] = useState('');

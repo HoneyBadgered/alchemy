@@ -5,8 +5,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function OrdersScreen({ navigation }: any) {
   // TODO: This would fetch real orders from the API when auth is integrated

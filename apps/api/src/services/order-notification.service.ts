@@ -98,7 +98,7 @@ export class OrderNotificationService {
 
               <p>You'll receive another email with tracking information once your order ships.</p>
               
-              <a href="${config.appUrl}/orders/${orderId}" class="button">View Order Status</a>
+              <a href="${config.app.url}/orders/${orderId}" class="button">View Order Status</a>
               
               <div class="footer">
                 <p>Questions? Contact us at support@alchemytable.com</p>
@@ -122,7 +122,7 @@ Total: $${totalAmount.toFixed(2)}
 
 You'll receive another email with tracking information once your order ships.
 
-View your order status: ${config.appUrl}/orders/${orderId}
+View your order status: ${config.app.url}/orders/${orderId}
 
 Questions? Contact us at support@alchemytable.com
     `.trim();
@@ -139,7 +139,7 @@ Questions? Contact us at support@alchemytable.com
    * Send shipping notification when order is shipped
    */
   async sendShippingNotification(data: ShippingEmailData): Promise<void> {
-    const { customerEmail, orderId, trackingNumber, carrierName, shippedAt, totalAmount, items } = data;
+    const { customerEmail, orderId, trackingNumber, carrierName, shippedAt, items } = data;
 
     // Generate tracking URL based on carrier
     const trackingUrl = this.getTrackingUrl(carrierName, trackingNumber);
@@ -263,7 +263,7 @@ Questions? Contact us at support@alchemytable.com
               <p>Your order #${orderId.slice(0, 8).toUpperCase()} has been delivered!</p>
               <p>We hope you enjoy your Alchemy Table blends. If you have any questions or concerns about your order, please don't hesitate to reach out.</p>
               
-              <a href="${config.appUrl}/orders/${orderId}" class="button">View Order</a>
+              <a href="${config.app.url}/orders/${orderId}" class="button">View Order</a>
               
               <p><strong>Love your blends?</strong> Share your experience and leave a review!</p>
               
@@ -285,7 +285,7 @@ Your order #${orderId.slice(0, 8).toUpperCase()} has been delivered!
 
 We hope you enjoy your Alchemy Table blends. If you have any questions or concerns, please contact us.
 
-View your order: ${config.appUrl}/orders/${orderId}
+View your order: ${config.app.url}/orders/${orderId}
 
 Thank you for choosing The Alchemy Table!
     `.trim();
@@ -356,7 +356,7 @@ Thank you for choosing The Alchemy Table!
       customerEmail,
       customerName: order.users?.username,
       totalAmount: Number(order.totalAmount),
-      items: order.order_items.map((item) => ({
+      items: order.order_items.map((item: any) => ({
         productName: item.products.name,
         quantity: item.quantity,
         price: Number(item.price),
