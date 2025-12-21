@@ -9,6 +9,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from '@/store/authStore';
+import Link from 'next/link';
 
 // Constants
 const GRAMS_PER_OUNCE = 28.3495;
@@ -461,15 +462,23 @@ export default function AdminIngredientsPage() {
             Manage ingredient data, inventory, and configurations
           </p>
         </div>
-        <button
-          onClick={() => {
-            setFormData({ status: 'active', caffeineLevel: 'none', role: 'addIn' });
-            setShowCreateModal(true);
-          }}
-          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
-        >
-          <span>+</span> Add Ingredient
-        </button>
+        <div className="flex gap-2">
+          <Link
+            href="/admin/ingredients/import"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            📥 Bulk Import
+          </Link>
+          <button
+            onClick={() => {
+              setFormData({ status: 'active', caffeineLevel: 'none', role: 'addIn' });
+              setShowCreateModal(true);
+            }}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+          >
+            <span>+</span> Add Ingredient
+          </button>
+        </div>
       </div>
 
       {/* Notifications */}

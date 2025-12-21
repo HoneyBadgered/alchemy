@@ -9,6 +9,7 @@ import { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { adminMiddleware } from '../middleware/admin.middleware';
 import { AdminIngredientService } from '../services/admin-ingredient.service';
+import { IngredientImportService } from '../services/ingredient-import.service';
 
 // Validation schemas
 const ingredientFiltersSchema = z.object({
@@ -77,6 +78,7 @@ const updateIngredientSchema = createIngredientSchema.partial();
 
 export async function adminIngredientRoutes(fastify: FastifyInstance) {
   const ingredientService = new AdminIngredientService();
+  const importService = new IngredientImportService();
 
   // GET /admin/ingredients - List all ingredients with filtering
   fastify.get('/admin/ingredients', {
@@ -301,6 +303,62 @@ export async function adminIngredientRoutes(fastify: FastifyInstance) {
       return reply.send(result);
     } catch (error) {
       return reply.status(500).send({ message: (error as Error).message });
+    }
+  });
+
+  // GET /admin/ingredients/import/template - Download CSV template
+  fastify.get('/admin/ingredients/import/template', {
+    preHandler: adminMiddleware,
+  }, async (_request: FastifyRequest, reply) => {
+    try {
+      const csv = importService.generateTemplate();
+      
+      return reply
+        .header('Content-Type', 'text/csv')
+        .header('Content-Disposition', 'attachment; filename="ingredients-import-template.csv"')
+        .send(csv);
+    } catch (error) {
+      return reply.status(500).send({ message: (error as Error).message });
+    }
+  });
+
+  // POST /admin/ingredients/import/validate - Validate CSV file
+  fastify.post('/admin/ingredients/import/validate', {
+    preHandler: adminMiddleware,
+  }, async (request: FastifyRequest, reply) => {
+    try {
+      const data = await request.file();
+      
+      if (!data) {
+        return reply.status(400).send({ message: 'No file uploaded' });
+      }
+
+      const csvContent = await data.toBuffer();
+      const result = await importService.validateCSV(csvContent.toString('utf-8'));
+      
+      return reply.send(result);
+    } catch (error) {
+      return reply.status(400).send({ message: (error as Error).message });
+    }
+  });
+
+  // POST /admin/ingredients/import - Import ingredients from CSV
+  fastify.post('/admin/ingredients/import', {
+    preHandler: adminMiddleware,
+  }, async (request: FastifyRequest, reply) => {
+    try {
+      const data = await request.file();
+      
+      if (!data) {
+        return reply.status(400).send({ message: 'No file uploaded' });
+      }
+
+      const csvContent = await data.toBuffer();
+      const result = await importService.importFromCSV(csvContent.toString('utf-8'));
+      
+      return reply.send(result);
+    } catch (error) {
+      return reply.status(400).send({ message: (error as Error).message });
     }
   });
 }
