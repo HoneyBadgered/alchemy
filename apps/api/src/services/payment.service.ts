@@ -230,6 +230,18 @@ export class PaymentService {
     if (paymentIntent.status !== order.stripePaymentStatus) {
       try {
         await this.updateOrderPaymentStatus(order.id, paymentIntent);
+        
+        // Refetch order to get updated status
+        const updatedOrder = await prisma.orders.findUnique({
+          where: { id: order.id },
+          select: { status: true },
+        });
+        
+        return {
+          orderId: order.id,
+          orderStatus: updatedOrder?.status || order.status,
+          paymentStatus: paymentIntent.status,
+        };
       } catch (updateError) {
         // Log the error but don't fail the request - the order lookup was successful
         console.error('Failed to update order payment status:', updateError);
@@ -290,6 +302,19 @@ export class PaymentService {
     // Update local record if status changed
     if (paymentIntent.status !== order.stripePaymentStatus) {
       await this.updateOrderPaymentStatus(order.id, paymentIntent);
+      
+      // Refetch order to get updated status
+      const updatedOrder = await prisma.orders.findUnique({
+        where: { id: order.id },
+        select: { status: true },
+      });
+      
+      return {
+        status: paymentIntent.status,
+        orderId: order.id,
+        orderStatus: updatedOrder?.status || order.status,
+        paymentIntentId: paymentIntent.id,
+      };
     }
 
     return {
