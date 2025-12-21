@@ -2,7 +2,7 @@
 
 /**
  * Image Upload Component
- * Allows admin to upload product images
+ * Allows admin to upload product and ingredient images
  */
 
 import { useState } from 'react';
@@ -14,13 +14,15 @@ interface ImageUploadProps {
   onError?: (error: string) => void;
   currentImage?: string;
   accessToken: string;
+  type?: 'product' | 'ingredient';
 }
 
 export default function ImageUpload({ 
   onUploadComplete, 
   onError,
   currentImage,
-  accessToken 
+  accessToken,
+  type = 'product',
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentImage || null);
@@ -54,7 +56,8 @@ export default function ImageUpload({
     formData.append('file', file);
 
     try {
-      const response = await fetch(`${API_URL}/upload/product-image`, {
+      const endpoint = type === 'product' ? '/upload/product-image' : '/upload/ingredient-image';
+      const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,

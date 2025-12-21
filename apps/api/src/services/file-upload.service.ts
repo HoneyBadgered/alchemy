@@ -20,11 +20,13 @@ export interface UploadResult {
 
 export class FileUploadService {
   private uploadDir: string;
+  private subdirectory: string;
   private allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
   private maxFileSize = 5 * 1024 * 1024; // 5MB
 
-  constructor(uploadDir = './uploads/products') {
-    this.uploadDir = path.resolve(uploadDir);
+  constructor(subdirectory: 'products' | 'ingredients' = 'products') {
+    this.subdirectory = subdirectory;
+    this.uploadDir = path.resolve('./uploads', subdirectory);
     this.ensureUploadDir();
   }
 
@@ -85,7 +87,7 @@ export class FileUploadService {
       originalName: file.filename,
       mimetype: file.mimetype,
       size: stats.size,
-      url: `/uploads/products/${filename}`,
+      url: `/uploads/${this.subdirectory}/${filename}`,
       path: filepath,
     };
   }
