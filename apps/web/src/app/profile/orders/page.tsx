@@ -110,10 +110,60 @@ function OrderHistoryContent() {
     }
   };
 
-  const handleDownloadReceipt = (orderId: string) => {
-    // In production, this would call an API endpoint to generate and download a PDF
-    // For now, we'll show an alert
-    alert(`Receipt for Order #${orderId} would be downloaded here.`);
+  const handleDownloadReceipt = async (orderId: string) => {
+    if (!accessToken) return;
+    
+    try {
+      // Fetch the receipt HTML with authentication
+      let response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${orderId}/receipt`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+      
+      // If 401, try refreshing token and retry once
+      if (response.status === 401) {
+        console.log('Receipt fetch unauthorized, refreshing token...');
+        const refreshed = await refreshAuth();
+        if (refreshed) {
+          const newToken = useAuthStore.getState().accessToken;
+          response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${orderId}/receipt`, {
+            headers: {
+              'Authorization': `Bearer ${newToken}`,
+            },
+          });
+        }
+      }
+      
+      if (!response.ok) {
+        let errorMessage = 'Failed to fetch receipt';
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType?.includes('application/json')) {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorMessage;
+          } else {
+            const errorText = await response.text();
+            console.error('Receipt error response:', errorText);
+          }
+        } catch (parseError) {
+          console.error('Error parsing response:', parseError);
+        }
+        throw new Error(errorMessage);
+      }
+      
+      const html = await response.text();
+      
+      // Open receipt in new window
+      const receiptWindow = window.open('', '_blank');
+      if (receiptWindow) {
+        receiptWindow.document.write(html);
+        receiptWindow.document.close();
+      }
+    } catch (error) {
+      console.error('Failed to download receipt:', error);
+      alert('Failed to generate receipt. Please try again.');
+    }
   };
 
   const statusOptions = [

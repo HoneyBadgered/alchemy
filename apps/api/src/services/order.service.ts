@@ -380,6 +380,11 @@ export class OrderService {
         order_status_logs: {
           orderBy: { createdAt: 'desc' },
         },
+        users: {
+          select: {
+            email: true,
+          },
+        },
       },
     });
 

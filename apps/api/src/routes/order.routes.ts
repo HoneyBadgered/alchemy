@@ -154,4 +154,205 @@ export async function orderRoutes(fastify: FastifyInstance) {
       });
     }
   });
+
+  /**
+   * Get order receipt (HTML format for printing/PDF)
+   * GET /orders/:id/receipt
+   */
+  fastify.get('/orders/:id/receipt', {
+    preHandler: authMiddleware,
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const userId = request.user!.userId;
+      const { id } = request.params as { id: string };
+      
+      const order = await orderService.getOrder(id, userId);
+      
+      // Generate HTML receipt
+      const html = generateReceiptHTML(order);
+      
+      reply.type('text/html');
+      return reply.send(html);
+    } catch (error) {
+      reply.type('application/json');
+      return reply.status(404).send({ 
+        message: (error as Error).message || 'Order not found'
+      });
+    }
+  });
+}
+
+/**
+ * Generate HTML receipt for an order
+ */
+function generateReceiptHTML(order: any): string {
+  const formatDate = (date: Date) => new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  
+  const formatCurrency = (amount: number | string) => {
+    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+    return `$${numAmount.toFixed(2)}`;
+  };
+  
+  // Calculate values from order data
+  const subtotal = Number(order.totalAmount) - Number(order.taxAmount || 0) - Number(order.shippingCost || 0) + Number(order.discountAmount || 0);
+  
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Order Receipt - ${order.id}</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      color: #333;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      border-bottom: 2px solid #333;
+      padding-bottom: 20px;
+    }
+    .header h1 {
+      margin: 0 0 10px 0;
+      color: #1a1a1a;
+    }
+    .order-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .info-section h3 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      text-transform: uppercase;
+      color: #666;
+    }
+    .info-section p {
+      margin: 5px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    th {
+      background: #f5f5f5;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid #ddd;
+    }
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+    }
+    .text-right {
+      text-align: right;
+    }
+    .totals {
+      margin-top: 20px;
+      text-align: right;
+    }
+    .totals div {
+      padding: 8px 0;
+    }
+    .totals .total {
+      font-size: 20px;
+      font-weight: bold;
+      border-top: 2px solid #333;
+      padding-top: 12px;
+      margin-top: 8px;
+    }
+    .footer {
+      margin-top: 60px;
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      border-top: 1px solid #ddd;
+      padding-top: 20px;
+    }
+    @media print {
+      body {
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Alchemy Table</h1>
+    <p>Order Receipt</p>
+  </div>
+  
+  <div class="order-info">
+    <div class="info-section">
+      <h3>Order Information</h3>
+      <p><strong>Order ID:</strong> ${order.id}</p>
+      <p><strong>Date:</strong> ${formatDate(order.createdAt)}</p>
+      <p><strong>Status:</strong> ${order.status}</p>
+      <p><strong>Payment Status:</strong> ${order.stripePaymentStatus || 'pending'}</p>
+      ${order.guestEmail ? `<p><strong>Email:</strong> ${order.guestEmail}</p>` : ''}
+    </div>
+    
+    <div class="info-section">
+      <h3>Contact Information</h3>
+      ${order.users?.email ? `<p><strong>Email:</strong> ${order.users.email}</p>` : ''}
+      ${order.guestEmail && !order.users?.email ? `<p><strong>Email:</strong> ${order.guestEmail}</p>` : ''}
+      <p><strong>Shipping Method:</strong> ${order.shippingMethod || 'Standard'}</p>
+      ${order.trackingNumber ? `<p><strong>Tracking:</strong> ${order.trackingNumber}</p>` : ''}
+    </div>
+  </div>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th class="text-right">Quantity</th>
+        <th class="text-right">Price</th>
+        <th class="text-right">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${order.order_items.map((item: any) => `
+        <tr>
+          <td>${item.products.name}</td>
+          <td class="text-right">${item.quantity}</td>
+          <td class="text-right">${formatCurrency(item.price)}</td>
+          <td class="text-right">${formatCurrency(Number(item.price) * item.quantity)}</td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
+  
+  <div class="totals">
+    <div><strong>Subtotal:</strong> ${formatCurrency(subtotal)}</div>
+    ${order.discountAmount && Number(order.discountAmount) > 0 ? `<div><strong>Discount${order.discountCode ? ` (${order.discountCode})` : ''}:</strong> -${formatCurrency(order.discountAmount)}</div>` : ''}
+    <div><strong>Tax:</strong> ${formatCurrency(order.taxAmount || 0)}</div>
+    <div><strong>Shipping:</strong> ${formatCurrency(order.shippingCost || 0)}</div>
+    <div class="total"><strong>Total:</strong> ${formatCurrency(order.totalAmount)}</div>
+  </div>
+  
+  <div class="footer">
+    <p>Thank you for your order!</p>
+    <p>Questions? Contact us at support@alchemytable.com</p>
+  </div>
+  
+  <script>
+    // Auto-print dialog when opened in new window
+    if (window.location.search.includes('print=true')) {
+      window.onload = () => window.print();
+    }
+  </script>
+</body>
+</html>
+  `.trim();
 }
