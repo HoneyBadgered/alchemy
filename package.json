@@ -10,9 +10,9 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "build:core": "npm --prefix ./packages/core run build",
-    "build:web": "npm --prefix ./apps/web run build",
-    "build:all": "npm run build:core && npm run build:web",
+    "build:core": "pnpm --filter @alchemy/core run build",
+    "build:web": "pnpm --filter @alchemy/web run build",
+    "build:all": "pnpm run build:core && pnpm run build:web",
     "test": "turbo run test",
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
@@ -28,9 +28,9 @@
   },
   "engines": {
     "node": ">=20.19.4",
-    "npm": ">=9.0.0"
+    "pnpm": ">=9.0.0"
   },
-  "packageManager": "npm@10.2.4",
+  "packageManager": "pnpm@10.26.1",
   "overrides": {
     "glob": "^10.4.5",
     "rimraf": "^6.0.1"

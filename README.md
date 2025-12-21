@@ -3,7 +3,7 @@ A gamified e-commerce platform for building blends at an alchemy table
 
 ## 🏗️ Monorepo Structure
 
-This project uses **npm workspaces** to manage multiple packages in a monorepo. All packages are orchestrated using [Turborepo](https://turbo.build/repo) for efficient builds and caching.
+This project uses **pnpm workspaces** to manage multiple packages in a monorepo. All packages are orchestrated using [Turborepo](https://turbo.build/repo) for efficient builds and caching.
 
 ### Workspaces
 
@@ -23,14 +23,14 @@ This project uses **npm workspaces** to manage multiple packages in a monorepo. 
 
 ### Prerequisites
 - Node.js >= 20.19.4 (required for Fastify v5)
-- npm >= 9.0.0
+- pnpm >= 9.0.0 (`npm install -g pnpm`)
 - Docker and Docker Compose (recommended for database)
 
 ### Installation
 
 ```bash
 # Install all dependencies for all workspaces
-npm install
+pnpm install
 ```
 
 ### Database Setup with Docker (Recommended)
@@ -46,11 +46,11 @@ docker compose ps
 
 # Run Prisma migrations from your local machine
 cd apps/api
-npm run prisma:migrate
-npm run prisma:generate
+pnpm run prisma:migrate
+pnpm run prisma:generate
 
 # Seed the database with initial data (including admin user)
-npm run prisma:seed
+pnpm run prisma:seed
 cd ../..
 ```
 
@@ -113,7 +113,7 @@ If you prefer to run PostgreSQL locally without Docker:
 1. Install PostgreSQL 14+
 2. Create a database named `alchemy`
 3. Update `apps/api/.env` with your database credentials
-4. Run migrations: `npm run prisma:migrate --workspace=@alchemy/api`
+4. Run migrations: `pnpm --filter @alchemy/api run prisma:migrate`
 
 ### Local Development (without Docker)
 
@@ -122,7 +122,7 @@ If you prefer to run services locally without Docker:
 ```bash
 # 1. Make sure PostgreSQL is running and migrations are complete
 # 2. Install dependencies
-npm install
+pnpm install
 
 # 3. Set up environment variables
 cd apps/api
@@ -131,42 +131,42 @@ cp .env.example .env
 cd ../..
 
 # 4. Run all apps in development mode
-npm run dev
+pnpm run dev
 
 # Or run specific apps
-npm run dev --workspace=@alchemy/api    # API on port 3000
-npm run dev --workspace=@alchemy/web    # Web on port 3001
+pnpm --filter @alchemy/api run dev    # API on port 3000
+pnpm --filter @alchemy/web run dev    # Web on port 3001
 ```
 
 ### Development
 
 ```bash
 # Run all apps in development mode
-npm run dev
+pnpm run dev
 
 # Build all packages
-npm run build
+pnpm run build
 
 # Run tests across all workspaces
-npm run test
+pnpm run test
 
 # Lint all packages
-npm run lint
+pnpm run lint
 
 # Type check all packages
-npm run type-check
+pnpm run type-check
 ```
 
 ### Working with Specific Workspaces
 
 ```bash
 # Run commands in a specific workspace
-npm run dev --workspace=@alchemy/web
-npm run build --workspace=@alchemy/core
-npm run test --workspace=@alchemy/api
+pnpm --filter @alchemy/web run dev
+pnpm --filter @alchemy/core run build
+pnpm --filter @alchemy/api run test
 
 # Install a dependency in a specific workspace
-npm install <package> --workspace=@alchemy/web
+pnpm --filter @alchemy/web add <package>
 ```
 
 ## 📦 Workspace Benefits
