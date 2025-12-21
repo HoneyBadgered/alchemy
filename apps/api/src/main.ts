@@ -43,6 +43,7 @@ import { achievementsRoutes } from './routes/achievements.routes';
 import { purchaseHistoryRoutes } from './routes/purchase-history.routes';
 import adminBlogRoutes from './routes/admin-blog.routes';
 import blogRoutes from './routes/blog.routes';
+import searchRoutes from './routes/search.routes';
 import { fileUploadRoutes } from './routes/file-upload.routes';
 import { errorHandlerPlugin } from './plugins/error-handler';
 
@@ -127,6 +128,7 @@ fastify.register(achievementsRoutes);
 fastify.register(purchaseHistoryRoutes);
 fastify.register(adminBlogRoutes);
 fastify.register(blogRoutes);
+fastify.register(searchRoutes);
 
 // Health check endpoint
 fastify.get('/health', async (_request, reply) => {

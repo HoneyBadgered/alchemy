@@ -16,10 +16,13 @@ import OrdersScreen from './src/screens/OrdersScreen';
 import OrderDetailScreen from './src/screens/OrderDetailScreen';
 import AppearanceScreen from './src/screens/AppearanceScreen';
 import LabelsScreen from './src/screens/LabelsScreen';
+import GamesScreen from './src/screens/GamesScreen';
+import ForageGameScreen from './src/screens/ForageGameScreen';
 import { CartProvider, useCart } from './src/contexts/CartContext';
 
 const Tab = createBottomTabNavigator();
 const ShopStack = createNativeStackNavigator();
+const GamesStack = createNativeStackNavigator();
 const queryClient = new QueryClient();
 
 function ShopStackNavigator() {
@@ -56,6 +59,23 @@ function ShopStackNavigator() {
         options={{ headerShown: false }}
       />
     </ShopStack.Navigator>
+  );
+}
+
+function GamesStackNavigator() {
+  return (
+    <GamesStack.Navigator>
+      <GamesStack.Screen
+        name="GamesList"
+        component={GamesScreen}
+        options={{ headerShown: false }}
+      />
+      <GamesStack.Screen
+        name="ForageGame"
+        component={ForageGameScreen}
+        options={{ headerShown: false }}
+      />
+    </GamesStack.Navigator>
   );
 }
 
@@ -102,6 +122,15 @@ export default function App() {
                 options={{
                   tabBarLabel: 'Shop',
                   tabBarIcon: () => <ShopTabIcon />,
+                  headerShown: false,
+                }}
+              />
+              <Tab.Screen
+                name="Games"
+                component={GamesStackNavigator}
+                options={{
+                  tabBarLabel: 'Games',
+                  tabBarIcon: () => <Text style={{ fontSize: 20 }}>🎮</Text>,
                   headerShown: false,
                 }}
               />

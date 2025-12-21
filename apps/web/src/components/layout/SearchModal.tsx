@@ -13,73 +13,7 @@ interface SearchResult {
   image?: string;
 }
 
-// Stub search data - in production this would come from an API or search index
-const mockSearchData: SearchResult[] = [
-  {
-    id: '1',
-    type: 'product',
-    title: 'Morning Sunrise Blend',
-    description: 'A bright and energizing coffee blend to start your day',
-    url: '/shop/morning-sunrise',
-    image: '☕',
-  },
-  {
-    id: '2',
-    type: 'product',
-    title: 'Mystic Moon Tea',
-    description: 'A calming herbal tea for peaceful evenings',
-    url: '/shop/mystic-moon',
-    image: '🍵',
-  },
-  {
-    id: '3',
-    type: 'product',
-    title: 'Dragon\'s Breath Espresso',
-    description: 'Bold and intense espresso for the adventurous',
-    url: '/shop/dragons-breath',
-    image: '🐉',
-  },
-  {
-    id: '4',
-    type: 'article',
-    title: 'The Art of Blending',
-    description: 'Learn the fundamentals of creating the perfect blend',
-    url: '/library/art-of-blending',
-    image: '📚',
-  },
-  {
-    id: '5',
-    type: 'article',
-    title: 'Coffee Origins Guide',
-    description: 'Explore coffee regions from around the world',
-    url: '/library/coffee-origins',
-    image: '🌍',
-  },
-  {
-    id: '6',
-    type: 'page',
-    title: 'About Us',
-    description: 'Learn about The Alchemy Table and our mission',
-    url: '/about',
-    image: '✨',
-  },
-  {
-    id: '7',
-    type: 'page',
-    title: 'Contact',
-    description: 'Get in touch with our team',
-    url: '/contact',
-    image: '📧',
-  },
-  {
-    id: '8',
-    type: 'product',
-    title: 'Enchanted Forest Blend',
-    description: 'A mysterious and complex flavor profile',
-    url: '/shop/enchanted-forest',
-    image: '🌲',
-  },
-];
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -95,8 +29,10 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Focus input when modal opens
   useEffect(() => {
@@ -104,9 +40,17 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
       setQuery('');
       setResults([]);
       setSelectedIndex(-1);
+      setIsLoading(false);
       // Delay focus to ensure modal is rendered
       setTimeout(() => inputRef.current?.focus(), 100);
     }
+    
+    // Cleanup timeout on unmount
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
   }, [isOpen]);
 
   // Handle escape key to close modal
@@ -118,27 +62,43 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
     };
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, onClose]);
-
-  // Search function - stub that filters local data
-  const handleSearch = (searchQuery: string) => {
+  // Search function - calls API
+  const handleSearch = async (searchQuery: string) => {
     setQuery(searchQuery);
     setSelectedIndex(-1);
 
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
     if (searchQuery.trim().length < 2) {
       setResults([]);
+      setIsLoading(false);
       return;
     }
 
-    const lowerQuery = searchQuery.toLowerCase();
-    // Stub search implementation - filters mockSearchData
-    // TODO: Replace with actual API call to /api/search
-    const filtered = mockSearchData.filter(
-      (item) =>
-        item.title.toLowerCase().includes(lowerQuery) ||
-        item.description.toLowerCase().includes(lowerQuery)
-    );
-    setResults(filtered);
+    // Debounce search requests
+    setIsLoading(true);
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/search?q=${encodeURIComponent(searchQuery)}&limit=20`
+        );
+        
+        if (!response.ok) {
+          throw new Error('Search failed');
+        }
+
+        const data = await response.json();
+        setResults(data.results || []);
+      } catch (error) {
+        console.error('Search error:', error);
+        setResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 300); // 300ms debounce
   };
 
   // Handle keyboard navigation
@@ -194,10 +154,17 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
             ref={inputRef}
             type="search"
             placeholder="Search products, articles, and more..."
-            value={query}
-            onChange={(e) => handleSearch(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="w-full pl-12 pr-4 py-4 text-lg focus:outline-none"
+        {/* Search Results */}
+        <div className="max-h-96 overflow-y-auto">
+          {isLoading && (
+            <div className="p-8 text-center">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-purple-200 border-t-purple-600"></div>
+              <p className="mt-2 text-gray-500">Searching...</p>
+            </div>
+            </div>
+          )}
+
+          {!isLoading && results.length > 0 && (2 pr-4 py-4 text-lg focus:outline-none"
             aria-label="Search query"
             autoComplete="off"
           />
