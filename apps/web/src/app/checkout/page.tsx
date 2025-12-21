@@ -532,7 +532,7 @@ export default function CheckoutPage() {
                     </p>
                     {orderId && (
                       <p className="text-sm text-gray-500 font-mono bg-gray-100 inline-block px-3 py-1 rounded">
-                        Order ID: {orderId.slice(0, 8).toUpperCase()}
+                        Order ID: {orderId}
                       </p>
                     )}
                     {guestEmail && (

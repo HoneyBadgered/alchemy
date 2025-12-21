@@ -319,7 +319,7 @@ export default function AdminOrdersPage() {
           <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Process Refund</h3>
             <p className="text-sm text-gray-600 mb-4">
-              Order #{selectedOrder.id.slice(0, 8)} - Total: ${Number(selectedOrder.totalAmount).toFixed(2)}
+              Order #{selectedOrder.id} - Total: ${Number(selectedOrder.totalAmount).toFixed(2)}
             </p>
             
             <div className="space-y-4">
@@ -403,7 +403,7 @@ export default function AdminOrdersPage() {
           <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Cancel Order</h3>
             <p className="text-sm text-gray-600 mb-4">
-              Order #{selectedOrder.id.slice(0, 8)} - Total: ${Number(selectedOrder.totalAmount).toFixed(2)}
+              Order #{selectedOrder.id} - Total: ${Number(selectedOrder.totalAmount).toFixed(2)}
             </p>
             
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
@@ -564,7 +564,7 @@ export default function AdminOrdersPage() {
                 filteredOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
-                      {order.id.slice(0, 8)}...
+                      {order.id}
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">
@@ -664,7 +664,7 @@ export default function AdminOrdersPage() {
               
               <div className="mb-4 p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-600">Order ID</p>
-                <p className="font-mono text-sm font-semibold">{selectedOrder.id.slice(0, 8).toUpperCase()}</p>
+                <p className="font-mono text-sm font-semibold">{selectedOrder.id}</p>
                 <p className="text-sm text-gray-600 mt-2">Customer</p>
                 <p className="text-sm font-medium">{selectedOrder.user?.email || selectedOrder.guestEmail}</p>
                 <p className="text-sm text-gray-600 mt-2">Total</p>

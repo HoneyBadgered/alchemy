@@ -24,6 +24,7 @@ function OrderHistoryContent() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
   const [reordering, setReordering] = useState<string | null>(null);
+  const [reorderModalOrder, setReorderModalOrder] = useState<Order | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['orders', page, statusFilter],
@@ -66,10 +67,18 @@ function OrderHistoryContent() {
   };
 
   const handleReorder = async (order: Order) => {
-    setReordering(order.id);
+    setReorderModalOrder(order);
+  };
+
+  const confirmReorder = async () => {
+    if (!reorderModalOrder) return;
+
+    setReordering(reorderModalOrder.id);
+    setReorderModalOrder(null);
+    
     try {
       // Add all items from the order to cart
-      for (const item of order.order_items) {
+      for (const item of reorderModalOrder.order_items) {
         await addToCart(item.productId, item.quantity);
       }
       router.push('/cart');
@@ -187,7 +196,7 @@ function OrderHistoryContent() {
                     <div>
                       <div className="flex items-center gap-3 mb-2">
                         <span className="text-xl">{getStatusIcon(order.status)}</span>
-                        <h3 className="text-white font-semibold">Order #{order.id.slice(0, 8)}</h3>
+                        <h3 className="text-white font-semibold">Order #{order.id}</h3>
                         <span className={`px-2 py-1 rounded text-xs font-medium border ${getStatusColor(order.status)}`}>
                           {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                         </span>
@@ -295,6 +304,61 @@ function OrderHistoryContent() {
           </div>
         )}
       </div>
+
+      {/* Reorder Confirmation Modal */}
+      {reorderModalOrder && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-slate-900 to-purple-900/30 border border-purple-500/30 rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all">
+            <div className="text-center mb-6">
+              <div className="text-5xl mb-4">🔄</div>
+              <h2 className="text-2xl font-bold text-purple-200 mb-2">
+                Reorder Items?
+              </h2>
+              <p className="text-purple-300/80">
+                Add {reorderModalOrder.order_items.length} {reorderModalOrder.order_items.length === 1 ? 'item' : 'items'} from this order to your cart?
+              </p>
+            </div>
+
+            {/* Order Items Preview */}
+            <div className="bg-slate-900/50 rounded-lg p-4 mb-6 max-h-48 overflow-y-auto">
+              {reorderModalOrder.order_items.map((item, index) => (
+                <div key={index} className="flex justify-between items-center py-2 border-b border-purple-500/20 last:border-0">
+                  <div className="flex-1">
+                    <span className="text-purple-200 text-sm block">{item.products?.name || 'Unknown Product'}</span>
+                    <span className="text-purple-400/60 text-xs">${Number(item.price).toFixed(2)} each</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-purple-300 text-sm font-semibold block">×{item.quantity}</span>
+                    <span className="text-purple-200 text-xs">${(Number(item.price) * item.quantity).toFixed(2)}</span>
+                  </div>
+                </div>
+              ))}
+              <div className="flex justify-between items-center pt-3 mt-3 border-t border-purple-500/30">
+                <span className="text-purple-200 font-semibold">Total</span>
+                <span className="text-purple-200 font-bold text-lg">
+                  ${reorderModalOrder.order_items.reduce((sum, item) => sum + (Number(item.price) * item.quantity), 0).toFixed(2)}
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setReorderModalOrder(null)}
+                className="flex-1 px-4 py-3 bg-slate-800/60 hover:bg-slate-700/60 text-purple-300 rounded-lg font-semibold transition-colors border border-purple-500/20"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmReorder}
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-semibold transition-all shadow-lg shadow-purple-500/30"
+              >
+                Add to Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BottomNavigation />
     </div>

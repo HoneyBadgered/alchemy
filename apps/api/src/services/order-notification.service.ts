@@ -78,7 +78,7 @@ export class OrderNotificationService {
               <p>We've received your order and are preparing it for shipment. Here are your order details:</p>
               
               <div class="order-details">
-                <h3>Order #${orderId.slice(0, 8).toUpperCase()}</h3>
+                <h3>Order #${orderId}</h3>
                 <table>
                   <thead>
                     <tr style="background: #f0f0f0;">
@@ -115,7 +115,7 @@ Order Confirmed!
 
 Thank you for your order${data.customerName ? `, ${data.customerName}` : ''}.
 
-Order #${orderId.slice(0, 8).toUpperCase()}
+Order #${orderId}
 ${items.map(item => `${item.productName} x${item.quantity} - $${item.price.toFixed(2)}`).join('\n')}
 
 Total: $${totalAmount.toFixed(2)}
@@ -129,7 +129,7 @@ Questions? Contact us at support@alchemytable.com
 
     await this.emailService.sendEmail({
       to: customerEmail,
-      subject: `Order Confirmation #${orderId.slice(0, 8).toUpperCase()}`,
+      subject: `Order Confirmation #${orderId}`,
       html,
       text,
     });
@@ -169,7 +169,7 @@ Questions? Contact us at support@alchemytable.com
           <div class="container">
             <div class="header">
               <h1>📦 Your Order Has Shipped!</h1>
-              <p>Order #${orderId.slice(0, 8).toUpperCase()}</p>
+              <p>Order #${orderId}</p>
             </div>
             <div class="content">
               <p>Hi${data.customerName ? ` ${data.customerName}` : ''},</p>
@@ -210,7 +210,7 @@ Questions? Contact us at support@alchemytable.com
     const text = `
 Your Order Has Shipped!
 
-Order #${orderId.slice(0, 8).toUpperCase()}
+Order #${orderId}
 
 Shipping Information:
 Carrier: ${carrierName}
@@ -260,7 +260,7 @@ Questions? Contact us at support@alchemytable.com
               <p>Your package has arrived</p>
             </div>
             <div class="content">
-              <p>Your order #${orderId.slice(0, 8).toUpperCase()} has been delivered!</p>
+              <p>Your order #${orderId} has been delivered!</p>
               <p>We hope you enjoy your Alchemy Table blends. If you have any questions or concerns about your order, please don't hesitate to reach out.</p>
               
               <a href="${config.app.url}/orders/${orderId}" class="button">View Order</a>
@@ -281,7 +281,7 @@ Questions? Contact us at support@alchemytable.com
     const text = `
 Order Delivered!
 
-Your order #${orderId.slice(0, 8).toUpperCase()} has been delivered!
+Your order #${orderId} has been delivered!
 
 We hope you enjoy your Alchemy Table blends. If you have any questions or concerns, please contact us.
 
@@ -292,7 +292,7 @@ Thank you for choosing The Alchemy Table!
 
     await this.emailService.sendEmail({
       to: customerEmail,
-      subject: `Order Delivered! #${orderId.slice(0, 8).toUpperCase()}`,
+      subject: `Order Delivered! #${orderId}`,
       html,
       text,
     });
