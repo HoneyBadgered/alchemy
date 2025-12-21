@@ -58,7 +58,10 @@ export class AdminProductService {
     const skip = (page - 1) * perPage;
 
     // Build where clause
-    const where: Prisma.productsWhereInput = {};
+    const where: Prisma.productsWhereInput = {
+      // Exclude custom blends from admin product list
+      category: { not: 'custom-blend' },
+    };
 
     if (search) {
       where.OR = [
@@ -107,7 +110,7 @@ export class AdminProductService {
       include: {
         order_items: {
           include: {
-            order: {
+            orders: {
               select: {
                 id: true,
                 status: true,

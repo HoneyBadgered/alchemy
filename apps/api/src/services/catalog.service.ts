@@ -24,11 +24,12 @@ export class CatalogService {
 
     const where: {
       isActive: boolean;
-      category?: string;
+      category?: string | { not: string };
       compareAtPrice?: { not: null };
     } = {
       isActive: true,
-      ...(category && { category }),
+      // Exclude custom blends from public catalog
+      category: category || { not: 'custom-blend' },
     };
 
     if (onSale) {

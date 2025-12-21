@@ -352,6 +352,16 @@ export class CartService {
     sessionId?: string;
     blendName?: string;
   }) {
+    // Fetch the base tea ingredient to get its actual name
+    const baseTea = await prisma.ingredients.findUnique({
+      where: { id: baseTeaId },
+      select: { id: true, name: true },
+    });
+
+    if (!baseTea) {
+      throw new Error(`Base tea with ID "${baseTeaId}" not found`);
+    }
+
     // Generate a unique product ID based on blend composition
     const blendKey = this.generateBlendKey(baseTeaId, addIns);
     
@@ -369,13 +379,13 @@ export class CartService {
       const totalPrice = this.calculateBlendPrice(addIns);
 
       // Generate blend name
-      const productName = blendName || this.generateBlendName(baseTeaId, addIns);
+      const productName = blendName || this.generateBlendName(baseTea.name, addIns);
 
       product = await prisma.products.create({
         data: {
           id: crypto.randomUUID(),
           name: productName,
-          description: `Custom blend with ${baseTeaId} base and ${addIns.length} add-in${addIns.length === 1 ? '' : 's'}`,
+          description: `Custom blend with ${baseTea.name} base and ${addIns.length} add-in${addIns.length === 1 ? '' : 's'}`,
           price: totalPrice,
           category: 'custom-blend',
           tags: [blendKey, 'custom', 'blend'],
@@ -451,16 +461,11 @@ export class CartService {
   /**
    * Generate a readable name for the blend
    */
-  private generateBlendName(baseTeaId: string, addIns: Array<{ ingredientId: string; quantity: number }>): string {
-    // Convert IDs to readable names (simple transformation)
-    const baseName = baseTeaId.split('-').map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ');
-    
+  private generateBlendName(baseTeaName: string, addIns: Array<{ ingredientId: string; quantity: number }>): string {
     const addInCount = addIns.length;
     if (addInCount === 0) {
-      return `Custom ${baseName}`;
+      return `Custom ${baseTeaName}`;
     }
-    return `Custom ${baseName} Blend with ${addInCount} Add-in${addInCount === 1 ? '' : 's'}`;
+    return `Custom ${baseTeaName} Blend with ${addInCount} Add-in${addInCount === 1 ? '' : 's'}`;
   }
 }

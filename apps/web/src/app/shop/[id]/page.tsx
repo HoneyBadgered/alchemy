@@ -253,14 +253,16 @@ export default function ProductDetailsPage({
                         Features
                       </h2>
                       <div className="flex flex-wrap gap-2">
-                        {product.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-semibold"
-                          >
-                            {tag}
-                          </span>
-                        ))}
+                        {product.tags
+                          .filter(tag => !tag.startsWith('blend:') && !tag.match(/^[a-z0-9]{20,}$/)) // Filter out blendKey and ID-like tags
+                          .map((tag) => (
+                            <span
+                              key={tag}
+                              className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-semibold capitalize"
+                            >
+                              {tag}
+                            </span>
+                          ))}
                       </div>
                     </div>
                   )}

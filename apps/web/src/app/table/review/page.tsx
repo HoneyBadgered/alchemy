@@ -51,12 +51,17 @@ export default function BlendReviewPage() {
       return;
     }
 
+    if (!blendName.trim()) {
+      setError('Please name your blend');
+      return;
+    }
+
     setIsAdding(true);
     setError(null);
 
     try {
       // baseTeaId is guaranteed to be defined after the guard above
-      await addBlendToCart(blendState.baseTeaId, blendState.addIns);
+      await addBlendToCart(blendState.baseTeaId, blendState.addIns, blendName);
       // Clear the pending blend from storage
       sessionStorage.removeItem('pendingBlend');
       // Navigate to cart

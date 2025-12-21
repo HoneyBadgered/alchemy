@@ -377,7 +377,7 @@ export class OrderService {
             products: true,
           },
         },
-        statusLogs: {
+        order_status_logs: {
           orderBy: { createdAt: 'desc' },
         },
       },
