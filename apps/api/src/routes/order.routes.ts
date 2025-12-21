@@ -97,8 +97,12 @@ export async function orderRoutes(fastify: FastifyInstance) {
           errors: error.errors 
         });
       }
+      
+      // Log the actual error for debugging
+      fastify.log.error('Order placement error:', error);
+      
       return reply.status(400).send({ 
-        message: (error as Error).message 
+        message: (error as Error).message || 'Failed to place order. Please try again.'
       });
     }
   });

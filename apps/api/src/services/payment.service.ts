@@ -77,7 +77,7 @@ export class PaymentService {
       }
 
       // Get email for receipt (from user or guest email)
-      const receiptEmail = order.user?.email || order.guestEmail;
+      const receiptEmail = order.users?.email || order.guestEmail;
 
       // Create new PaymentIntent
       const paymentIntent = await stripe.paymentIntents.create({
@@ -104,12 +104,14 @@ export class PaymentService {
             stripePaymentStatus: paymentIntent.status,
             stripeClientSecret: paymentIntent.client_secret,
             status: 'payment_processing',
+            updatedAt: new Date(),
           },
         });
 
         // Log status change
         await tx.order_status_logs.create({
           data: {
+            id: crypto.randomUUID(),
             orderId,
             fromStatus: order.status,
             toStatus: 'payment_processing',
@@ -313,13 +315,17 @@ export class PaymentService {
         // Update order
         await tx.orders.update({
           where: { id: orderId },
-          data: updates,
+          data: {
+            ...updates,
+            updatedAt: new Date(),
+          },
         });
 
         // Log status change if it changed
         if (newOrderStatus !== order.status) {
           await tx.order_status_logs.create({
             data: {
+              id: crypto.randomUUID(),
               orderId,
               fromStatus: order.status,
               toStatus: newOrderStatus,
@@ -554,7 +560,10 @@ export class PaymentService {
         if (newTotalRefunded >= orderTotal) {
           await tx.orders.update({
             where: { id: orderId },
-            data: { status: 'refunded' },
+            data: { 
+              status: 'refunded',
+              updatedAt: new Date(),
+            },
           });
 
           // Log status change
@@ -566,7 +575,6 @@ export class PaymentService {
               toStatus: 'refunded',
               changedBy: processedBy || null,
               notes: `Full refund of $${amount}`,
-              createdAt: new Date(),
             },
           });
         } else {
@@ -579,7 +587,6 @@ export class PaymentService {
               toStatus: order.status, // Keep same status
               changedBy: processedBy || null,
               notes: `Partial refund of $${amount} (total refunded: $${newTotalRefunded})`,
-              createdAt: new Date(),
             },
           });
         }

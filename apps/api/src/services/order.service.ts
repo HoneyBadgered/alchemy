@@ -163,7 +163,7 @@ export class OrderService {
         // Double-check stock levels inside transaction to prevent race conditions
         for (const item of cart.cart_items) {
           const currentProduct = await tx.products.findUnique({
-            where: { id: item.productsId },
+            where: { id: item.productId },
             select: { stock: true, isActive: true },
           });
 
@@ -175,7 +175,7 @@ export class OrderService {
             throw new InsufficientStockError(
               `Insufficient stock for ${item.products.name}`,
               { 
-                productId: item.productsId,
+                productId: item.productId,
                 requested: item.quantity,
                 available: currentProduct.stock,
               }
@@ -186,20 +186,23 @@ export class OrderService {
         // Create order
         const newOrder = await tx.orders.create({
           data: {
+            id: crypto.randomUUID(),
             userId: userId || null,
             guestEmail: guestEmail || null,
             sessionId: sessionId || null,
             status: 'pending',
             totalAmount,
             shippingMethod,
-          shippingCost,
-          taxAmount,
-          discountCode: validDiscountCode?.code,
-          discountAmount,
-          customerNotes,
-          order_items: {
+            shippingCost,
+            taxAmount,
+            discountCode: validDiscountCode?.code,
+            discountAmount,
+            customerNotes,
+            updatedAt: new Date(),
+            order_items: {
             create: cart.cart_items.map((item: CartItemWithProduct) => ({
-              productId: item.productsId,
+              id: crypto.randomUUID(),
+              productId: item.productId,
               quantity: item.quantity,
               price: item.products.price,
             })),
@@ -217,7 +220,7 @@ export class OrderService {
       // Update product inventory
       for (const item of cart.cart_items) {
         await tx.products.update({
-          where: { id: item.productsId },
+          where: { id: item.productId },
           data: {
             stock: {
               decrement: item.quantity,
@@ -241,6 +244,7 @@ export class OrderService {
       // Create initial status log
       await tx.order_status_logs.create({
         data: {
+          id: crypto.randomUUID(),
           orderId: newOrder.id,
           fromStatus: null,
           toStatus: 'pending',

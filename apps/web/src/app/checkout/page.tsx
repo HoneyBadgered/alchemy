@@ -10,7 +10,7 @@ import { paymentApi } from '@/lib/payment-api';
 import BottomNavigation from '@/components/BottomNavigation';
 import StripePayment from '@/components/StripePayment';
 
-type CheckoutStep = 'shipping' | 'payment' | 'processing';
+type CheckoutStep = 'shipping' | 'payment' | 'processing' | 'success';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -61,8 +61,8 @@ export default function CheckoutPage() {
     );
   }
 
-  // Redirect if cart is empty (but not when processing payment - cart is cleared after successful payment)
-  if (!cartLoading && itemCount === 0 && currentStep !== 'processing') {
+  // Redirect if cart is empty (but not when processing payment or showing success - cart is cleared after successful payment)
+  if (!cartLoading && itemCount === 0 && currentStep !== 'processing' && currentStep !== 'success') {
     router.push('/cart');
     return null;
   }
@@ -126,10 +126,8 @@ export default function CheckoutPage() {
     // Clear the cart
     await clearCart();
     
-    // Redirect to order confirmation
-    if (orderId) {
-      router.push(`/orders/${orderId}`);
-    }
+    // Show success step with order details
+    setCurrentStep('success');
   };
 
   const handlePaymentError = (errorMessage: string) => {
@@ -243,11 +241,22 @@ export default function CheckoutPage() {
                           onChange={(e) => setGuestEmail(e.target.value)}
                           required
                           placeholder="your@email.com"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
+                            guestEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)
+                              ? 'border-red-300 focus:ring-red-600'
+                              : 'border-gray-300 focus:ring-purple-600'
+                          }`}
                         />
-                        <p className="text-xs text-gray-500 mt-1">
-                          We'll send your order confirmation to this email
-                        </p>
+                        {guestEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail) && (
+                          <p className="text-xs text-red-600 mt-1">
+                            Please enter a valid email address
+                          </p>
+                        )}
+                        {(!guestEmail || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            We'll send your order confirmation to this email
+                          </p>
+                        )}
                       </div>
                       <div className="text-sm text-gray-600 p-3 bg-purple-50 rounded-lg">
                         <span>Already have an account? </span>
@@ -451,6 +460,40 @@ export default function CheckoutPage() {
                     <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
                     <h2 className="text-xl font-bold text-gray-900 mb-2">Processing Payment...</h2>
                     <p className="text-gray-600">Please wait while we confirm your payment</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Success State */}
+              {currentStep === 'success' && (
+                <div className="bg-white rounded-xl shadow-md p-12">
+                  <div className="text-center">
+                    <div className="text-6xl mb-4">✅</div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Order Placed Successfully!</h2>
+                    <p className="text-gray-600 mb-6">
+                      Thank you for your purchase! {orderId && `Your order ID is: ${orderId.slice(0, 8)}`}
+                    </p>
+                    {guestEmail && (
+                      <p className="text-gray-600 mb-6">
+                        A confirmation email has been sent to {guestEmail}
+                      </p>
+                    )}
+                    <div className="flex gap-4 justify-center flex-wrap">
+                      <button
+                        onClick={() => router.push('/products')}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-full font-semibold transition-colors"
+                      >
+                        Continue Shopping
+                      </button>
+                      {isAuthenticated && orderId && (
+                        <button
+                          onClick={() => router.push(`/orders/${orderId}`)}
+                          className="bg-white hover:bg-gray-50 text-purple-600 border border-purple-600 px-6 py-3 rounded-full font-semibold transition-colors"
+                        >
+                          View Order Details
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
