@@ -77,14 +77,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const mergeGuestCart = async () => {
       const guestSessionId = localStorage.getItem('cartSessionId');
-      if (isAuthenticated && accessToken && guestSessionId && sessionId === guestSessionId) {
+      // Only merge if authenticated and have a guest session ID that's different from current sessionId
+      if (isAuthenticated && accessToken && guestSessionId && guestSessionId !== sessionId) {
         try {
           await cartApi.mergeCart(guestSessionId, accessToken);
           localStorage.removeItem('cartSessionId');
-          setSessionId('');
+          // Don't set sessionId to empty, let fetchCart handle it
           await fetchCart();
         } catch (error) {
           console.error('Failed to merge cart:', error);
+          // Remove the guest session ID to prevent retry loops
+          localStorage.removeItem('cartSessionId');
           // Still fetch the user's cart even if merge fails
           await fetchCart();
         }

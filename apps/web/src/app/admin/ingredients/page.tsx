@@ -10,6 +10,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
+import ImageUpload from '@/components/admin/ImageUpload';
 
 // Constants
 const GRAMS_PER_OUNCE = 28.3495;
@@ -759,6 +760,7 @@ export default function AdminIngredientsPage() {
           saving={saving}
           categories={categories}
           suppliers={suppliers}
+          accessToken={accessToken!}
         />
       )}
 
@@ -773,6 +775,7 @@ export default function AdminIngredientsPage() {
           saving={saving}
           categories={categories}
           suppliers={suppliers}
+          accessToken={accessToken!}
         />
       )}
 
@@ -798,6 +801,7 @@ function IngredientModal({
   saving,
   categories,
   suppliers,
+  accessToken,
 }: {
   title: string;
   formData: Partial<Ingredient>;
@@ -807,6 +811,7 @@ function IngredientModal({
   saving: boolean;
   categories: string[];
   suppliers: Supplier[];
+  accessToken: string;
 }) {
   const [activeTab, setActiveTab] = useState<'general' | 'flavor' | 'brewing' | 'inventory' | 'safety'>('general');
 
@@ -903,12 +908,13 @@ function IngredientModal({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                <input
-                  type="url"
-                  value={formData.image || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                <ImageUpload
+                  type="ingredient"
+                  currentImage={formData.image}
+                  accessToken={accessToken!}
+                  onUploadComplete={(imageUrl) => setFormData(prev => ({ ...prev, image: imageUrl }))}
+                  onUploadError={(error) => setError(`Image upload failed: ${error}`)}
                 />
               </div>
             </div>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
-import { getBlendingIngredientById } from '@/components/blending/mockData';
+import { useIngredients, getIngredientById } from '@/hooks/useIngredients';
 import type { ExtendedBlendState } from '@/components/blending/types';
 import { useBlendPricing } from '@/components/blending/useBlendPricing';
 import BottomNavigation from '@/components/BottomNavigation';
@@ -19,6 +19,7 @@ const EMPTY_BLEND_STATE: ExtendedBlendState = {
 export default function BlendReviewPage() {
   const router = useRouter();
   const { addBlendToCart, isLoading } = useCart();
+  const { bases, addIns } = useIngredients();
   const [blendState, setBlendState] = useState<ExtendedBlendState | null>(null);
   const [blendName, setBlendName] = useState<string>('');
   const [isAdding, setIsAdding] = useState(false);
@@ -43,7 +44,7 @@ export default function BlendReviewPage() {
 
   const pricing = useBlendPricing(blendState || EMPTY_BLEND_STATE);
 
-  const baseTea = blendState?.baseTeaId ? getBlendingIngredientById(blendState.baseTeaId) : null;
+  const baseTea = blendState?.baseTeaId ? getIngredientById(blendState.baseTeaId, bases, addIns) : null;
 
   const handleAddToCart = async () => {
     if (!blendState?.baseTeaId) {
@@ -174,7 +175,7 @@ export default function BlendReviewPage() {
               </h3>
               <div className="space-y-3">
                 {blendState.addIns.map((addIn) => {
-                  const ingredient = getBlendingIngredientById(addIn.ingredientId);
+                  const ingredient = getIngredientById(addIn.ingredientId, bases, addIns);
                   if (!ingredient) return null;
                   return (
                     <div
@@ -187,7 +188,7 @@ export default function BlendReviewPage() {
                         <div className="text-xs text-gray-500">{ingredient.description}</div>
                       </div>
                       <div className="text-sm font-semibold text-purple-600">
-                        {addIn.quantity.toFixed(2)} oz
+                        {addIn.quantity.toFixed(2)}g
                       </div>
                     </div>
                   );

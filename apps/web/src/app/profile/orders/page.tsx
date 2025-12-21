@@ -12,6 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { useAuth } from '@/contexts/AuthContext';
 import { useAuthStore } from '@/store/authStore';
 import { orderApi, type Order } from '@/lib/order-api';
 import { useCart } from '@/contexts/CartContext';
@@ -19,6 +20,7 @@ import BottomNavigation from '@/components/BottomNavigation';
 
 function OrderHistoryContent() {
   const router = useRouter();
+  const { refreshAuth } = useAuth();
   const { accessToken } = useAuthStore();
   const { addToCart } = useCart();
   const [page, setPage] = useState(1);
@@ -26,10 +28,29 @@ function OrderHistoryContent() {
   const [reordering, setReordering] = useState<string | null>(null);
   const [reorderModalOrder, setReorderModalOrder] = useState<Order | null>(null);
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['orders', page, statusFilter],
-    queryFn: () => orderApi.getOrders(accessToken!, { page, perPage: 10, status: statusFilter }),
+    queryFn: async () => {
+      try {
+        return await orderApi.getOrders(accessToken!, { page, perPage: 10, status: statusFilter });
+      } catch (err) {
+        // If we get a 401, try refreshing the token
+        if (err instanceof Error && err.message.includes('401')) {
+          await refreshAuth();
+          // Refetch will happen automatically due to query invalidation
+          throw err;
+        }
+        throw err;
+      }
+    },
     enabled: !!accessToken,
+    retry: (failureCount, error) => {
+      // Retry once for 401 errors (after token refresh)
+      if (error instanceof Error && error.message.includes('401')) {
+        return failureCount < 1;
+      }
+      return false;
+    },
   });
 
   const getStatusColor = (status: string) => {

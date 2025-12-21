@@ -213,6 +213,7 @@ export const cartApi = {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ message: 'Failed to merge cart' }));
+      console.error('Cart merge error:', response.status, errorData);
       throw new Error(errorData.message || 'Failed to merge cart');
     }
 
