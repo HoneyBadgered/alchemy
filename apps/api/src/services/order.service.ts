@@ -13,6 +13,27 @@ import {
   OrderValidationError 
 } from '../utils/errors';
 
+/**
+ * Generate a unique order ID in the format: ALC-YYMMDD-XXXX
+ * Example: ALC-251221-A3F9
+ */
+function generateOrderId(): string {
+  const now = new Date();
+  const year = now.getFullYear().toString().slice(-2);
+  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  const day = now.getDate().toString().padStart(2, '0');
+  
+  // Generate 4 random alphanumeric characters (uppercase)
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let randomPart = '';
+  for (let i = 0; i < 4; i++) {
+    const randomIndex = Math.floor(Math.random() * chars.length);
+    randomPart += chars[randomIndex];
+  }
+  
+  return `ALC-${year}${month}${day}-${randomPart}`;
+}
+
 export interface PlaceOrderInput {
   userId?: string;
   sessionId?: string;
@@ -186,7 +207,7 @@ export class OrderService {
         // Create order
         const newOrder = await tx.orders.create({
           data: {
-            id: crypto.randomUUID(),
+            id: generateOrderId(),
             userId: userId || null,
             guestEmail: guestEmail || null,
             sessionId: sessionId || null,
