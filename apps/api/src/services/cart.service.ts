@@ -70,21 +70,45 @@ export class CartService {
 
     // Create cart if it doesn't exist
     if (!cart) {
-      cart = await prisma.carts.create({
-        data: {
-          id: crypto.randomUUID(),
-          userId: userId || null,
-          sessionId: sessionId || null,
-          updatedAt: new Date(),
-        },
-        include: {
-          cart_items: {
-            include: {
-              products: true,
+      try {
+        cart = await prisma.carts.create({
+          data: {
+            id: crypto.randomUUID(),
+            userId: userId || null,
+            sessionId: sessionId || null,
+            updatedAt: new Date(),
+          },
+          include: {
+            cart_items: {
+              include: {
+                products: true,
+              },
             },
           },
-        },
-      });
+        });
+      } catch (error: any) {
+        // Handle race condition - cart might have been created by another request
+        if (error.code === 'P2002') {
+          // Unique constraint violation - try to find the cart again
+          cart = await prisma.carts.findFirst({
+            where: userId ? { userId } : { sessionId },
+            include: {
+              cart_items: {
+                include: {
+                  products: true,
+                },
+              },
+            },
+          });
+          
+          if (!cart) {
+            // If still not found, rethrow the error
+            throw error;
+          }
+        } else {
+          throw error;
+        }
+      }
     }
 
     return cart;
