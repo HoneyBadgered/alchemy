@@ -2,8 +2,6 @@
  * Common shared types across the application
  */
 
-import type { Prisma } from '@prisma/client';
-
 /**
  * Pagination parameters
  */
@@ -37,21 +35,6 @@ export interface FilterParams {
   search?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
-}
-
-/**
- * Prisma transaction client type
- */
-export type PrismaTransaction = Omit<
-  PrismaClient,
-  '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
->;
-
-/**
- * Type-safe Prisma client interface
- */
-export interface PrismaClient {
-  $transaction<T>(fn: (prisma: PrismaTransaction) => Promise<T>): Promise<T>;
 }
 
 /**
@@ -138,10 +121,3 @@ export interface CartWithItems {
   updatedAt: Date;
   cart_items: CartItemWithProduct[];
 }
-
-/**
- * Prisma include types helper
- */
-export type PrismaInclude<T extends string> = {
-  [K in T]: boolean | object;
-};

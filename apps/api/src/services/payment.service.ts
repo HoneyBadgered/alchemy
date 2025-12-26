@@ -4,7 +4,7 @@
  */
 
 import Stripe from 'stripe';
-import crypto from 'crypto';
+import { randomUUID } from 'crypto';
 import { prisma } from '../utils/prisma';
 import { stripe, STRIPE_PAYMENT_SUCCESS_STATUSES } from '../utils/stripe';
 import { 
@@ -138,7 +138,7 @@ export class PaymentService {
         // Log status change
         await tx.order_status_logs.create({
           data: {
-            id: crypto.randomUUID(),
+            id: randomUUID(),
             orderId,
             fromStatus: order.status,
             toStatus: 'payment_processing',
@@ -383,7 +383,7 @@ export class PaymentService {
         if (newOrderStatus !== order.status) {
           await tx.order_status_logs.create({
             data: {
-              id: crypto.randomUUID(),
+              id: randomUUID(),
               orderId,
               fromStatus: order.status,
               toStatus: newOrderStatus,
@@ -419,10 +419,10 @@ export class PaymentService {
       const webhookEvent = await prisma.stripe_webhook_events.upsert({
         where: { eventId: event.id },
         create: {
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           eventId: event.id,
           eventType: event.type,
-          payload: event as Prisma.InputJsonValue,
+          payload: JSON.parse(JSON.stringify(event)) as Prisma.InputJsonValue,
         },
         update: {},
       });
@@ -618,7 +618,7 @@ export class PaymentService {
         // Create refund record
         const newRefund = await tx.refunds.create({
           data: {
-            id: crypto.randomUUID(),
+            id: randomUUID(),
             orderId,
             stripeRefundId: stripeRefund.id,
             amount,
@@ -644,7 +644,7 @@ export class PaymentService {
           // Log status change
           await tx.order_status_logs.create({
             data: {
-              id: crypto.randomUUID(),
+              id: randomUUID(),
               orderId,
               fromStatus: order.status,
               toStatus: 'refunded',
@@ -656,7 +656,7 @@ export class PaymentService {
           // Partial refund - update status to indicate partial refund
           await tx.order_status_logs.create({
             data: {
-              id: crypto.randomUUID(),
+              id: randomUUID(),
               orderId,
               fromStatus: order.status,
               toStatus: order.status, // Keep same status
