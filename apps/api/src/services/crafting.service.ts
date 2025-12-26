@@ -81,7 +81,7 @@ export class CraftingService {
     }
 
     // Convert inventory to array for canCraftRecipe
-    const inventoryArray = inventory.map((item: any) => ({
+    const inventoryArray = inventory.map((item) => ({
       itemId: item.itemId,
       quantity: item.quantity,
     }));

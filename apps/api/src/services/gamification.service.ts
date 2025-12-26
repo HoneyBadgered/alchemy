@@ -4,12 +4,13 @@
 
 import { prisma } from '../utils/prisma';
 import { getLevelFromTotalXp } from '@alchemy/core';
+import { BadRequestError, NotFoundError, ConflictError, ValidationError } from '../utils/errors';
 import type { Prisma } from '@prisma/client';
 
 export class GamificationService {
   async getProgress(userId: string) {
     if (!userId) {
-      throw new Error('User ID is required');
+      throw new BadRequestError('User ID is required');
     }
 
     const playerState = await prisma.player_states.findUnique({
@@ -17,9 +18,7 @@ export class GamificationService {
     });
 
     if (!playerState) {
-      const error = new Error('Player state not found');
-      (error as any).statusCode = 404;
-      throw error;
+      throw new NotFoundError('Player state not found');
     }
 
     return {
@@ -35,7 +34,7 @@ export class GamificationService {
 
   async getQuests(userId: string) {
     if (!userId) {
-      throw new Error('User ID is required');
+      throw new BadRequestError('User ID is required');
     }
 
     // Get player state to check level
@@ -44,9 +43,7 @@ export class GamificationService {
     });
 
     if (!playerState) {
-      const error = new Error('Player state not found');
-      (error as any).statusCode = 404;
-      throw error;
+      throw new NotFoundError('Player state not found');
     }
 
     // Get player quests
@@ -57,7 +54,7 @@ export class GamificationService {
       },
     });
 
-    return playerQuests.map((pq: any) => ({
+    return playerQuests.map((pq) => ({
       id: pq.id,
       questId: pq.questId,
       name: pq.quest.name,
@@ -76,11 +73,11 @@ export class GamificationService {
 
   async claimQuest(userId: string, questId: string) {
     if (!userId) {
-      throw new Error('User ID is required');
+      throw new BadRequestError('User ID is required');
     }
 
     if (!questId) {
-      throw new Error('Quest ID is required');
+      throw new BadRequestError('Quest ID is required');
     }
 
     // Get player quest
@@ -97,27 +94,21 @@ export class GamificationService {
     });
 
     if (!playerQuest) {
-      const error = new Error('Quest not found');
-      (error as any).statusCode = 404;
-      throw error;
+      throw new NotFoundError('Quest not found');
     }
 
     if (playerQuest.status !== 'completed') {
-      const error = new Error('Quest is not completed yet');
-      (error as any).statusCode = 422;
-      throw error;
+      throw new ValidationError('Quest is not completed yet');
     }
 
     if (playerQuest.claimedAt) {
-      const error = new Error('Quest reward already claimed');
-      (error as any).statusCode = 409;
-      throw error;
+      throw new ConflictError('Quest reward already claimed');
     }
 
     // Start transaction to claim rewards
-    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const result = await prisma.$transaction(async (tx) => {
       // Update quest status
-      await tx.playerQuest.update({
+      await tx.player_quests.update({
         where: {
           userId_questId: {
             userId,
@@ -136,9 +127,7 @@ export class GamificationService {
       });
 
       if (!playerState) {
-        const error = new Error('Player state not found');
-        (error as any).statusCode = 404;
-        throw error;
+        throw new NotFoundError('Player state not found');
       }
 
       const newTotalXp = playerState.totalXp + playerQuest.quest.xpReward;
@@ -161,7 +150,7 @@ export class GamificationService {
         }>;
 
         for (const ingredient of ingredients) {
-          await tx.playerInventory.upsert({
+          await tx.player_inventory.upsert({
             where: {
               userId_itemId: {
                 userId,
@@ -187,7 +176,7 @@ export class GamificationService {
       if (playerQuest.quest.cosmeticRewards) {
         const cosmetics = playerQuest.quest.cosmeticRewards as Array<string>;
         
-        const playerCosmetics = await tx.playerCosmetics.findUnique({
+        const playerCosmetics = await tx.player_cosmetics.findUnique({
           where: { userId },
         });
 
@@ -196,7 +185,7 @@ export class GamificationService {
             ...new Set([...playerCosmetics.unlockedThemes, ...cosmetics]),
           ];
 
-          await tx.playerCosmetics.update({
+          await tx.player_cosmetics.update({
             where: { userId },
             data: {
               unlockedThemes: newUnlockedThemes,
@@ -216,7 +205,7 @@ export class GamificationService {
 
   async getInventory(userId: string) {
     if (!userId) {
-      throw new Error('User ID is required');
+      throw new BadRequestError('User ID is required');
     }
 
     const inventory = await prisma.player_inventory.findMany({
@@ -227,7 +216,7 @@ export class GamificationService {
       ],
     });
 
-    return inventory.map((item: any) => ({
+    return inventory.map((item) => ({
       id: item.id,
       itemId: item.itemId,
       itemType: item.itemType,

@@ -6,7 +6,7 @@
  */
 
 import { prisma } from '../utils/prisma';
-import type { ingredients } from '@prisma/client';
+import type { ingredients, Prisma } from '@prisma/client';
 
 export interface BlendingIngredient {
   id: string;
@@ -176,7 +176,7 @@ export class BlendingIngredientsService {
    * Get all blending ingredients with optional filtering
    */
   async getBlendingIngredients(filters: BlendingIngredientsFilters = {}): Promise<BlendingIngredient[]> {
-    const where: any = {
+    const where: Prisma.ingredientsWhereInput = {
       status: filters.status || 'active',
     };
 

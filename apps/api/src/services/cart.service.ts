@@ -15,6 +15,7 @@ import {
   InsufficientStockError,
   CartError,
 } from '../utils/errors';
+import type { Prisma } from '@prisma/client';
 
 // Constants for custom blend products
 const CUSTOM_BLEND_BASE_PRICE = 12.99;
@@ -86,9 +87,9 @@ export class CartService {
             },
           },
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Handle race condition - cart might have been created by another request
-        if (error.code === 'P2002') {
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
           // Unique constraint violation - try to find the cart again
           cart = await prisma.carts.findFirst({
             where: userId ? { userId } : { sessionId },
@@ -121,11 +122,11 @@ export class CartService {
     const cart = await this.getOrCreateCart(userId, sessionId);
 
     // Calculate cart totals
-    const subtotal = cart.cart_items.reduce((sum: number, item: any) => {
+    const subtotal = cart.cart_items.reduce((sum: number, item) => {
       return sum + Number(item.products.price) * item.quantity;
     }, 0);
 
-    const itemCount = cart.cart_items.reduce((sum: number, item: any) => sum + item.quantity, 0);
+    const itemCount = cart.cart_items.reduce((sum: number, item) => sum + item.quantity, 0);
 
     return {
       cart,
@@ -319,7 +320,7 @@ export class CartService {
       const userCart = await this.getOrCreateCart(userId);
 
       // Merge items and delete guest cart in a transaction
-      await prisma.$transaction(async (tx: any) => {
+      await prisma.$transaction(async (tx) => {
         // Merge items
         for (const guestItem of guestCart.cart_items) {
           const existingItem = await tx.cart_items.findUnique({
@@ -428,7 +429,7 @@ export class CartService {
         sessionId: sessionId || null,
         name: blendName || null,
         baseTeaId,
-        addIns: addIns as any,
+        addIns: addIns as Prisma.InputJsonValue,
         productId: product.id,
       },
     });

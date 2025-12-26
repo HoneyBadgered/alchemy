@@ -86,7 +86,7 @@ export class SearchService {
       },
     });
 
-    return products.map((product: any) => {
+    return products.map((product) => {
       // Calculate relevance score
       const nameMatch = product.name.toLowerCase().includes(query);
       const exactMatch = product.name.toLowerCase() === query;
@@ -132,7 +132,7 @@ export class SearchService {
       },
     });
 
-    return posts.map((post: any) => {
+    return posts.map((post) => {
       const titleMatch = post.title.toLowerCase().includes(query);
       const exactMatch = post.title.toLowerCase() === query;
       const score = exactMatch ? 100 : titleMatch ? 80 : 60;
@@ -241,6 +241,6 @@ export class SearchService {
       select: { name: true },
     });
 
-    return products.map((p: any) => p.name);
+    return products.map((p) => p.name);
   }
 }

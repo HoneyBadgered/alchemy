@@ -1,7 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
-import { PostCategory } from '@alchemy/core';
+import { PostCategory, PostFilters } from '@alchemy/core';
+import type { Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -110,7 +111,7 @@ export function toTitleCase(str: string): string {
 class AdminBlogService {
   // Post Management
   
-  async getPosts(filters: any = {}) {
+  async getPosts(filters: PostFilters = {}) {
     const {
       type,
       status,
@@ -122,7 +123,7 @@ class AdminBlogService {
       perPage = 20,
     } = filters;
     
-    const where: any = {};
+    const where: Prisma.blog_postsWhereInput = {};
     
     if (type) where.type = type;
     if (status) where.status = status;
@@ -248,7 +249,7 @@ class AdminBlogService {
     };
   }
   
-  async createPost(authorId: string, data: any) {
+  async createPost(authorId: string, data: z.infer<typeof createPostSchema>) {
     // Validate input
     const validated = createPostSchema.parse(data);
     
@@ -312,7 +313,7 @@ class AdminBlogService {
     return this.getPost(post.id);
   }
   
-  async updatePost(id: string, data: any) {
+  async updatePost(id: string, data: z.infer<typeof updatePostSchema>) {
     // Validate input
     const validated = updatePostSchema.parse(data);
     
@@ -326,7 +327,7 @@ class AdminBlogService {
     }
     
     // Prepare update data
-    const updateData: any = {};
+    const updateData: Prisma.blog_postsUpdateInput = {};
     
     if (validated.title !== undefined) updateData.title = validated.title;
     if (validated.body !== undefined) {
@@ -654,7 +655,7 @@ class AdminBlogService {
   
   // Public Endpoints
   
-  async getPublishedPosts(filters: any = {}) {
+  async getPublishedPosts(filters: Partial<PostFilters> = {}) {
     const {
       type,
       category,
@@ -664,7 +665,7 @@ class AdminBlogService {
       perPage = 12,
     } = filters;
     
-    const where: any = {
+    const where: Prisma.blog_postsWhereInput = {
       status: 'published',
       deletedAt: null,
     };

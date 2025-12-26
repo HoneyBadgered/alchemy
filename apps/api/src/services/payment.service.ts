@@ -12,6 +12,7 @@ import {
   PaymentError, 
   BadRequestError 
 } from '../utils/errors';
+import type { Prisma } from '@prisma/client';
 
 export interface CreatePaymentIntentInput {
   orderId: string;
@@ -221,9 +222,10 @@ export class PaymentService {
     let paymentIntent: Stripe.PaymentIntent;
     try {
       paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to retrieve payment intent from Stripe:', error);
-      throw new PaymentError(`Unable to retrieve payment status: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new PaymentError(`Unable to retrieve payment status: ${message}`);
     }
 
     // Update order status if payment status changed (graceful error handling)
@@ -287,7 +289,7 @@ export class PaymentService {
     let paymentIntent: Stripe.PaymentIntent;
     try {
       paymentIntent = await stripe.paymentIntents.retrieve(order.stripePaymentId);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to retrieve payment intent from Stripe:', error);
       // Return last known status instead of failing completely
       return {
@@ -420,7 +422,7 @@ export class PaymentService {
           id: crypto.randomUUID(),
           eventId: event.id,
           eventType: event.type,
-          payload: event as any,
+          payload: event as Prisma.InputJsonValue,
         },
         update: {},
       });
