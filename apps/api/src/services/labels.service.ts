@@ -69,6 +69,7 @@ export class LabelsService {
     // Create label
     const label = await prisma.label_designs.create({
       data: {
+        id: crypto.randomUUID(),
         orderId,
         name,
         tagline,

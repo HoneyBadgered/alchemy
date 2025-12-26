@@ -150,11 +150,11 @@ export class BundlesService {
       where.relationType = relationType;
     }
 
-    const relations = await prisma.products.elation.findMany({
+    const relations = await prisma.product_relations.findMany({
       where,
       orderBy: { sortOrder: 'asc' },
       include: {
-        relatedProduct: {
+        products_product_relations_relatedProductIdToproducts: {
           select: {
             id: true,
             name: true,
@@ -172,8 +172,8 @@ export class BundlesService {
       },
     });
 
-    return relations.map((r) => ({
-      ...r.relatedProduct,
+    return relations.map((r: any) => ({
+      ...r.products_product_relations_relatedProductIdToproducts,
       relationType: r.relationType,
     }));
   }
@@ -270,7 +270,7 @@ export class BundlesService {
    */
   async getCartUpsells(productIds: string[], limit: number = 4) {
     // Get all upsells for products in cart
-    const upsells = await prisma.products.elation.findMany({
+    const upsells = await prisma.product_relations.findMany({
       where: {
         sourceProductId: { in: productIds },
         relationType: 'upsell',
