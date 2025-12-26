@@ -83,11 +83,11 @@ export class PurchaseHistoryService {
     });
 
     type ReviewType = typeof reviews[number];
-    const reviewMap = new Map<string, ReviewType>(reviews.map((r) => [r.productId, r]));
+    const reviewMap = new Map<string, ReviewType>(reviews.map((r: any) => [r.productId, r]));
 
     // Aggregate purchase data by product
     const productPurchases = new Map<string, {
-      products: typeof orders[0]['items'][0]['product'];
+      products: typeof orders[0]['order_items'][0]['products'];
       totalQuantity: number;
       totalSpent: number;
       purchaseDates: Date[];
@@ -102,7 +102,7 @@ export class PurchaseHistoryService {
           existing.purchaseDates.push(order.createdAt);
         } else {
           productPurchases.set(item.productId, {
-            products: item.product,
+            products: item.products,
             totalQuantity: item.quantity,
             totalSpent: Number(item.price) * item.quantity,
             purchaseDates: [order.createdAt],

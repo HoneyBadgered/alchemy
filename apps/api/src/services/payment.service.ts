@@ -202,7 +202,7 @@ export class PaymentService {
       include: {
         order_items: {
           include: {
-            product: true,
+            products: true,
           },
         },
       },
