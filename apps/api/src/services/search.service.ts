@@ -116,8 +116,7 @@ export class SearchService {
             OR: [
               { title: { contains: query, mode: 'insensitive' } },
               { excerpt: { contains: query, mode: 'insensitive' } },
-              { content: { contains: query, mode: 'insensitive' } },
-              { tags: { hasSome: [query] } },
+              { body: { contains: query, mode: 'insensitive' } },
             ],
           },
         ],
@@ -128,7 +127,7 @@ export class SearchService {
         slug: true,
         title: true,
         excerpt: true,
-        featuredImage: true,
+        heroImageUrl: true,
       },
     });
 

@@ -52,7 +52,7 @@ export class PurchaseHistoryService {
         status: { in: ['paid', 'processing', 'shipped', 'completed'] },
       },
       include: {
-        items: {
+        order_items: {
           include: {
             product: {
               select: {
@@ -72,7 +72,7 @@ export class PurchaseHistoryService {
     });
 
     // Get user reviews
-    const reviews = await prisma.review.findMany({
+    const reviews = await prisma.reviews.findMany({
       where: { userId },
       select: {
         productId: true,
@@ -152,7 +152,7 @@ export class PurchaseHistoryService {
     const paginatedHistory = purchaseHistory.slice(skip, skip + perPage);
 
     return {
-      items: paginatedHistory,
+      order_items: paginatedHistory,
       pagination: {
         page,
         perPage,
@@ -173,7 +173,7 @@ export class PurchaseHistoryService {
         status: { in: ['paid', 'processing', 'shipped', 'completed'] },
       },
       include: {
-        items: {
+        order_items: {
           include: {
             product: {
               select: {
@@ -257,7 +257,7 @@ export class PurchaseHistoryService {
         status: { in: ['paid', 'processing', 'shipped', 'completed'] },
       },
       include: {
-        items: true,
+        order_items: true,
       },
     });
 
@@ -346,7 +346,7 @@ export class PurchaseHistoryService {
         status: { in: ['paid', 'processing', 'shipped', 'completed'] },
       },
       include: {
-        items: {
+        order_items: {
           include: {
             product: {
               select: {
@@ -413,7 +413,7 @@ export class PurchaseHistoryService {
         userId,
       },
       include: {
-        items: {
+        order_items: {
           include: {
             product: {
               select: {
@@ -451,7 +451,7 @@ export class PurchaseHistoryService {
     return {
       orderId: order.id,
       originalOrderDate: order.createdAt,
-      items: reorderItems,
+      order_items: reorderItems,
       allItemsAvailable: allAvailable,
       estimatedTotal: reorderItems.reduce(
         (sum, item) => sum + item.currentPrice * item.quantity,
