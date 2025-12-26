@@ -13,7 +13,7 @@ import { join } from 'path';
 import crypto from 'crypto';
 
 const UPLOAD_DIR = join(process.cwd(), 'uploads');
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+// const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
 
 export async function uploadRoutes(fastify: FastifyInstance) {

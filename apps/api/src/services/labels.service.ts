@@ -88,7 +88,7 @@ export class LabelsService {
     const label = await prisma.label_designs.findUnique({
       where: { id: labelId },
       include: {
-        order: true,
+        orders: true,
       },
     });
 
@@ -96,7 +96,7 @@ export class LabelsService {
       throw new Error('Label not found');
     }
 
-    if (label.order.userId !== userId) {
+    if (label.orders.userId !== userId) {
       throw new Error('Unauthorized');
     }
 
@@ -118,7 +118,7 @@ export class LabelsService {
     const label = await prisma.label_designs.findUnique({
       where: { id: labelId },
       include: {
-        order: true,
+        orders: true,
       },
     });
 
@@ -126,7 +126,7 @@ export class LabelsService {
       throw new Error('Label not found');
     }
 
-    if (label.order.userId !== userId) {
+    if (label.orders.userId !== userId) {
       throw new Error('Unauthorized');
     }
 

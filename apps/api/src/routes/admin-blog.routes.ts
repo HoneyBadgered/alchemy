@@ -153,7 +153,7 @@ export default async function adminBlogRoutes(fastify: FastifyInstance) {
   // GET /admin/blog/tags - List all tags with counts
   fastify.get('/admin/blog/tags', {
     preHandler: adminMiddleware,
-  }, async (request: FastifyRequest, reply: FastifyReply) => {
+  }, async (_request: FastifyRequest, reply: FastifyReply) => {
     try {
       const tags = await adminBlogService.getTags();
       return reply.send({ tags });
@@ -207,7 +207,7 @@ export default async function adminBlogRoutes(fastify: FastifyInstance) {
   // GET /admin/blog/stats - Get blog statistics
   fastify.get('/admin/blog/stats', {
     preHandler: adminMiddleware,
-  }, async (request: FastifyRequest, reply: FastifyReply) => {
+  }, async (_request: FastifyRequest, reply: FastifyReply) => {
     try {
       const stats = await adminBlogService.getStats();
       return reply.send(stats);
