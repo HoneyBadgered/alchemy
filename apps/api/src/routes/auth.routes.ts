@@ -96,7 +96,7 @@ export async function authRoutes(fastify: FastifyInstance) {
 
       return reply.send({
         accessToken: result.accessToken,
-        user: result.users || result.user,
+        user: result.users,
       });
     } catch (error) {
       console.error('LOGIN ERROR:', error);

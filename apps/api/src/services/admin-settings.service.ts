@@ -34,6 +34,7 @@ export class AdminSettingsService {
     const setting = await prisma.site_settings.upsert({
       where: { key },
       create: {
+        id: crypto.randomUUID(),
         key,
         value,
         category: 'general',

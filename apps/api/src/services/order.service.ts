@@ -129,7 +129,7 @@ export class OrderService {
 
       // Calculate order totals
       const subtotal = cart.cart_items.reduce((sum: number, item: CartItemWithProduct) => {
-        return sum + Number(item.products.price) * item.quantity;
+        return sum + Number(item.product.price) * item.quantity;
       }, 0);
 
       let shippingCost = 0;
@@ -229,7 +229,7 @@ export class OrderService {
               id: crypto.randomUUID(),
               productId: item.productId,
               quantity: item.quantity,
-              price: item.products.price,
+              price: item.product.price,
             })),
           },
         },

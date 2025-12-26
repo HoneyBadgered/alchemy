@@ -68,6 +68,7 @@ export class AdminThemeService {
   async createTheme(data: CreateThemeInput) {
     const theme = await prisma.themes.create({
       data: {
+        id: crypto.randomUUID(),
         name: data.name,
         description: data.description,
         backgroundUrl: data.backgroundUrl,
@@ -111,7 +112,7 @@ export class AdminThemeService {
       throw new Error('Theme not found');
     }
 
-    if (theme.tableSkins.length > 0) {
+    if (theme.table_skins.length > 0) {
       throw new Error('Cannot delete theme with associated table skins. Delete table skins first.');
     }
 
@@ -138,6 +139,7 @@ export class AdminThemeService {
   }) {
     const tableSkin = await prisma.table_skins.create({
       data: {
+        id: crypto.randomUUID(),
         name: data.name,
         description: data.description,
         themeId: data.themeId,

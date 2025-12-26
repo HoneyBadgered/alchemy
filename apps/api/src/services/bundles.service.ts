@@ -30,15 +30,15 @@ export class BundlesService {
     const where = { isActive: true };
 
     const [bundles, total] = await Promise.all([
-      prisma.products.bundles.findMany({
+      prisma.product_bundles.findMany({
         where,
         skip,
         take: perPage,
         orderBy: { createdAt: 'desc' },
         include: {
-          items: {
+          bundle_items: {
             include: {
-              product: {
+              products: {
                 select: {
                   id: true,
                   name: true,
@@ -54,13 +54,13 @@ export class BundlesService {
           },
         },
       }),
-      prisma.products.bundles.count({ where }),
+      prisma.product_bundles.count({ where }),
     ]);
 
     // Calculate bundle prices
-    const bundlesWithPrices = bundles.map((bundle) => {
-      const originalPrice = bundle.items.reduce((sum, item) => {
-        return sum + Number(item.product.price) * item.quantity;
+    const bundlesWithPrices = bundles.map((bundle: any) => {
+      const originalPrice = bundle.bundle_items.reduce((sum: number, item: any) => {
+        return sum + Number(item.products.price) * item.quantity;
       }, 0);
 
       const discountAmount = originalPrice * (Number(bundle.discount) / 100);
@@ -89,12 +89,12 @@ export class BundlesService {
    * Get a specific bundle
    */
   async getBundle(bundleId: string) {
-    const bundle = await prisma.products.bundles.findUnique({
+    const bundle = await prisma.product_bundles.findUnique({
       where: { id: bundleId },
       include: {
-        items: {
+        bundle_items: {
           include: {
-            product: {
+            products: {
               select: {
                 id: true,
                 name: true,
@@ -118,8 +118,8 @@ export class BundlesService {
     }
 
     // Calculate prices
-    const originalPrice = bundle.items.reduce((sum, item) => {
-      return sum + Number(item.product.price) * item.quantity;
+    const originalPrice = bundle.bundle_items.reduce((sum: number, item: any) => {
+      return sum + Number(item.products.price) * item.quantity;
     }, 0);
 
     const discountAmount = originalPrice * (Number(bundle.discount) / 100);
