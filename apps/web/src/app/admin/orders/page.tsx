@@ -16,7 +16,7 @@ interface Order {
   trackingNumber?: string | null;
   carrierName?: string | null;
   shippedAt?: string | null;
-  user: {
+  users: {
     username: string;
     email: string;
   } | null;
@@ -575,10 +575,10 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">
-                        {order.user?.username || order.guestEmail || 'Guest'}
+                        {order.users?.username || order.guestEmail || 'Guest'}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {order.user?.email || order.guestEmail || 'No email'}
+                        {order.users?.email || order.guestEmail || 'No email'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -673,7 +673,7 @@ export default function AdminOrdersPage() {
                 <p className="text-sm text-gray-600">Order ID</p>
                 <p className="font-mono text-sm font-semibold">{selectedOrder.id}</p>
                 <p className="text-sm text-gray-600 mt-2">Customer</p>
-                <p className="text-sm font-medium">{selectedOrder.user?.email || selectedOrder.guestEmail}</p>
+                <p className="text-sm font-medium">{selectedOrder.users?.email || selectedOrder.guestEmail}</p>
                 <p className="text-sm text-gray-600 mt-2">Total</p>
                 <p className="text-sm font-semibold">${Number(selectedOrder.totalAmount).toFixed(2)}</p>
               </div>
