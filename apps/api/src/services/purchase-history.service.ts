@@ -54,7 +54,7 @@ export class PurchaseHistoryService {
       include: {
         order_items: {
           include: {
-            product: {
+            products: {
               select: {
                 id: true,
                 name: true,
@@ -87,7 +87,7 @@ export class PurchaseHistoryService {
 
     // Aggregate purchase data by product
     const productPurchases = new Map<string, {
-      product: typeof orders[0]['items'][0]['product'];
+      products: typeof orders[0]['items'][0]['product'];
       totalQuantity: number;
       totalSpent: number;
       purchaseDates: Date[];
@@ -102,7 +102,7 @@ export class PurchaseHistoryService {
           existing.purchaseDates.push(order.createdAt);
         } else {
           productPurchases.set(item.productId, {
-            product: item.product,
+            products: item.product,
             totalQuantity: item.quantity,
             totalSpent: Number(item.price) * item.quantity,
             purchaseDates: [order.createdAt],
@@ -175,7 +175,7 @@ export class PurchaseHistoryService {
       include: {
         order_items: {
           include: {
-            product: {
+            products: {
               select: {
                 id: true,
                 name: true,
@@ -262,7 +262,7 @@ export class PurchaseHistoryService {
     });
 
     const purchasedProductIds = new Set(
-      orders.flatMap((o) => o.items.map((i) => i.productId))
+      orders.flatMap((o) => o.order_items.map((i) => i.productId))
     );
 
     // Get categories the user has purchased from
@@ -348,7 +348,7 @@ export class PurchaseHistoryService {
       include: {
         order_items: {
           include: {
-            product: {
+            products: {
               select: {
                 id: true,
                 category: true,
@@ -362,12 +362,12 @@ export class PurchaseHistoryService {
     const totalOrders = orders.length;
     const totalSpent = orders.reduce((sum, o) => sum + Number(o.totalAmount), 0);
     const totalItems = orders.reduce(
-      (sum, o) => sum + o.items.reduce((itemSum, i) => itemSum + i.quantity, 0),
+      (sum, o) => sum + o.order_items.reduce((itemSum, i) => itemSum + i.quantity, 0),
       0
     );
 
     const uniqueProducts = new Set(
-      orders.flatMap((o) => o.items.map((i) => i.productId))
+      orders.flatMap((o) => o.order_items.map((i) => i.productId))
     );
 
     // Find favorite category using already-included product data
@@ -415,7 +415,7 @@ export class PurchaseHistoryService {
       include: {
         order_items: {
           include: {
-            product: {
+            products: {
               select: {
                 id: true,
                 name: true,

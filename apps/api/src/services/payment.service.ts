@@ -200,7 +200,7 @@ export class PaymentService {
         stripePaymentId: paymentIntentId,
       },
       include: {
-        items: {
+        order_items: {
           include: {
             product: true,
           },
