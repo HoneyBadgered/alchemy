@@ -275,10 +275,10 @@ export class BundlesService {
         sourceProductId: { in: productIds },
         relationType: 'upsell',
         relatedProductId: { notIn: productIds }, // Don't suggest items already in cart
-        relatedProduct: { isActive: true },
+        products_product_relations_relatedProductIdToproducts: { isActive: true },
       },
       include: {
-        relatedProduct: {
+        products_product_relations_relatedProductIdToproducts: {
           select: {
             id: true,
             name: true,
@@ -297,6 +297,6 @@ export class BundlesService {
       take: limit,
     });
 
-    return upsells.map((u) => u.relatedProduct);
+    return upsells.map((u: any) => u.products_product_relations_relatedProductIdToproducts);
   }
 }

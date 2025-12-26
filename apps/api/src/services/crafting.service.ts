@@ -158,6 +158,7 @@ export class CraftingService {
           },
         },
         create: {
+          id: crypto.randomUUID(),
           userId,
           itemId: recipe.resultItemId,
           itemType: 'blend',
