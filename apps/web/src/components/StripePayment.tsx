@@ -19,11 +19,12 @@ const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : 
 
 interface PaymentFormProps {
   clientSecret: string;
+  orderId: string;
   onSuccess: () => void;
   onError: (error: string) => void;
 }
 
-function PaymentForm({ clientSecret, onSuccess, onError }: PaymentFormProps) {
+function PaymentForm({ clientSecret, orderId, onSuccess, onError }: PaymentFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -52,6 +53,18 @@ function PaymentForm({ clientSecret, onSuccess, onError }: PaymentFormProps) {
         setErrorMessage(error.message || 'An error occurred');
         onError(error.message || 'Payment failed');
       } else {
+        // Payment confirmed, trigger sync to update order status from Stripe
+        try {
+          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/sync/${orderId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+        } catch (syncError) {
+          console.error('Failed to sync payment status:', syncError);
+          // Don't fail the payment flow if sync fails
+        }
         onSuccess();
       }
     } catch (err) {
@@ -89,12 +102,14 @@ function PaymentForm({ clientSecret, onSuccess, onError }: PaymentFormProps) {
 
 interface StripePaymentProps {
   clientSecret: string;
+  orderId: string;
   onSuccess: () => void;
   onError: (error: string) => void;
 }
 
 export default function StripePayment({
   clientSecret,
+  orderId,
   onSuccess,
   onError,
 }: StripePaymentProps) {
@@ -128,6 +143,7 @@ export default function StripePayment({
     <Elements stripe={stripePromise} options={options}>
       <PaymentForm
         clientSecret={clientSecret}
+        orderId={orderId}
         onSuccess={onSuccess}
         onError={onError}
       />

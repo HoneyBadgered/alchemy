@@ -89,9 +89,11 @@ export async function orderRoutes(fastify: FastifyInstance) {
         ...data,
       });
 
+      console.log('Order route: Order created successfully, returning:', order.id);
       return reply.status(201).send(order);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error('Order validation error:', error.errors);
         return reply.status(400).send({ 
           message: 'Validation error', 
           errors: error.errors 
@@ -99,6 +101,7 @@ export async function orderRoutes(fastify: FastifyInstance) {
       }
       
       // Log the actual error for debugging
+      console.error('Order placement error:', error);
       fastify.log.error('Order placement error:', error);
       
       return reply.status(400).send({ 

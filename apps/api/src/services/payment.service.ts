@@ -352,13 +352,18 @@ export class PaymentService {
     if (STRIPE_PAYMENT_SUCCESS_STATUSES.includes(paymentIntent.status)) {
       newOrderStatus = 'paid';
       updates.status = 'paid';
+      console.log(`Payment succeeded for order ${orderId}, updating status to 'paid'`);
     } else if (paymentIntent.status === 'canceled') {
       newOrderStatus = 'payment_failed';
       updates.status = 'payment_failed';
+      console.log(`Payment canceled for order ${orderId}, updating status to 'payment_failed'`);
     } else if (paymentIntent.status === 'processing') {
       newOrderStatus = 'payment_processing';
       updates.status = 'payment_processing';
+      console.log(`Payment processing for order ${orderId}, updating status to 'payment_processing'`);
     }
+
+    console.log(`Updating order ${orderId}: stripePaymentStatus=${paymentIntent.status}, orderStatus=${newOrderStatus}`);
 
     try {
       // Update order and log status change in a transaction
@@ -412,6 +417,7 @@ export class PaymentService {
       const webhookEvent = await prisma.stripe_webhook_events.upsert({
         where: { eventId: event.id },
         create: {
+          id: crypto.randomUUID(),
           eventId: event.id,
           eventType: event.type,
           payload: event as any,
@@ -421,24 +427,40 @@ export class PaymentService {
 
       try {
         // Process the event based on type
+        console.log(`Processing webhook event: ${event.type} (${event.id})`);
+        
         switch (event.type) {
           case 'payment_intent.succeeded':
+            console.log('Handling payment_intent.succeeded');
             await this.handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
             break;
           case 'payment_intent.payment_failed':
+            console.log('Handling payment_intent.payment_failed');
             await this.handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
             break;
           case 'payment_intent.canceled':
+            console.log('Handling payment_intent.canceled');
             await this.handlePaymentIntentCanceled(event.data.object as Stripe.PaymentIntent);
             break;
           case 'payment_intent.processing':
+            console.log('Handling payment_intent.processing');
             await this.handlePaymentIntentProcessing(event.data.object as Stripe.PaymentIntent);
+            break;
+          case 'charge.succeeded':
+            console.log('Handling charge.succeeded - extracting payment intent');
+            const chargeSucceeded = event.data.object as Stripe.Charge;
+            if (chargeSucceeded.payment_intent) {
+              const pi = await stripe.paymentIntents.retrieve(chargeSucceeded.payment_intent as string);
+              await this.handlePaymentIntentSucceeded(pi);
+            }
             break;
           default:
             // Unhandled event type - log but don't fail
             console.log(`Unhandled webhook event type: ${event.type}`);
             break;
         }
+
+        console.log(`Successfully processed webhook event: ${event.type} (${event.id})`);
 
         // Mark as processed
         await prisma.stripe_webhook_events.update({

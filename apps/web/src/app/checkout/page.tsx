@@ -496,6 +496,7 @@ export default function CheckoutPage() {
 
                   <StripePayment
                     clientSecret={paymentClientSecret}
+                    orderId={orderId!}
                     onSuccess={handlePaymentSuccess}
                     onError={handlePaymentError}
                   />

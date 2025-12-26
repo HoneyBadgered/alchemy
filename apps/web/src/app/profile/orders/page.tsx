@@ -51,19 +51,26 @@ function OrderHistoryContent() {
       }
       return false;
     },
+    staleTime: 10000, // Consider data stale after 10 seconds
+    refetchInterval: 30000, // Auto-refetch every 30 seconds for payment status updates
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
   });
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
+      case 'paid':
         return 'bg-green-900/50 text-green-300 border-green-600/50';
       case 'pending':
         return 'bg-amber-900/50 text-amber-300 border-amber-600/50';
       case 'processing':
         return 'bg-blue-900/50 text-blue-300 border-blue-600/50';
+      case 'payment_processing':
+        return 'bg-cyan-900/50 text-cyan-300 border-cyan-600/50';
       case 'shipped':
         return 'bg-purple-900/50 text-purple-300 border-purple-600/50';
       case 'cancelled':
+      case 'payment_failed':
         return 'bg-red-900/50 text-red-300 border-red-600/50';
       default:
         return 'bg-slate-700/50 text-slate-300 border-slate-600/50';
@@ -73,18 +80,30 @@ function OrderHistoryContent() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
+      case 'paid':
         return '✅';
       case 'pending':
         return '⏳';
       case 'processing':
         return '⚗️';
+      case 'payment_processing':
+        return '💳';
       case 'shipped':
         return '📦';
       case 'cancelled':
+      case 'payment_failed':
         return '❌';
       default:
         return '📋';
     }
+  };
+
+  const formatStatus = (status: string) => {
+    // Convert underscore_case to Title Case
+    return status
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   };
 
   const handleReorder = async (order: Order) => {
@@ -269,7 +288,7 @@ function OrderHistoryContent() {
                         <span className="text-xl">{getStatusIcon(order.status)}</span>
                         <h3 className="text-white font-semibold">Order #{order.id}</h3>
                         <span className={`px-2 py-1 rounded text-xs font-medium border ${getStatusColor(order.status)}`}>
-                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          {formatStatus(order.status)}
                         </span>
                       </div>
                       <p className="text-purple-300/60 text-sm">

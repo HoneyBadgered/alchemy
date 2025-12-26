@@ -173,6 +173,44 @@ export async function paymentRoutes(fastify: FastifyInstance) {
   });
 
   /**
+   * Manually sync payment status from Stripe
+   * POST /payments/sync/:orderId
+   * Optional authentication - supports both authenticated users and guests
+   */
+  fastify.post('/payments/sync/:orderId', {
+    preHandler: optionalAuthMiddleware,
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      // Check if Stripe is configured
+      if (!isStripeConfigured()) {
+        return reply.status(503).send({ 
+          message: 'Payment processing is not available. Stripe is not configured.',
+          configured: false,
+        });
+      }
+
+      const { orderId } = request.params as { orderId: string };
+      const userId = request.user?.userId;
+      let sessionId = request.headers['x-session-id'] as string | undefined;
+
+      // Validate and sanitize session ID if provided
+      if (sessionId) {
+        sessionId = sanitizeSessionId(sessionId);
+        if (!isValidSessionId(sessionId)) {
+          sessionId = undefined;
+        }
+      }
+
+      const result = await paymentService.getPaymentStatus(orderId, userId, sessionId);
+      return reply.send(result);
+    } catch (error) {
+      return reply.status(404).send({ 
+        message: (error as Error).message,
+      });
+    }
+  });
+
+  /**
    * Stripe webhook endpoint
    * POST /payments/webhook
    * Public endpoint - validated by Stripe signature
@@ -184,8 +222,11 @@ export async function paymentRoutes(fastify: FastifyInstance) {
     },
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
+      console.log('Received webhook request');
+      
       // Check if Stripe is configured
       if (!isStripeConfigured()) {
+        console.error('Stripe not configured, rejecting webhook');
         return reply.status(503).send({ 
           message: 'Payment processing is not available. Stripe is not configured.',
         });
@@ -194,10 +235,12 @@ export async function paymentRoutes(fastify: FastifyInstance) {
       const signature = request.headers['stripe-signature'] as string;
       
       if (!signature) {
+        console.error('Missing stripe-signature header');
         return reply.status(400).send({ message: 'Missing stripe-signature header' });
       }
 
       if (!config.stripeWebhookSecret) {
+        console.error('Webhook secret not configured');
         return reply.status(500).send({ message: 'Webhook secret not configured' });
       }
 
@@ -214,7 +257,9 @@ export async function paymentRoutes(fastify: FastifyInstance) {
           signature,
           config.stripeWebhookSecret
         );
+        console.log(`Webhook signature verified for event: ${event.type}`);
       } catch (err) {
+        console.error('Webhook signature verification failed:', err);
         return reply.status(400).send({ 
           message: `Webhook signature verification failed: ${(err as Error).message}` 
         });
@@ -222,9 +267,11 @@ export async function paymentRoutes(fastify: FastifyInstance) {
 
       // Handle the event
       await paymentService.handleWebhookEvent(event);
-
+      
+      console.log(`Webhook event processed successfully: ${event.type}`);
       return reply.status(200).send({ received: true });
     } catch (error) {
+      console.error('Webhook processing error:', error);
       fastify.log.error(error);
       return reply.status(500).send({ 
         message: 'Webhook processing failed',

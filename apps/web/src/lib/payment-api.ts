@@ -132,4 +132,30 @@ export const paymentApi = {
 
     return response.json();
   },
+
+  /**
+   * Manually sync payment status from Stripe
+   */
+  async syncPaymentStatus(orderId: string, sessionId?: string): Promise<PaymentStatusResult> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (sessionId) {
+      headers['x-session-id'] = sessionId;
+    }
+
+    const response = await fetch(`${API_URL}/payments/sync/${orderId}`, {
+      method: 'POST',
+      headers,
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to sync payment status');
+    }
+
+    return response.json();
+  },
 };

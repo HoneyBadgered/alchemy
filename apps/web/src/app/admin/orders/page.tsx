@@ -64,6 +64,13 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     if (hasHydrated && accessToken) {
       fetchOrders();
+      
+      // Auto-refresh every 30 seconds to catch payment status updates
+      const interval = setInterval(() => {
+        fetchOrders();
+      }, 30000);
+      
+      return () => clearInterval(interval);
     }
   }, [filterStatus, searchQuery, dateFrom, dateTo, accessToken, hasHydrated]);
 

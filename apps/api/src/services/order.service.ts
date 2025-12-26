@@ -83,6 +83,8 @@ export class OrderService {
   async placeOrder(input: PlaceOrderInput) {
     const { userId, sessionId, guestEmail, shippingAddress, shippingMethod, customerNotes, discountCode } = input;
 
+    console.log('Creating order:', { userId, sessionId, guestEmail });
+
     let cart: Awaited<ReturnType<typeof prisma.carts.findFirst>> | null = null;
 
     try {
@@ -97,6 +99,8 @@ export class OrderService {
           },
         },
       });
+
+      console.log('Found cart:', cart ? `Cart ${cart.id} with ${cart.cart_items.length} items` : 'No cart found');
 
       if (!cart || cart.cart_items.length === 0) {
         throw new BadRequestError('Cart is empty');
@@ -237,6 +241,8 @@ export class OrderService {
           },
         },
       });
+
+      console.log('Order created successfully:', newOrder.id);
 
       // Update product inventory
       for (const item of cart.cart_items) {
