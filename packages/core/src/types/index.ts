@@ -2,7 +2,7 @@
  * Core types for The Alchemy Table game system
  * 
  * This module re-exports types from @alchemy/types for backwards compatibility.
- * New code should import directly from '@alchemy/types' or '@alchemy/types/game'.
+ * New code should import directly from '@alchemy/types'.
  */
 
 // Re-export game types from centralized types package
@@ -27,7 +27,7 @@ export type {
   BlendState,
   PlayerProgress,
   PlayerQuest,
-} from '@alchemy/types/game';
+} from '@alchemy/types';
 
 // Re-export blog types
 export type {
@@ -43,7 +43,7 @@ export type {
   Pagination,
   BlogStats,
   PreviewToken,
-} from '@alchemy/types/blog';
+} from '@alchemy/types';
 
 // Re-export common types
 export type {
@@ -61,4 +61,4 @@ export type {
 } from '@alchemy/types';
 
 // Also export the PostCategory enum
-export { PostCategory } from '@alchemy/types/blog';
+export { PostCategory } from '@alchemy/types';

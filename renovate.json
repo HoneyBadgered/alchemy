@@ -1,0 +1,108 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":preserveSemverRanges"
+  ],
+  "timezone": "America/New_York",
+  "schedule": [
+    "before 6am on Monday"
+  ],
+  "labels": ["dependencies"],
+  "assignees": ["@HoneyBadgered"],
+  "rangeStrategy": "bump",
+  "separateMajorMinor": true,
+  "separateMultipleMajor": true,
+  "prConcurrentLimit": 5,
+  "prCreation": "not-pending",
+  "prHourlyLimit": 2,
+  "automerge": false,
+  "packageRules": [
+    {
+      "groupName": "TypeScript and related",
+      "matchPackagePatterns": ["^typescript", "^@types/"],
+      "schedule": ["before 6am on Monday"]
+    },
+    {
+      "groupName": "React ecosystem",
+      "matchPackageNames": ["react", "react-dom", "react-native"],
+      "schedule": ["before 6am on Monday"]
+    },
+    {
+      "groupName": "Next.js",
+      "matchPackageNames": ["next"],
+      "schedule": ["before 6am on Monday"]
+    },
+    {
+      "groupName": "Testing libraries",
+      "matchPackagePatterns": ["jest", "vitest", "testing-library"],
+      "schedule": ["before 6am on Monday"]
+    },
+    {
+      "groupName": "Linting and formatting",
+      "matchPackageNames": ["eslint", "prettier"],
+      "matchPackagePatterns": ["^eslint-", "^@eslint/"],
+      "schedule": ["before 6am on Monday"]
+    },
+    {
+      "groupName": "Fastify ecosystem",
+      "matchPackageNames": ["fastify"],
+      "matchPackagePatterns": ["^@fastify/"],
+      "schedule": ["before 6am on Monday"]
+    },
+    {
+      "groupName": "Prisma",
+      "matchPackageNames": ["prisma", "@prisma/client"],
+      "schedule": ["before 6am on Monday"]
+    },
+    {
+      "groupName": "Stripe",
+      "matchPackagePatterns": ["^@stripe/", "^stripe$"],
+      "schedule": ["before 6am on Monday"]
+    },
+    {
+      "groupName": "Minor and patch updates",
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": false,
+      "schedule": ["before 6am on Monday"]
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true,
+      "schedule": ["before 6am on Monday"]
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "automerge": false
+    },
+    {
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["lockFileMaintenance"],
+      "enabled": true,
+      "schedule": ["before 6am on the first day of the month"]
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"],
+    "assignees": ["@HoneyBadgered"]
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on the first day of the month"]
+  },
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "🤖 Dependency Updates Dashboard",
+  "commitMessagePrefix": "chore(deps):",
+  "commitMessageAction": "update",
+  "commitMessageTopic": "{{depName}}",
+  "commitMessageExtra": "to {{#if isMajor}}v{{newMajor}}{{else}}{{#if isSingleVersion}}v{{newVersion}}{{else}}{{newValue}}{{/if}}{{/if}}",
+  "postUpdateOptions": ["pnpmDedupe"],
+  "ignoreDeps": [],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/.next/**",
+    "**/build/**"
+  ]
+}
