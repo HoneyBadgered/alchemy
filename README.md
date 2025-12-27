@@ -5,6 +5,8 @@ A gamified e-commerce platform for building blends at an alchemy table
 
 This project uses **pnpm workspaces** to manage multiple packages in a monorepo. All packages are orchestrated using [Turborepo](https://turbo.build/repo) for efficient builds and caching.
 
+📘 **For comprehensive monorepo development guide, see [MONOREPO.md](MONOREPO.md)**
+
 ### Workspaces
 
 #### Apps
@@ -13,6 +15,7 @@ This project uses **pnpm workspaces** to manage multiple packages in a monorepo.
 - **`@alchemy/mobile`** - React Native mobile app (Expo)
 
 #### Packages
+- **`@alchemy/types`** - Centralized TypeScript type definitions (NEW!)
 - **`@alchemy/core`** - Shared core game logic
 - **`@alchemy/ui`** - Design system and UI components
 - **`@alchemy/sdk`** - Typed API client
@@ -171,10 +174,30 @@ pnpm --filter @alchemy/web add <package>
 
 ## 📦 Workspace Benefits
 
+- **Centralized Types**: Shared TypeScript types in `@alchemy/types` eliminate duplication
 - **Dependency hoisting**: Shared dependencies are installed once at the root
 - **Cross-package references**: Packages can reference each other using workspace protocol
-- **Efficient builds**: Turborepo caches and parallelizes builds
+- **Efficient builds**: Turborepo caches and parallelizes builds with smart dependency tracking
 - **Consistent versions**: Ensures dependency version consistency across packages
+- **Type Safety**: End-to-end type safety from API to frontend apps
+
+### Working with Workspaces
+
+```bash
+# Run commands in a specific workspace
+pnpm --filter @alchemy/web run dev
+pnpm --filter @alchemy/core run build
+pnpm --filter @alchemy/api run test
+
+# Install a dependency in a specific workspace
+pnpm --filter @alchemy/web add <package>
+
+# Type-check all packages
+pnpm run type-check
+
+# Build with visualization
+pnpm run graph
+```
 
 ## 📧 Email Service Configuration
 

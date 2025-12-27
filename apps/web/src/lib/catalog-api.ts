@@ -2,102 +2,18 @@
  * Catalog API Client - Extended with reviews, wishlist, and recommendations
  */
 
+import type {
+  Product,
+  Review,
+  ReviewsResponse,
+  WishlistItem,
+  WishlistResponse,
+  CouponValidation,
+  RecommendedProduct,
+  StockStatus,
+} from '@alchemy/types';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-
-// Types
-export interface StockStatus {
-  status: 'in_stock' | 'low_stock' | 'out_of_stock';
-  label: string;
-  available: number;
-}
-
-export interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  compareAtPrice?: number;
-  imageUrl?: string;
-  images?: string[];
-  category?: string;
-  tags?: string[];
-  stock: number;
-  lowStockThreshold: number;
-  trackInventory: boolean;
-  averageRating?: number;
-  reviewCount: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-  stockStatus: StockStatus;
-  isOnSale: boolean;
-  discountPercent?: number;
-}
-
-export interface Review {
-  id: string;
-  userId: string;
-  productId: string;
-  rating: number;
-  title?: string;
-  content?: string;
-  isVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
-  user: {
-    id: string;
-    username: string;
-  };
-}
-
-export interface ReviewsResponse {
-  reviews: Review[];
-  ratingDistribution: Record<number, number>;
-  pagination: {
-    page: number;
-    perPage: number;
-    total: number;
-    totalPages: number;
-  };
-}
-
-export interface WishlistItem {
-  id: string;
-  userId: string;
-  productId: string;
-  createdAt: string;
-  product: Product;
-}
-
-export interface WishlistResponse {
-  items: WishlistItem[];
-  pagination: {
-    page: number;
-    perPage: number;
-    total: number;
-    totalPages: number;
-  };
-}
-
-export interface CouponValidation {
-  valid: boolean;
-  code?: string;
-  description?: string;
-  discountType?: 'percentage' | 'fixed_amount';
-  discountValue?: number;
-  discountAmount?: number;
-  minOrderAmount?: number;
-  message?: string;
-}
-
-export interface RecommendedProduct {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  compareAtPrice?: number;
-  imageUrl?: string;
-  stock: number;
   lowStockThreshold: number;
   averageRating?: number;
   reviewCount: number;

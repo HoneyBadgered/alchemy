@@ -14,6 +14,11 @@ build/
 out/
 .turbo/
 
+# Generated type files from TypeScript (keep source .ts files only)
+packages/types/src/**/*.js
+packages/types/src/**/*.d.ts
+packages/types/src/**/*.d.ts.map
+
 # Environment variables
 .env
 .env.local
