@@ -10,6 +10,9 @@ jobs:
   backend-tests:
     name: Backend API Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     
     steps:
       - uses: actions/checkout@v4
@@ -68,6 +71,9 @@ jobs:
   frontend-tests:
     name: Frontend Web Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     
     steps:
       - uses: actions/checkout@v4
@@ -125,6 +131,10 @@ jobs:
     needs: [backend-tests, frontend-tests]
     runs-on: ubuntu-latest
     if: always()
+    permissions:
+      contents: read
+      pull-requests: write
+      actions: read
     
     steps:
       - uses: actions/checkout@v4
