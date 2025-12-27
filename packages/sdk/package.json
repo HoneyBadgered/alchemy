@@ -15,7 +15,7 @@
     "clean": "rm -rf dist tsconfig.tsbuildinfo"
   },
   "dependencies": {
-    "@alchemy/core": "workspace:*"
+    "@alchemy/types": "workspace:*"
   },
   "peerDependencies": {
     "react": "^19.2.0",
