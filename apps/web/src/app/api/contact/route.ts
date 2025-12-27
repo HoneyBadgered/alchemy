@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
+import { sendContactFormEmails } from '@/lib/email';
 
 /**
- * Contact form API endpoint (stub).
- * In production, this would send emails, store in database, etc.
- * TODO: Replace with actual email service integration (e.g., SendGrid, SES)
+ * Contact form API endpoint
+ * Sends emails to admin and user confirmation
  */
 export async function POST(request: Request) {
   try {
@@ -28,21 +28,45 @@ export async function POST(request: Request) {
       );
     }
     
-    // Stub implementation - log the contact form submission
-    // TODO: Integrate with email service to actually send the message
+    // Validate field lengths
+    if (name.length > 100) {
+      return NextResponse.json(
+        { error: 'Name must be less than 100 characters' },
+        { status: 400 }
+      );
+    }
+    
+    if (subject.length > 200) {
+      return NextResponse.json(
+        { error: 'Subject must be less than 200 characters' },
+        { status: 400 }
+      );
+    }
+    
+    if (message.length > 5000) {
+      return NextResponse.json(
+        { error: 'Message must be less than 5000 characters' },
+        { status: 400 }
+      );
+    }
+    
+    // Log the contact form submission
     console.log('Contact form submission received:', {
       name,
       email,
       subject,
-      message,
       timestamp: new Date().toISOString(),
     });
     
-    // In production, you would:
-    // 1. Send an email to the support team
-    // 2. Store the message in a database
-    // 3. Send a confirmation email to the user
-    // 4. Create a ticket in a support system
+    // Send emails
+    try {
+      await sendContactFormEmails({ name, email, subject, message });
+      console.log('Contact form emails sent successfully');
+    } catch (emailError) {
+      console.error('Failed to send contact form emails:', emailError);
+      // Don't fail the request if email sending fails
+      // The user still gets a response, but we log the error
+    }
     
     return NextResponse.json(
       { 
