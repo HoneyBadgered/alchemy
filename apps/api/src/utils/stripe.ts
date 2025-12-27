@@ -23,7 +23,7 @@ function getStripe(): Stripe {
 
   if (!_stripe) {
     _stripe = new Stripe(config.stripeSecretKey, {
-      apiVersion: '2025-11-17.clover', // Use the latest API version
+      apiVersion: '2025-12-15.clover', // Use the latest API version
       typescript: true,
     });
   }

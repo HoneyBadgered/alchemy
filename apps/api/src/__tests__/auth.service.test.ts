@@ -71,8 +71,8 @@ describe('AuthService', () => {
         username: 'testuser',
       });
 
-      expect(result.user.email).toBe('test@example.com');
-      expect(result.user.role).toBe('user');
+      expect(result.users.email).toBe('test@example.com');
+      expect(result.users.role).toBe('user');
       expect(result.accessToken).toBe('access_token');
       expect(result.refreshToken).toBe('refresh_token');
       expect(prisma.users.create).toHaveBeenCalled();
@@ -179,8 +179,8 @@ describe('AuthService', () => {
         password: 'StrongPass123',
       });
 
-      expect(result.user.email).toBe('test@example.com');
-      expect(result.user.role).toBe('user');
+      expect(result.users.email).toBe('test@example.com');
+      expect(result.users.role).toBe('user');
       expect(result.accessToken).toBe('access_token');
       expect(prisma.player_states.update).toHaveBeenCalled();
     });
@@ -205,8 +205,8 @@ describe('AuthService', () => {
         password: 'AdminPass123',
       });
 
-      expect(result.user.email).toBe('admin@example.com');
-      expect(result.user.role).toBe('admin');
+      expect(result.users.email).toBe('admin@example.com');
+      expect(result.users.role).toBe('admin');
       expect(result.accessToken).toBe('access_token');
     });
 
@@ -260,7 +260,7 @@ describe('AuthService', () => {
         password: 'StrongPass123',
       });
 
-      expect(result.user.email).toBe('test@example.com');
+      expect(result.users.email).toBe('test@example.com');
       expect(result.accessToken).toBe('access_token');
       // Verify that findUnique was called with lowercase email
       expect(prisma.users.findUnique).toHaveBeenCalledWith({
@@ -288,8 +288,8 @@ describe('AuthService', () => {
         password: 'Admin123!',
       });
 
-      expect(result.user.email).toBe('admin@alchemy.dev');
-      expect(result.user.role).toBe('admin');
+      expect(result.users.email).toBe('admin@alchemy.dev');
+      expect(result.users.role).toBe('admin');
       // Verify that findUnique was called with lowercase email
       expect(prisma.users.findUnique).toHaveBeenCalledWith({
         where: { email: 'admin@alchemy.dev' },

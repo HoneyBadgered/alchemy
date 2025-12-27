@@ -110,7 +110,7 @@ export class CraftingService {
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Consume ingredients
       for (const ingredient of ingredients) {
-        const existing = await tx.playerInventory.findUnique({
+        const existing = await tx.player_inventory.findUnique({
           where: {
             userId_itemId: {
               userId,
@@ -126,7 +126,7 @@ export class CraftingService {
         }
 
         if (existing.quantity === ingredient.quantity) {
-          await tx.playerInventory.delete({
+          await tx.player_inventory.delete({
             where: {
               userId_itemId: {
                 userId,
@@ -135,7 +135,7 @@ export class CraftingService {
             },
           });
         } else {
-          await tx.playerInventory.update({
+          await tx.player_inventory.update({
             where: {
               userId_itemId: {
                 userId,
@@ -150,7 +150,7 @@ export class CraftingService {
       }
 
       // Add crafted item to inventory
-      await tx.playerInventory.upsert({
+      await tx.player_inventory.upsert({
         where: {
           userId_itemId: {
             userId,
@@ -158,6 +158,7 @@ export class CraftingService {
           },
         },
         create: {
+          id: crypto.randomUUID(),
           userId,
           itemId: recipe.resultItemId,
           itemType: 'blend',

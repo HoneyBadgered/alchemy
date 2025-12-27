@@ -121,7 +121,7 @@ export async function adminProductRoutes(fastify: FastifyInstance) {
       }
 
       const csvContent = await data.toBuffer();
-      const result = await importService.importProducts(csvContent.toString('utf-8'));
+      const result = await importService.importFromCSV(csvContent.toString('utf-8'));
       
       return reply.send(result);
     } catch (error) {

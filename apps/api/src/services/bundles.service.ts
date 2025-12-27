@@ -30,15 +30,15 @@ export class BundlesService {
     const where = { isActive: true };
 
     const [bundles, total] = await Promise.all([
-      prisma.products.bundles.findMany({
+      prisma.product_bundles.findMany({
         where,
         skip,
         take: perPage,
         orderBy: { createdAt: 'desc' },
         include: {
-          items: {
+          bundle_items: {
             include: {
-              product: {
+              products: {
                 select: {
                   id: true,
                   name: true,
@@ -54,13 +54,13 @@ export class BundlesService {
           },
         },
       }),
-      prisma.products.bundles.count({ where }),
+      prisma.product_bundles.count({ where }),
     ]);
 
     // Calculate bundle prices
-    const bundlesWithPrices = bundles.map((bundle) => {
-      const originalPrice = bundle.items.reduce((sum, item) => {
-        return sum + Number(item.product.price) * item.quantity;
+    const bundlesWithPrices = bundles.map((bundle: any) => {
+      const originalPrice = bundle.bundle_items.reduce((sum: number, item: any) => {
+        return sum + Number(item.products.price) * item.quantity;
       }, 0);
 
       const discountAmount = originalPrice * (Number(bundle.discount) / 100);
@@ -89,12 +89,12 @@ export class BundlesService {
    * Get a specific bundle
    */
   async getBundle(bundleId: string) {
-    const bundle = await prisma.products.bundles.findUnique({
+    const bundle = await prisma.product_bundles.findUnique({
       where: { id: bundleId },
       include: {
-        items: {
+        bundle_items: {
           include: {
-            product: {
+            products: {
               select: {
                 id: true,
                 name: true,
@@ -118,8 +118,8 @@ export class BundlesService {
     }
 
     // Calculate prices
-    const originalPrice = bundle.items.reduce((sum, item) => {
-      return sum + Number(item.product.price) * item.quantity;
+    const originalPrice = bundle.bundle_items.reduce((sum: number, item: any) => {
+      return sum + Number(item.products.price) * item.quantity;
     }, 0);
 
     const discountAmount = originalPrice * (Number(bundle.discount) / 100);
@@ -150,11 +150,11 @@ export class BundlesService {
       where.relationType = relationType;
     }
 
-    const relations = await prisma.products.elation.findMany({
+    const relations = await prisma.product_relations.findMany({
       where,
       orderBy: { sortOrder: 'asc' },
       include: {
-        relatedProduct: {
+        products_product_relations_relatedProductIdToproducts: {
           select: {
             id: true,
             name: true,
@@ -172,8 +172,8 @@ export class BundlesService {
       },
     });
 
-    return relations.map((r) => ({
-      ...r.relatedProduct,
+    return relations.map((r: any) => ({
+      ...r.products_product_relations_relatedProductIdToproducts,
       relationType: r.relationType,
     }));
   }
@@ -270,15 +270,15 @@ export class BundlesService {
    */
   async getCartUpsells(productIds: string[], limit: number = 4) {
     // Get all upsells for products in cart
-    const upsells = await prisma.products.elation.findMany({
+    const upsells = await prisma.product_relations.findMany({
       where: {
         sourceProductId: { in: productIds },
         relationType: 'upsell',
         relatedProductId: { notIn: productIds }, // Don't suggest items already in cart
-        relatedProduct: { isActive: true },
+        products_product_relations_relatedProductIdToproducts: { isActive: true },
       },
       include: {
-        relatedProduct: {
+        products_product_relations_relatedProductIdToproducts: {
           select: {
             id: true,
             name: true,
@@ -297,6 +297,6 @@ export class BundlesService {
       take: limit,
     });
 
-    return upsells.map((u) => u.relatedProduct);
+    return upsells.map((u: any) => u.products_product_relations_relatedProductIdToproducts);
   }
 }

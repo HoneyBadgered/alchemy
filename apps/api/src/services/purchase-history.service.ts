@@ -52,9 +52,9 @@ export class PurchaseHistoryService {
         status: { in: ['paid', 'processing', 'shipped', 'completed'] },
       },
       include: {
-        items: {
+        order_items: {
           include: {
-            product: {
+            products: {
               select: {
                 id: true,
                 name: true,
@@ -72,7 +72,7 @@ export class PurchaseHistoryService {
     });
 
     // Get user reviews
-    const reviews = await prisma.review.findMany({
+    const reviews = await prisma.reviews.findMany({
       where: { userId },
       select: {
         productId: true,
@@ -83,11 +83,11 @@ export class PurchaseHistoryService {
     });
 
     type ReviewType = typeof reviews[number];
-    const reviewMap = new Map<string, ReviewType>(reviews.map((r) => [r.productId, r]));
+    const reviewMap = new Map<string, ReviewType>(reviews.map((r: any) => [r.productId, r]));
 
     // Aggregate purchase data by product
     const productPurchases = new Map<string, {
-      product: typeof orders[0]['items'][0]['product'];
+      products: typeof orders[0]['order_items'][0]['products'];
       totalQuantity: number;
       totalSpent: number;
       purchaseDates: Date[];
@@ -102,7 +102,7 @@ export class PurchaseHistoryService {
           existing.purchaseDates.push(order.createdAt);
         } else {
           productPurchases.set(item.productId, {
-            product: item.product,
+            products: item.products,
             totalQuantity: item.quantity,
             totalSpent: Number(item.price) * item.quantity,
             purchaseDates: [order.createdAt],
@@ -152,7 +152,7 @@ export class PurchaseHistoryService {
     const paginatedHistory = purchaseHistory.slice(skip, skip + perPage);
 
     return {
-      items: paginatedHistory,
+      order_items: paginatedHistory,
       pagination: {
         page,
         perPage,
@@ -173,9 +173,9 @@ export class PurchaseHistoryService {
         status: { in: ['paid', 'processing', 'shipped', 'completed'] },
       },
       include: {
-        items: {
+        order_items: {
           include: {
-            product: {
+            products: {
               select: {
                 id: true,
                 name: true,
@@ -257,12 +257,12 @@ export class PurchaseHistoryService {
         status: { in: ['paid', 'processing', 'shipped', 'completed'] },
       },
       include: {
-        items: true,
+        order_items: true,
       },
     });
 
     const purchasedProductIds = new Set(
-      orders.flatMap((o) => o.items.map((i) => i.productId))
+      orders.flatMap((o) => o.order_items.map((i) => i.productId))
     );
 
     // Get categories the user has purchased from
@@ -346,9 +346,9 @@ export class PurchaseHistoryService {
         status: { in: ['paid', 'processing', 'shipped', 'completed'] },
       },
       include: {
-        items: {
+        order_items: {
           include: {
-            product: {
+            products: {
               select: {
                 id: true,
                 category: true,
@@ -362,12 +362,12 @@ export class PurchaseHistoryService {
     const totalOrders = orders.length;
     const totalSpent = orders.reduce((sum, o) => sum + Number(o.totalAmount), 0);
     const totalItems = orders.reduce(
-      (sum, o) => sum + o.items.reduce((itemSum, i) => itemSum + i.quantity, 0),
+      (sum, o) => sum + o.order_items.reduce((itemSum, i) => itemSum + i.quantity, 0),
       0
     );
 
     const uniqueProducts = new Set(
-      orders.flatMap((o) => o.items.map((i) => i.productId))
+      orders.flatMap((o) => o.order_items.map((i) => i.productId))
     );
 
     // Find favorite category using already-included product data
@@ -413,9 +413,9 @@ export class PurchaseHistoryService {
         userId,
       },
       include: {
-        items: {
+        order_items: {
           include: {
-            product: {
+            products: {
               select: {
                 id: true,
                 name: true,
@@ -451,7 +451,7 @@ export class PurchaseHistoryService {
     return {
       orderId: order.id,
       originalOrderDate: order.createdAt,
-      items: reorderItems,
+      order_items: reorderItems,
       allItemsAvailable: allAvailable,
       estimatedTotal: reorderItems.reduce(
         (sum, item) => sum + item.currentPrice * item.quantity,

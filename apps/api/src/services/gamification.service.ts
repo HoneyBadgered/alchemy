@@ -53,21 +53,21 @@ export class GamificationService {
     const playerQuests = await prisma.player_quests.findMany({
       where: { userId },
       include: {
-        quest: true,
+        quests: true,
       },
     });
 
     return playerQuests.map((pq: any) => ({
       id: pq.id,
       questId: pq.questId,
-      name: pq.quest.name,
-      description: pq.quest.description,
-      questType: pq.quest.questType,
+      name: pq.quests.name,
+      description: pq.quests.description,
+      questType: pq.quests.questType,
       status: pq.status,
       progress: pq.progress,
-      xpReward: pq.quest.xpReward,
-      ingredientRewards: pq.quest.ingredientRewards,
-      cosmeticRewards: pq.quest.cosmeticRewards,
+      xpReward: pq.quests.xpReward,
+      ingredientRewards: pq.quests.ingredientRewards,
+      cosmeticRewards: pq.quests.cosmeticRewards,
       startedAt: pq.startedAt,
       completedAt: pq.completedAt,
       claimedAt: pq.claimedAt,
@@ -92,7 +92,7 @@ export class GamificationService {
         },
       },
       include: {
-        quest: true,
+        quests: true,
       },
     });
 
@@ -117,7 +117,7 @@ export class GamificationService {
     // Start transaction to claim rewards
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Update quest status
-      await tx.playerQuest.update({
+      await tx.player_quests.update({
         where: {
           userId_questId: {
             userId,
@@ -141,27 +141,27 @@ export class GamificationService {
         throw error;
       }
 
-      const newTotalXp = playerState.totalXp + playerQuest.quest.xpReward;
+      const newTotalXp = playerState.totalXp + playerQuest.quests.xpReward;
       const newLevel = getLevelFromTotalXp(newTotalXp);
 
       await tx.player_states.update({
         where: { userId },
         data: {
           totalXp: newTotalXp,
-          xp: playerState.xp + playerQuest.quest.xpReward,
+          xp: playerState.xp + playerQuest.quests.xpReward,
           level: newLevel,
         },
       });
 
       // Award ingredient rewards
-      if (playerQuest.quest.ingredientRewards) {
-        const ingredients = playerQuest.quest.ingredientRewards as Array<{
+      if (playerQuest.quests.ingredientRewards) {
+        const ingredients = playerQuest.quests.ingredientRewards as Array<{
           ingredientId: string;
           quantity: number;
         }>;
 
         for (const ingredient of ingredients) {
-          await tx.playerInventory.upsert({
+          await tx.player_inventory.upsert({
             where: {
               userId_itemId: {
                 userId,
@@ -169,6 +169,7 @@ export class GamificationService {
               },
             },
             create: {
+              id: crypto.randomUUID(),
               userId,
               itemId: ingredient.ingredientId,
               itemType: 'ingredient',
@@ -184,10 +185,10 @@ export class GamificationService {
       }
 
       // Award cosmetic rewards
-      if (playerQuest.quest.cosmeticRewards) {
-        const cosmetics = playerQuest.quest.cosmeticRewards as Array<string>;
+      if (playerQuest.quests.cosmeticRewards) {
+        const cosmetics = playerQuest.quests.cosmeticRewards as Array<string>;
         
-        const playerCosmetics = await tx.playerCosmetics.findUnique({
+        const playerCosmetics = await tx.player_cosmetics.findUnique({
           where: { userId },
         });
 
@@ -196,7 +197,7 @@ export class GamificationService {
             ...new Set([...playerCosmetics.unlockedThemes, ...cosmetics]),
           ];
 
-          await tx.playerCosmetics.update({
+          await tx.player_cosmetics.update({
             where: { userId },
             data: {
               unlockedThemes: newUnlockedThemes,
@@ -207,7 +208,7 @@ export class GamificationService {
 
       return {
         success: true,
-        xpGained: playerQuest.quest.xpReward,
+        xpGained: playerQuest.quests.xpReward,
       };
     });
 
