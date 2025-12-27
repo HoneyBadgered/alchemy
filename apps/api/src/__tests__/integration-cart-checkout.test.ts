@@ -6,8 +6,6 @@
 import Fastify, { FastifyInstance } from 'fastify';
 import { cartRoutes } from '../routes/cart.routes';
 import { orderRoutes } from '../routes/order.routes';
-import { CartService } from '../services/cart.service';
-import { OrderService } from '../services/order.service';
 import { prisma } from '../utils/prisma';
 
 // Mock Prisma
@@ -50,7 +48,7 @@ jest.mock('../middleware/auth', () => ({
     }
     request.user = { userId: 'user-1' };
   },
-  optionalAuthMiddleware: async (request: any, reply: any) => {
+  optionalAuthMiddleware: async (request: any) => {
     if (request.headers.authorization) {
       request.user = { userId: 'user-1' };
     }

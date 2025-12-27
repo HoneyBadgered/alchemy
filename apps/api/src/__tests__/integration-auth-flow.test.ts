@@ -5,7 +5,6 @@
 
 import Fastify, { FastifyInstance } from 'fastify';
 import { authRoutes } from '../routes/auth.routes';
-import { AuthService } from '../services/auth.service';
 import { prisma } from '../utils/prisma';
 
 // Mock Prisma
@@ -130,17 +129,16 @@ describe('Authentication Flow Integration', () => {
       };
 
       // Step 1: Request password reset
-      (prisma.users.findFirst as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.password_reset_tokens.create as jest.Mock).mockResolvedValue({
-        id: 'reset-1',
-        userId: 'user-1',
-        token: 'reset-token',
-        expiresAt: new Date(Date.now() + 3600000),
+      (prisma.users.findUnique as jest.Mock).mockResolvedValue(mockUser);
+      (prisma.users.update as jest.Mock).mockResolvedValue({
+        ...mockUser,
+        passwordResetToken: 'hashed-reset-token',
+        passwordResetExpires: new Date(Date.now() + 3600000),
       });
 
       const resetRequestResponse = await app.inject({
         method: 'POST',
-        url: '/auth/password-reset-request',
+        url: '/auth/password-reset/request',
         payload: {
           email: 'user@example.com',
         },
@@ -149,22 +147,22 @@ describe('Authentication Flow Integration', () => {
       expect(resetRequestResponse.statusCode).toBe(200);
 
       // Step 2: Reset password with token
-      (prisma.password_reset_tokens.findFirst as jest.Mock).mockResolvedValue({
-        id: 'reset-1',
-        userId: 'user-1',
-        token: 'reset-token',
-        expiresAt: new Date(Date.now() + 3600000),
+      (prisma.users.findFirst as jest.Mock).mockResolvedValue({
+        ...mockUser,
+        passwordResetToken: 'hashed-reset-token',
+        passwordResetExpires: new Date(Date.now() + 3600000),
       });
       (prisma.users.update as jest.Mock).mockResolvedValue({
         ...mockUser,
-        passwordHash: 'new-hashed-password',
+        password: 'new-hashed-password',
+        passwordResetToken: null,
+        passwordResetExpires: null,
       });
-      (prisma.password_reset_tokens.delete as jest.Mock).mockResolvedValue({});
       (prisma.refresh_tokens.deleteMany as jest.Mock).mockResolvedValue({ count: 2 });
 
       const resetResponse = await app.inject({
         method: 'POST',
-        url: '/auth/password-reset',
+        url: '/auth/password-reset/confirm',
         payload: {
           token: 'reset-token',
           newPassword: 'NewSecurePass123!',
