@@ -1,0 +1,206 @@
+name: Test Coverage
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  backend-tests:
+    name: Backend API Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Generate Prisma Client
+        run: cd apps/api && pnpm prisma generate
+      
+      - name: Run API tests with coverage
+        run: cd apps/api && pnpm test -- --coverage --ci
+        env:
+          NODE_ENV: test
+      
+      - name: Upload API coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./apps/api/coverage/coverage-final.json
+          flags: backend
+          name: backend-coverage
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+      
+      - name: Archive API coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-coverage-report
+          path: apps/api/coverage/
+          retention-days: 30
+
+  frontend-tests:
+    name: Frontend Web Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Run web tests with coverage
+        run: cd apps/web && pnpm test:coverage -- --run
+        env:
+          NODE_ENV: test
+      
+      - name: Upload web coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./apps/web/coverage/coverage-final.json
+          flags: frontend
+          name: frontend-coverage
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+      
+      - name: Archive web coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-coverage-report
+          path: apps/web/coverage/
+          retention-days: 30
+
+  coverage-report:
+    name: Generate Coverage Report
+    needs: [backend-tests, frontend-tests]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download API coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: api-coverage-report
+          path: coverage/api
+        continue-on-error: true
+      
+      - name: Download web coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: web-coverage-report
+          path: coverage/web
+        continue-on-error: true
+      
+      - name: Display coverage summary
+        run: |
+          echo "## Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f "coverage/api/coverage-summary.json" ]; then
+            echo "### Backend API Coverage" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat coverage/api/coverage-summary.json | grep -E '"lines"|"statements"|"functions"|"branches"' | head -4 >> $GITHUB_STEP_SUMMARY || echo "Coverage data not available" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -f "coverage/web/coverage-summary.json" ]; then
+            echo "### Frontend Web Coverage" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat coverage/web/coverage-summary.json | grep -E '"lines"|"statements"|"functions"|"branches"' | head -4 >> $GITHUB_STEP_SUMMARY || echo "Coverage data not available" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Comment PR with coverage
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let comment = '## 📊 Test Coverage Report\n\n';
+            
+            try {
+              const apiCoverage = JSON.parse(fs.readFileSync('coverage/api/coverage-summary.json', 'utf8'));
+              const total = apiCoverage.total;
+              comment += '### Backend API\n';
+              comment += `- Lines: ${total.lines.pct}%\n`;
+              comment += `- Statements: ${total.statements.pct}%\n`;
+              comment += `- Functions: ${total.functions.pct}%\n`;
+              comment += `- Branches: ${total.branches.pct}%\n\n`;
+            } catch (e) {
+              comment += '### Backend API\nCoverage data not available\n\n';
+            }
+            
+            try {
+              const webCoverage = JSON.parse(fs.readFileSync('coverage/web/coverage-summary.json', 'utf8'));
+              const total = webCoverage.total;
+              comment += '### Frontend Web\n';
+              comment += `- Lines: ${total.lines.pct}%\n`;
+              comment += `- Statements: ${total.statements.pct}%\n`;
+              comment += `- Functions: ${total.functions.pct}%\n`;
+              comment += `- Branches: ${total.branches.pct}%\n\n`;
+            } catch (e) {
+              comment += '### Frontend Web\nCoverage data not available\n\n';
+            }
+            
+            comment += '\n---\n';
+            comment += '*Coverage reports are available in the workflow artifacts*';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
