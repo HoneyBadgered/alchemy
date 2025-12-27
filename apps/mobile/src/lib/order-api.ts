@@ -2,77 +2,15 @@
  * Order API Client for Mobile
  */
 
+import type {
+  ShippingAddress,
+  PlaceOrderInput,
+  Order,
+  OrderListResponse,
+} from '@alchemy/types';
+
 // For Expo, we need to use environment variables differently
 const API_URL = 'http://localhost:3000'; // This would be configured in app.json/app.config.js
-
-export interface ShippingAddress {
-  firstName: string;
-  lastName: string;
-  addressLine1: string;
-  addressLine2?: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
-  phone?: string;
-}
-
-export interface PlaceOrderInput {
-  shippingAddress?: ShippingAddress;
-  shippingMethod?: string;
-  customerNotes?: string;
-  discountCode?: string;
-}
-
-export interface OrderItem {
-  id: string;
-  orderId: string;
-  productId: string;
-  quantity: number;
-  price: number;
-  createdAt: string;
-  product: {
-    id: string;
-    name: string;
-    description: string;
-    price: number;
-    imageUrl?: string;
-    category?: string;
-  };
-}
-
-export interface Order {
-  id: string;
-  userId: string;
-  status: string;
-  totalAmount: number;
-  shippingMethod?: string;
-  shippingCost?: number;
-  taxAmount?: number;
-  discountCode?: string;
-  discountAmount?: number;
-  customerNotes?: string;
-  createdAt: string;
-  updatedAt: string;
-  items: OrderItem[];
-  statusLogs?: Array<{
-    id: string;
-    fromStatus?: string;
-    toStatus: string;
-    notes?: string;
-    createdAt: string;
-  }>;
-}
-
-export interface OrderListResponse {
-  orders: Order[];
-  pagination: {
-    page: number;
-    perPage: number;
-    total: number;
-    totalPages: number;
-  };
-}
 
 export const orderApi = {
   /**

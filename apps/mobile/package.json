@@ -15,6 +15,7 @@
   "dependencies": {
     "@alchemy/core": "workspace:*",
     "@alchemy/sdk": "workspace:*",
+    "@alchemy/types": "workspace:*",
     "@alchemy/ui": "workspace:*",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-navigation/bottom-tabs": "^6.6.1",
