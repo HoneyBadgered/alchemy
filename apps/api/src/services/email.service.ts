@@ -35,7 +35,7 @@ export class EmailService {
         streamTransport: true,
         newline: 'unix',
         buffer: true,
-      } as any);
+      } as nodemailer.TransportOptions);
     }
   }
 

@@ -41,7 +41,7 @@ export async function sendContactFormEmails(data: ContactFormData): Promise<void
       streamTransport: true,
       newline: 'unix',
       buffer: true,
-    } as any);
+    } as nodemailer.TransportOptions);
   }
 
   // Send notification to admin
