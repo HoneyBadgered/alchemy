@@ -11,18 +11,29 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "build:core": "pnpm --filter @alchemy/core run build",
+    "build:types": "pnpm --filter @alchemy/types run type-check",
     "build:web": "pnpm --filter @alchemy/web run build",
-    "build:all": "pnpm run build:core && pnpm run build:web",
+    "build:all": "pnpm run build:types && pnpm run build:core && pnpm run build:web",
     "test": "turbo run test",
+    "test:watch": "turbo run test -- --watch",
     "lint": "turbo run lint",
+    "lint:fix": "turbo run lint -- --fix",
     "type-check": "turbo run type-check",
-    "clean": "turbo run clean && rm -rf node_modules"
+    "type-check:all": "pnpm -r run type-check",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "clean:cache": "rm -rf .turbo node_modules/.cache",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "deps:check": "node check-local-deps.js",
+    "deps:update": "pnpm update -r --latest",
+    "graph": "turbo run build --graph=dependency-graph.html"
   },
   "prisma": {
     "seed": "npx tsx apps/api/prisma/seed.ts"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
+    "prettier": "^3.7.4",
     "turbo": "^2.6.1",
     "typescript": "^5.9.3"
   },
