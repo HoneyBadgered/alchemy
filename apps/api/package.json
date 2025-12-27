@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@alchemy/core": "workspace:*",
+    "@alchemy/types": "workspace:*",
     "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^11.1.0",
     "@fastify/multipart": "^9.3.0",

@@ -4,20 +4,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-
-export interface User {
-  id: string;
-  email: string;
-  username: string;
-  role: 'user' | 'admin';
-  emailVerified: boolean;
-  createdAt: string;
-  profile?: {
-    firstName?: string;
-    lastName?: string;
-    avatarUrl?: string;
-  };
-}
+import type { User } from '@alchemy/types';
 
 interface AuthState {
   user: User | null;
