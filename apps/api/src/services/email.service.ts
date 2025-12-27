@@ -12,6 +12,20 @@ export interface EmailOptions {
   text?: string;
 }
 
+/**
+ * Escape HTML special characters to prevent XSS
+ */
+function escapeHtml(text: string): string {
+  const map: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, (m) => map[m]);
+}
+
 export class EmailService {
   private transporter: nodemailer.Transporter;
 
@@ -174,7 +188,7 @@ If you didn't request a password reset, please ignore this email. Your password 
     subject: string;
     message: string;
   }): Promise<void> {
-    const adminEmail = 'support@alchemytable.com'; // This should be configured in environment variables
+    const adminEmail = process.env.ADMIN_EMAIL || config.email.from || 'support@alchemytable.com';
     
     const html = `
       <!DOCTYPE html>
@@ -199,19 +213,19 @@ If you didn't request a password reset, please ignore this email. Your password 
             <div class="content">
               <div class="field">
                 <div class="field-label">From:</div>
-                <div class="field-value">${data.name} (${data.email})</div>
+                <div class="field-value">${escapeHtml(data.name)} (${escapeHtml(data.email)})</div>
               </div>
               <div class="field">
                 <div class="field-label">Subject:</div>
-                <div class="field-value">${data.subject}</div>
+                <div class="field-value">${escapeHtml(data.subject)}</div>
               </div>
               <div class="field">
                 <div class="field-label">Message:</div>
-                <div class="field-value">${data.message.replace(/\n/g, '<br>')}</div>
+                <div class="field-value">${escapeHtml(data.message).replace(/\n/g, '<br>')}</div>
               </div>
               <div class="footer">
                 <p>Received: ${new Date().toLocaleString()}</p>
-                <p>Reply to: ${data.email}</p>
+                <p>Reply to: ${escapeHtml(data.email)}</p>
               </div>
             </div>
           </div>
@@ -266,8 +280,8 @@ Reply to: ${data.email}
               <h2>✓ Message Received</h2>
             </div>
             <div class="content">
-              <p>Hi ${data.name},</p>
-              <p>Thank you for contacting The Alchemy Table! We've received your message about "${data.subject}" and will get back to you as soon as possible.</p>
+              <p>Hi ${escapeHtml(data.name)},</p>
+              <p>Thank you for contacting The Alchemy Table! We've received your message about "${escapeHtml(data.subject)}" and will get back to you as soon as possible.</p>
               <p>Our team typically responds within 24-48 hours during business days.</p>
               <div class="footer">
                 <p>If you have any urgent concerns, please call us at (555) 123-4567.</p>
