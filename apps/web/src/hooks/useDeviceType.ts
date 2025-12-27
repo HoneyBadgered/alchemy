@@ -24,8 +24,7 @@ export function useDeviceType() {
       const hasTouchSupport = 
         'ontouchstart' in window ||
         navigator.maxTouchPoints > 0 ||
-        // @ts-ignore - for older browsers
-        navigator.msMaxTouchPoints > 0;
+        ('msMaxTouchPoints' in navigator && (navigator as Navigator & { msMaxTouchPoints: number }).msMaxTouchPoints > 0);
 
       setIsMobile(isMobileViewport);
       setIsTouch(hasTouchSupport);

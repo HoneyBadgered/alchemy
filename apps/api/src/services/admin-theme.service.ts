@@ -4,12 +4,22 @@
 
 import { prisma } from '../utils/prisma';
 import crypto from 'crypto';
+import type { Prisma } from '@prisma/client';
+
+export interface ColorPalette {
+  primary?: string;
+  secondary?: string;
+  accent?: string;
+  background?: string;
+  text?: string;
+  [key: string]: string | undefined;
+}
 
 export interface CreateThemeInput {
   name: string;
   description?: string;
   backgroundUrl?: string;
-  colorPalette?: any;
+  colorPalette?: ColorPalette;
   requiredLevel?: number;
   requiredQuestId?: string;
   isPremium?: boolean;
@@ -21,7 +31,7 @@ export interface UpdateThemeInput {
   name?: string;
   description?: string;
   backgroundUrl?: string;
-  colorPalette?: any;
+  colorPalette?: ColorPalette;
   requiredLevel?: number;
   requiredQuestId?: string;
   isPremium?: boolean;

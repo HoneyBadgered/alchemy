@@ -4,7 +4,7 @@
  */
 
 import Stripe from 'stripe';
-import crypto from 'crypto';
+import { randomUUID } from 'crypto';
 import { prisma } from '../utils/prisma';
 import { stripe, STRIPE_PAYMENT_SUCCESS_STATUSES } from '../utils/stripe';
 import { 
@@ -12,6 +12,7 @@ import {
   PaymentError, 
   BadRequestError 
 } from '../utils/errors';
+import type { Prisma } from '@prisma/client';
 
 export interface CreatePaymentIntentInput {
   orderId: string;
@@ -137,7 +138,7 @@ export class PaymentService {
         // Log status change
         await tx.order_status_logs.create({
           data: {
-            id: crypto.randomUUID(),
+            id: randomUUID(),
             orderId,
             fromStatus: order.status,
             toStatus: 'payment_processing',
@@ -221,9 +222,10 @@ export class PaymentService {
     let paymentIntent: Stripe.PaymentIntent;
     try {
       paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to retrieve payment intent from Stripe:', error);
-      throw new PaymentError(`Unable to retrieve payment status: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new PaymentError(`Unable to retrieve payment status: ${message}`);
     }
 
     // Update order status if payment status changed (graceful error handling)
@@ -287,7 +289,7 @@ export class PaymentService {
     let paymentIntent: Stripe.PaymentIntent;
     try {
       paymentIntent = await stripe.paymentIntents.retrieve(order.stripePaymentId);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to retrieve payment intent from Stripe:', error);
       // Return last known status instead of failing completely
       return {
@@ -381,7 +383,7 @@ export class PaymentService {
         if (newOrderStatus !== order.status) {
           await tx.order_status_logs.create({
             data: {
-              id: crypto.randomUUID(),
+              id: randomUUID(),
               orderId,
               fromStatus: order.status,
               toStatus: newOrderStatus,
@@ -417,10 +419,10 @@ export class PaymentService {
       const webhookEvent = await prisma.stripe_webhook_events.upsert({
         where: { eventId: event.id },
         create: {
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           eventId: event.id,
           eventType: event.type,
-          payload: event as any,
+          payload: JSON.parse(JSON.stringify(event)) as Prisma.InputJsonValue,
         },
         update: {},
       });
@@ -616,7 +618,7 @@ export class PaymentService {
         // Create refund record
         const newRefund = await tx.refunds.create({
           data: {
-            id: crypto.randomUUID(),
+            id: randomUUID(),
             orderId,
             stripeRefundId: stripeRefund.id,
             amount,
@@ -642,7 +644,7 @@ export class PaymentService {
           // Log status change
           await tx.order_status_logs.create({
             data: {
-              id: crypto.randomUUID(),
+              id: randomUUID(),
               orderId,
               fromStatus: order.status,
               toStatus: 'refunded',
@@ -654,7 +656,7 @@ export class PaymentService {
           // Partial refund - update status to indicate partial refund
           await tx.order_status_logs.create({
             data: {
-              id: crypto.randomUUID(),
+              id: randomUUID(),
               orderId,
               fromStatus: order.status,
               toStatus: order.status, // Keep same status

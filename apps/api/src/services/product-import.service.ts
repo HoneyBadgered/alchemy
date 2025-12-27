@@ -27,7 +27,7 @@ export interface ImportResult {
   success: boolean;
   imported: number;
   failed: number;
-  errors: Array<{ row: number; error: string; data?: any }>;
+  errors: Array<{ row: number; error: string; data?: Record<string, unknown> }>;
 }
 
 export class ProductImportService {

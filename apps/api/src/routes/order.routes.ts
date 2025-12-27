@@ -8,6 +8,18 @@ import { z } from 'zod';
 import { OrderService } from '../services/order.service';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 import { isValidSessionId, sanitizeSessionId } from '../utils/session';
+import type { Prisma } from '@prisma/client';
+
+type OrderWithDetails = Prisma.ordersGetPayload<{
+  include: {
+    order_items: {
+      include: {
+        products: true;
+      };
+    };
+    users: true;
+  };
+}>;
 
 const shippingAddressSchema = z.object({
   firstName: z.string().min(1),
@@ -188,7 +200,7 @@ export async function orderRoutes(fastify: FastifyInstance) {
 /**
  * Generate HTML receipt for an order
  */
-function generateReceiptHTML(order: any): string {
+function generateReceiptHTML(order: OrderWithDetails): string {
   const formatDate = (date: Date) => new Date(date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -325,7 +337,7 @@ function generateReceiptHTML(order: any): string {
       </tr>
     </thead>
     <tbody>
-      ${order.order_items.map((item: any) => `
+      ${order.order_items.map((item) => `
         <tr>
           <td>${item.products.name}</td>
           <td class="text-right">${item.quantity}</td>

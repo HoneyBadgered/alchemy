@@ -15,7 +15,14 @@ export default async function blogRoutes(fastify: FastifyInstance) {
         search,
         page,
         perPage 
-      } = request.query as any;
+      } = request.query as {
+        type?: string;
+        category?: string;
+        tag?: string;
+        search?: string;
+        page?: string;
+        perPage?: string;
+      };
       
       const result = await adminBlogService.getPublishedPosts({
         type,
@@ -27,8 +34,9 @@ export default async function blogRoutes(fastify: FastifyInstance) {
       });
       
       return reply.send(result);
-    } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'An error occurred';
+      return reply.status(500).send({ error: message });
     }
   });
   

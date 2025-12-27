@@ -356,7 +356,7 @@ Thank you for choosing The Alchemy Table!
       customerEmail,
       customerName: order.users?.username,
       totalAmount: Number(order.totalAmount),
-      items: order.order_items.map((item: any) => ({
+      items: order.order_items.map((item) => ({
         productName: item.products.name,
         quantity: item.quantity,
         price: Number(item.price),

@@ -6,6 +6,7 @@
 
 import { parse } from 'csv-parse/sync';
 import { prisma } from '../utils/prisma';
+import type { Prisma } from '@prisma/client';
 
 const GRAMS_PER_OUNCE = 28.3495;
 
@@ -257,7 +258,7 @@ export class IngredientImportService {
           const costPerGram = costPerOunce ? Number((costPerOunce / GRAMS_PER_OUNCE).toFixed(4)) : null;
 
           // Prepare ingredient data
-          const ingredientData: any = {
+          const ingredientData: Prisma.ingredientsCreateInput = {
             name: row.name,
             role: row.role || 'addIn',
             category: row.category,

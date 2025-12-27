@@ -132,7 +132,14 @@ fastify.register(searchRoutes);
 
 // Health check endpoint
 fastify.get('/health', async (_request, reply) => {
-  const health: any = {
+  const health: {
+    status: string;
+    timestamp: string;
+    uptime: number;
+    environment: string;
+    version: string;
+    database?: string;
+  } = {
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),

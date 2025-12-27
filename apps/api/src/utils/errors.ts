@@ -157,7 +157,7 @@ export class CartError extends BadRequestError {
 /**
  * Helper function to handle Zod validation errors
  */
-export function handleZodError(error: any): ValidationError {
+export function handleZodError(error: { errors: unknown[] }): ValidationError {
   return new ValidationError('Validation error', {
     errors: error.errors,
   });
