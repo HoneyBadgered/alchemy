@@ -14,14 +14,19 @@ This document provides a comprehensive analysis of test coverage improvements ma
 - **Integration Tests**: Minimal coverage
 
 ### After Improvements
-- **Backend API**: Added 3 new route test files + 2 integration test files
+- **Backend API**: Added 6 new test files
   - auth.routes.test.ts (18 tests)
   - order.routes.test.ts (15 tests)
+  - payment.routes.test.ts (16 tests)
+  - blend.routes.test.ts (21 tests)
   - integration-auth-flow.test.ts (7 comprehensive flow tests)
   - integration-cart-checkout.test.ts (10 comprehensive flow tests)
+  - integration-blend-flow.test.ts (12 comprehensive flow tests)
 - **Frontend Web**: Existing infrastructure maintained
 - **Mobile**: Added test infrastructure + CartContext tests (10 tests)
 - **CI/CD**: GitHub Actions workflow for coverage reporting
+
+**Total New Tests Added: 109+**
 
 ## Coverage Breakdown by Component
 
@@ -43,16 +48,16 @@ This document provides a comprehensive analysis of test coverage improvements ma
 
 #### API Routes Layer (Previously Low, Now Improved)
 - ✅ NEW: auth.routes.test.ts - 18 tests
-- ✅ NEW: order.routes.test.ts - 15 tests  
+- ✅ NEW: order.routes.test.ts - 15 tests
+- ✅ NEW: payment.routes.test.ts - 16 tests
+- ✅ NEW: blend.routes.test.ts - 21 tests
 - ⚠️ cart.routes.schema.test.ts - 1 test (schema validation only)
-- ❌ Missing: 31+ route files without dedicated tests
+- ❌ Missing: 29+ route files without dedicated tests
 
 **Recommended Additional Route Tests:**
 1. **High Priority** (Critical user flows):
-   - payment.routes.ts - Payment processing, webhooks
-   - blend.routes.ts - Custom blend creation
-   - crafting.routes.ts - Item crafting
    - catalog.routes.ts - Product browsing, search
+   - crafting.routes.ts - Item crafting
 
 2. **Medium Priority**:
    - admin-order.routes.ts - Order management
@@ -65,17 +70,17 @@ This document provides a comprehensive analysis of test coverage improvements ma
    - achievements.routes.ts - Gamification features
    - subscription.routes.ts - Subscription management
 
-**Current Route Coverage: ~9%** (3 of 34 routes)
+**Current Route Coverage: ~15%** (5 of 34 routes)
 **Target Route Coverage: 70%+** (24+ of 34 routes)
 
-#### Integration Tests (New Addition)
+#### Integration Tests (Significantly Expanded)
 - ✅ NEW: integration-auth-flow.test.ts - Complete auth journey (7 tests)
 - ✅ NEW: integration-cart-checkout.test.ts - Shopping flow (10 tests)
-- ❌ Missing: Blend creation flow
+- ✅ NEW: integration-blend-flow.test.ts - Blend creation and management (12 tests)
 - ❌ Missing: Payment processing flow
 - ❌ Missing: Admin workflows
 
-**Current Integration Coverage: ~40%** (2 of 5 key flows)
+**Current Integration Coverage: ~60%** (3 of 5 key flows)
 **Target Integration Coverage: 100%** (5 of 5 key flows)
 
 ### Frontend Web
@@ -185,8 +190,8 @@ This document provides a comprehensive analysis of test coverage improvements ma
 | Component | Current Coverage | Target | Priority | Effort |
 |-----------|-----------------|--------|----------|--------|
 | Backend Services | 85% | 85% | ✅ Met | - |
-| Backend Routes | 9% | 70% | 🔴 Critical | High |
-| Backend Integration | 40% | 100% | 🔴 Critical | Medium |
+| Backend Routes | 15% | 70% | 🟡 High | High |
+| Backend Integration | 60% | 100% | 🟡 High | Medium |
 | Frontend Components | 65% | 80% | 🟡 High | Medium |
 | Frontend Pages | 30% | 70% | 🔴 Critical | High |
 | Mobile Overall | 15% | 70% | 🔴 Critical | High |
@@ -235,10 +240,11 @@ Created `.github/workflows/test-coverage.yml` with:
 
 ### Critical Gaps Identified
 
-1. **API Routes** (9% → 70% target)
-   - Only 3 of 34 route files have tests
-   - Missing tests for payment, blend, crafting routes
-   - High risk for production bugs
+1. **API Routes** (15% → 70% target)
+   - 5 of 34 route files now have tests (was 3)
+   - Added tests for payment, blend routes
+   - Missing tests for crafting, catalog, admin routes
+   - Risk reduced but still medium-high
 
 2. **Frontend Pages** (30% → 70% target)
    - Product pages lack tests
@@ -250,9 +256,9 @@ Created `.github/workflows/test-coverage.yml` with:
    - Needs comprehensive screen tests
    - Navigation flows untested
 
-4. **Integration Tests** (40% → 100% target)
-   - Missing blend creation flow
-   - Payment processing not tested end-to-end
+4. **Integration Tests** (60% → 100% target)
+   - Blend creation flow now tested
+   - Missing payment processing end-to-end
    - Admin workflows uncovered
 
 ### Medium Priority Gaps
@@ -270,13 +276,11 @@ Created `.github/workflows/test-coverage.yml` with:
 
 ### Immediate Actions (Next Sprint)
 1. ✅ Fix pre-existing test failures (cosmetics, file-upload services)
-2. 🔴 Add tests for critical API routes:
-   - payment.routes.ts
-   - blend.routes.ts
+2. 🟡 Add tests for remaining critical API routes:
    - crafting.routes.ts
    - catalog.routes.ts
-3. 🔴 Complete integration tests:
-   - Blend creation flow
+   - cart.routes.ts (comprehensive)
+3. 🟡 Complete integration tests:
    - Payment processing flow
 
 ### Short-term (1-2 Months)
@@ -301,22 +305,25 @@ Created `.github/workflows/test-coverage.yml` with:
 - Bug detection rate in tested vs untested code
 
 ### Current Progress
-- ✅ 60+ new tests added
+- ✅ 109+ new tests added
 - ✅ Mobile test infrastructure established
 - ✅ CI/CD coverage reporting implemented
 - ✅ Integration test patterns established
-- ⚠️ Route coverage still low (9%)
+- ✅ Payment route tests added
+- ✅ Blend route tests added
+- ✅ Blend creation flow integration test added
+- ⚠️ Route coverage improved to 15% (target: 70%)
 - ⚠️ Frontend page coverage needs improvement
 
 ## Conclusion
 
 Significant progress has been made in establishing test infrastructure and adding critical tests:
-- **Backend**: Strong service layer coverage, new route and integration tests added
+- **Backend**: Strong service layer coverage, route coverage improved to 15%, comprehensive integration tests
 - **Frontend**: Good component coverage, needs page coverage
 - **Mobile**: Infrastructure now in place, needs expansion
 - **CI/CD**: Automated coverage reporting operational
 
-The project is well-positioned to reach 80% coverage targets with focused effort on API routes, frontend pages, and mobile screens over the next 2-3 months.
+The project has made substantial progress toward 80% coverage targets with focused effort on API routes. With 109+ new tests added, route coverage has improved from 9% to 15%, and integration test coverage has reached 60%. The remaining work focuses on catalog, crafting, admin routes, and frontend pages.
 
 ### Next Steps
 1. Review and merge this PR
