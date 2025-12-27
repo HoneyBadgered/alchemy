@@ -140,7 +140,7 @@ Reply to: ${data.email}
 
   if (process.env.NODE_ENV === 'development') {
     console.log('Admin notification sent:', info.messageId);
-    if (info.response && typeof info.response === 'object' && 'toString' in info.response) {
+    if (info.response?.toString) {
       console.log('Preview:', info.response.toString());
     }
   }
@@ -209,7 +209,7 @@ If you have any urgent concerns, please call us at (555) 123-4567.
 
   if (process.env.NODE_ENV === 'development') {
     console.log('User confirmation sent:', info.messageId);
-    if (info.response && typeof info.response === 'object' && 'toString' in info.response) {
+    if (info.response?.toString) {
       console.log('Preview:', info.response.toString());
     }
   }

@@ -65,7 +65,7 @@ export class EmailService {
 
       if (config.isDevelopment) {
         console.log('Email sent:', info.messageId);
-        if (info.response && typeof info.response === 'object' && 'toString' in info.response) {
+        if (info.response?.toString) {
           console.log('Preview:', info.response.toString());
         }
       }
