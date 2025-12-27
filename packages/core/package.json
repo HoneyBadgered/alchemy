@@ -7,11 +7,13 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "prepare": "npm run build",
     "dev": "tsc --watch",
     "type-check": "tsc --noEmit",
     "test": "jest",
     "clean": "rm -rf dist tsconfig.tsbuildinfo"
+  },
+  "dependencies": {
+    "@alchemy/types": "workspace:*"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",

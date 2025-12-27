@@ -5,6 +5,8 @@ A gamified e-commerce platform for building blends at an alchemy table
 
 This project uses **pnpm workspaces** to manage multiple packages in a monorepo. All packages are orchestrated using [Turborepo](https://turbo.build/repo) for efficient builds and caching.
 
+📘 **For comprehensive monorepo development guide, see [MONOREPO.md](MONOREPO.md)**
+
 ### Workspaces
 
 #### Apps
@@ -13,6 +15,7 @@ This project uses **pnpm workspaces** to manage multiple packages in a monorepo.
 - **`@alchemy/mobile`** - React Native mobile app (Expo)
 
 #### Packages
+- **`@alchemy/types`** - Centralized TypeScript type definitions (NEW!)
 - **`@alchemy/core`** - Shared core game logic
 - **`@alchemy/ui`** - Design system and UI components
 - **`@alchemy/sdk`** - Typed API client
@@ -171,10 +174,163 @@ pnpm --filter @alchemy/web add <package>
 
 ## 📦 Workspace Benefits
 
+- **Centralized Types**: Shared TypeScript types in `@alchemy/types` eliminate duplication
 - **Dependency hoisting**: Shared dependencies are installed once at the root
 - **Cross-package references**: Packages can reference each other using workspace protocol
-- **Efficient builds**: Turborepo caches and parallelizes builds
+- **Efficient builds**: Turborepo caches and parallelizes builds with smart dependency tracking
 - **Consistent versions**: Ensures dependency version consistency across packages
+- **Type Safety**: End-to-end type safety from API to frontend apps
+
+### Working with Workspaces
+
+```bash
+# Run commands in a specific workspace
+pnpm --filter @alchemy/web run dev
+pnpm --filter @alchemy/core run build
+pnpm --filter @alchemy/api run test
+
+# Install a dependency in a specific workspace
+pnpm --filter @alchemy/web add <package>
+
+# Type-check all packages
+pnpm run type-check
+
+# Build with visualization
+pnpm run graph
+```
+
+## 📧 Email Service Configuration
+
+The application includes a comprehensive email service for:
+- Contact form submissions (web)
+- User registration verification
+- Password reset workflows
+- Order and shipment notifications
+- Admin alerts and system messages
+
+### Email Service Setup
+
+The email service uses **nodemailer** with SMTP configuration. Both local and production environments support email delivery.
+
+#### Configuration
+
+Email settings are configured via environment variables in your `.env` file:
+
+```env
+# Email Configuration (SMTP)
+EMAIL_FROM=noreply@alchemytable.com
+EMAIL_HOST=smtp.example.com
+EMAIL_PORT=587
+EMAIL_SECURE=true
+EMAIL_USER=your-email@example.com
+EMAIL_PASS=your-email-password
+
+# Admin Email (receives contact form submissions and system alerts)
+ADMIN_EMAIL=support@alchemytable.com
+```
+
+#### SMTP Provider Options
+
+You can use any SMTP provider. Popular options include:
+
+1. **Gmail** (for development/testing)
+   ```env
+   EMAIL_HOST=smtp.gmail.com
+   EMAIL_PORT=587
+   EMAIL_SECURE=true
+   EMAIL_USER=your-email@gmail.com
+   EMAIL_PASS=your-app-password
+   ```
+   Note: Use an [App Password](https://support.google.com/accounts/answer/185833) instead of your regular password.
+
+2. **SendGrid**
+   ```env
+   EMAIL_HOST=smtp.sendgrid.net
+   EMAIL_PORT=587
+   EMAIL_USER=apikey
+   EMAIL_PASS=your-sendgrid-api-key
+   ```
+
+3. **Mailgun**
+   ```env
+   EMAIL_HOST=smtp.mailgun.org
+   EMAIL_PORT=587
+   EMAIL_USER=your-mailgun-username
+   EMAIL_PASS=your-mailgun-password
+   ```
+
+4. **Amazon SES**
+   ```env
+   EMAIL_HOST=email-smtp.us-east-1.amazonaws.com
+   EMAIL_PORT=587
+   EMAIL_USER=your-ses-smtp-username
+   EMAIL_PASS=your-ses-smtp-password
+   ```
+
+5. **Postfix (Self-Hosted)**
+   ```env
+   EMAIL_HOST=localhost
+   EMAIL_PORT=25
+   EMAIL_SECURE=false
+   # No auth required for local Postfix
+   ```
+
+#### Email Features
+
+- **Contact Form**: Sends notification to admin and confirmation to user
+- **User Verification**: Sends verification link to new users (24-hour expiry)
+- **Password Reset**: Sends password reset link (1-hour expiry)
+- **Order Notifications**: Confirmation, shipping, and delivery notifications
+- **Error Handling**: Comprehensive logging and graceful degradation
+- **Development Mode**: Falls back to console logging if no SMTP configured
+
+#### Testing Email Service
+
+Test the email service using the included test script:
+
+```bash
+cd apps/api
+npx tsx src/scripts/test-email.ts your-email@example.com
+```
+
+This will send test emails for:
+- Order confirmation
+- Shipping notification
+- Delivery notification
+
+#### Production Security
+
+For production deployments, ensure:
+
+1. **SPF Record**: Add SPF record to your domain's DNS
+   ```
+   v=spf1 include:_spf.your-provider.com ~all
+   ```
+
+2. **DKIM**: Configure DKIM signing with your email provider
+
+3. **Reverse DNS**: Ensure your server's IP has proper reverse DNS (PTR record)
+
+4. **Rate Limiting**: Email sending is logged and monitored
+
+5. **Secure Credentials**: Use environment variables, never commit credentials
+
+6. **TLS/SSL**: Use `EMAIL_SECURE=true` for ports 465 or 587 with STARTTLS
+
+#### Troubleshooting
+
+**Emails not sending?**
+- Check environment variables are set correctly
+- Verify SMTP credentials with your provider
+- Check firewall/security group allows outbound SMTP ports (25, 587, 465)
+- Review console logs for error messages
+- Test SMTP connection: `telnet smtp.example.com 587`
+
+**Emails going to spam?**
+- Configure SPF, DKIM, and DMARC records
+- Use a reputable SMTP provider
+- Ensure reverse DNS is configured
+- Avoid spam trigger words in email content
 
 ## ✨ Key Features
 
