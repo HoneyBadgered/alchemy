@@ -120,7 +120,7 @@ jobs:
             }
             
             comment += '\n---\n';
-            comment += '*Coverage report is available in the workflow artifacts*';
+            comment += '*Coverage report is available in the workflow artifact*';
             
             github.rest.issues.createComment({
               issue_number: context.issue.number,
