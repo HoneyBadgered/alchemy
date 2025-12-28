@@ -27,11 +27,9 @@ describe('Ingredients', () => {
         expect(ingredient).toHaveProperty('id');
         expect(ingredient).toHaveProperty('name');
         expect(ingredient).toHaveProperty('category');
-        expect(ingredient).toHaveProperty('isBase');
         expect(typeof ingredient.id).toBe('string');
         expect(typeof ingredient.name).toBe('string');
         expect(typeof ingredient.category).toBe('string');
-        expect(typeof ingredient.isBase).toBe('boolean');
       });
     });
 
@@ -41,22 +39,22 @@ describe('Ingredients', () => {
       expect(ids.length).toBe(uniqueIds.size);
     });
 
-    it('should have base teas with isBase=true', () => {
+    it('should have base teas in base category', () => {
       const baseTeas = INGREDIENTS.filter(ing => ing.category === 'base');
       baseTeas.forEach(tea => {
-        expect(tea.isBase).toBe(true);
+        expect(tea.category).toBe('base');
       });
     });
 
-    it('should have add-ins with isBase=false', () => {
+    it('should have add-ins in non-base categories', () => {
       const addIns = INGREDIENTS.filter(ing => ing.category !== 'base');
       addIns.forEach(addIn => {
-        expect(addIn.isBase).toBe(false);
+        expect(addIn.category).not.toBe('base');
       });
     });
 
     it('should have add-ins with baseAmount and incrementAmount', () => {
-      const addIns = INGREDIENTS.filter(ing => !ing.isBase);
+      const addIns = INGREDIENTS.filter(ing => ing.category !== 'base');
       addIns.forEach(addIn => {
         expect(addIn.baseAmount).toBeDefined();
         expect(addIn.incrementAmount).toBeDefined();
@@ -110,7 +108,7 @@ describe('Ingredients', () => {
         id: 'test',
         name: 'Test',
         category: 'floral' as const,
-        isBase: false,
+        
         baseAmount: 3,
       };
       expect(getIngredientIncrementAmount(mockIngredient)).toBe(3);
@@ -142,7 +140,6 @@ describe('Ingredients', () => {
       expect(baseTeas.length).toBeGreaterThan(0);
       baseTeas.forEach(tea => {
         expect(tea.category).toBe('base');
-        expect(tea.isBase).toBe(true);
       });
     });
 
@@ -151,7 +148,6 @@ describe('Ingredients', () => {
       expect(florals.length).toBeGreaterThan(0);
       florals.forEach(ing => {
         expect(ing.category).toBe('floral');
-        expect(ing.isBase).toBe(false);
       });
     });
 
@@ -191,7 +187,6 @@ describe('Ingredients', () => {
       const baseTeas = getBaseTeas();
       expect(baseTeas.length).toBeGreaterThan(0);
       baseTeas.forEach(tea => {
-        expect(tea.isBase).toBe(true);
         expect(tea.category).toBe('base');
       });
     });
@@ -207,7 +202,7 @@ describe('Ingredients', () => {
       const addIns = getAddIns();
       expect(addIns.length).toBeGreaterThan(0);
       addIns.forEach(addIn => {
-        expect(addIn.isBase).toBe(false);
+        expect(addIn.category).not.toBe('base');
       });
     });
 

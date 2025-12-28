@@ -36,7 +36,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Light and refreshing base',
     tags: ['antioxidant', 'energizing'],
     emoji: '🍵',
-    isBase: true,
+    
   },
   {
     id: 'black-tea',
@@ -45,7 +45,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Bold and robust base',
     tags: ['strong', 'classic'],
     emoji: '☕',
-    isBase: true,
+    
   },
   {
     id: 'white-tea',
@@ -54,7 +54,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Delicate and subtle base',
     tags: ['mild', 'premium'],
     emoji: '🫖',
-    isBase: true,
+    
   },
   {
     id: 'oolong-tea',
@@ -63,7 +63,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Balanced and complex base',
     tags: ['traditional', 'aromatic'],
     emoji: '🍃',
-    isBase: true,
+    
   },
 
   // Floral Add-ins
@@ -74,7 +74,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Calming floral notes',
     tags: ['relaxing', 'aromatic'],
     emoji: '🌸',
-    isBase: false,
+    
     baseAmount: 2,
     incrementAmount: 1,
   },
@@ -85,7 +85,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Soothing and gentle',
     tags: ['calming', 'bedtime'],
     emoji: '🌼',
-    isBase: false,
+    
     baseAmount: 3,
     incrementAmount: 1,
   },
@@ -96,7 +96,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Elegant and fragrant',
     tags: ['romantic', 'luxurious'],
     emoji: '🌹',
-    isBase: false,
+    
     baseAmount: 2,
     incrementAmount: 0.5,
   },
@@ -107,7 +107,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Tart and vibrant',
     tags: ['tangy', 'colorful'],
     emoji: '🌺',
-    isBase: false,
+    
     baseAmount: 3,
     incrementAmount: 1,
   },
@@ -120,7 +120,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Bright and citrusy',
     tags: ['refreshing', 'zesty'],
     emoji: '🍋',
-    isBase: false,
+    
     baseAmount: 2,
     incrementAmount: 1,
   },
@@ -131,7 +131,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Sweet citrus notes',
     tags: ['uplifting', 'sweet'],
     emoji: '🍊',
-    isBase: false,
+    
     baseAmount: 3,
     incrementAmount: 1,
   },
@@ -142,7 +142,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Mixed berries blend',
     tags: ['fruity', 'antioxidant'],
     emoji: '🫐',
-    isBase: false,
+    
     baseAmount: 5,
     incrementAmount: 2,
   },
@@ -153,7 +153,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Sweet and crisp',
     tags: ['comforting', 'mild'],
     emoji: '🍎',
-    isBase: false,
+    
     baseAmount: 4,
     incrementAmount: 2,
   },
@@ -166,7 +166,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Cool and invigorating',
     tags: ['refreshing', 'digestive'],
     emoji: '🌿',
-    isBase: false,
+    
     baseAmount: 2,
     incrementAmount: 1,
   },
@@ -177,7 +177,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Warming and spicy',
     tags: ['warming', 'energizing'],
     emoji: '🫚',
-    isBase: false,
+    
     baseAmount: 2,
     incrementAmount: 0.5,
   },
@@ -188,7 +188,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Fresh and citrusy',
     tags: ['cleansing', 'aromatic'],
     emoji: '🌾',
-    isBase: false,
+    
     baseAmount: 3,
     incrementAmount: 1,
   },
@@ -199,7 +199,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Immune support',
     tags: ['wellness', 'earthy'],
     emoji: '🌻',
-    isBase: false,
+    
     baseAmount: 2,
     incrementAmount: 1,
   },
@@ -212,7 +212,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Warm and sweet',
     tags: ['cozy', 'sweet'],
     emoji: '🪵',
-    isBase: false,
+    
     baseAmount: 1,
     incrementAmount: 0.5,
   },
@@ -223,7 +223,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Aromatic and complex',
     tags: ['exotic', 'warming'],
     emoji: '🫘',
-    isBase: false,
+    
     baseAmount: 1,
     incrementAmount: 0.5,
   },
@@ -234,7 +234,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Sweet and creamy',
     tags: ['dessert', 'smooth'],
     emoji: '🍦',
-    isBase: false,
+    
     baseAmount: 1,
     incrementAmount: 0.5,
   },
@@ -245,7 +245,7 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Bold and aromatic',
     tags: ['intense', 'warming'],
     emoji: '🌰',
-    isBase: false,
+    
     baseAmount: 0.5,
     incrementAmount: 0.25,
   },
@@ -259,7 +259,7 @@ export const INGREDIENTS: Ingredient[] = [
     tags: ['sweet', 'soothing'],
     badges: ['Rare'],
     emoji: '🍯',
-    isBase: false,
+    
     baseAmount: 2,
     incrementAmount: 1,
   },
@@ -271,7 +271,7 @@ export const INGREDIENTS: Ingredient[] = [
     tags: ['magical', 'visual'],
     badges: ['Epic'],
     emoji: '🦋',
-    isBase: false,
+    
     baseAmount: 1,
     incrementAmount: 0.5,
   },
@@ -283,7 +283,7 @@ export const INGREDIENTS: Ingredient[] = [
     tags: ['energizing', 'premium'],
     badges: ['Premium'],
     emoji: '🍃✨',
-    isBase: false,
+    
     baseAmount: 1,
     incrementAmount: 0.5,
   },
@@ -295,7 +295,7 @@ export const INGREDIENTS: Ingredient[] = [
     tags: ['aesthetic', 'elegant'],
     badges: ['Rare'],
     emoji: '🌸✨',
-    isBase: false,
+    
     baseAmount: 1,
     incrementAmount: 0.5,
   },
@@ -319,14 +319,14 @@ export function getIngredientById(id: string): Ingredient | undefined {
  * Get all base teas
  */
 export function getBaseTeas(): Ingredient[] {
-  return INGREDIENTS.filter(ing => ing.isBase);
+  return INGREDIENTS.filter(ing => ing.category === 'base');
 }
 
 /**
  * Get all add-ins
  */
 export function getAddIns(): Ingredient[] {
-  return INGREDIENTS.filter(ing => !ing.isBase);
+  return INGREDIENTS.filter(ing => ing.category !== 'base');
 }
 
 /**

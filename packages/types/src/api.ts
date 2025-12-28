@@ -48,7 +48,6 @@ export interface BlendingIngredient {
   description: string;
   shortTags: string[];
   emoji: string;
-  isBase: boolean;
   costPerOz: number;
   tier: 'standard' | 'premium';
   flavorProfile: {

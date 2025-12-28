@@ -28,7 +28,7 @@ export const MOCK_BASES: BlendingIngredient[] = [
     description: 'Bold and robust black tea with malty undertones',
     shortTags: ['Black', 'Medium Caffeine', 'Malty'],
     emoji: '🌙',
-    isBase: true,
+    
     costPerOz: 1.50,
     tier: 'standard',
     flavorProfile: { floral: 10, citrus: 5, earthy: 40, sweet: 20, caffeine: 70 },
@@ -41,7 +41,7 @@ export const MOCK_BASES: BlendingIngredient[] = [
     description: 'Light and refreshing green tea with grassy notes',
     shortTags: ['Green', 'Low Caffeine', 'Grassy'],
     emoji: '🐉',
-    isBase: true,
+    
     costPerOz: 2.00,
     tier: 'standard',
     flavorProfile: { floral: 20, citrus: 15, earthy: 30, sweet: 15, caffeine: 40 },
@@ -54,7 +54,7 @@ export const MOCK_BASES: BlendingIngredient[] = [
     description: 'Delicate white tea with subtle sweetness',
     shortTags: ['White', 'Low Caffeine', 'Delicate'],
     emoji: '✨',
-    isBase: true,
+    
     costPerOz: 3.50,
     tier: 'premium',
     flavorProfile: { floral: 35, citrus: 10, earthy: 15, sweet: 30, caffeine: 25 },
@@ -67,7 +67,7 @@ export const MOCK_BASES: BlendingIngredient[] = [
     description: 'Complex oolong with roasted and floral notes',
     shortTags: ['Oolong', 'Medium Caffeine', 'Complex'],
     emoji: '🌅',
-    isBase: true,
+    
     costPerOz: 2.50,
     tier: 'standard',
     flavorProfile: { floral: 40, citrus: 10, earthy: 35, sweet: 25, caffeine: 50 },
@@ -80,7 +80,7 @@ export const MOCK_BASES: BlendingIngredient[] = [
     description: 'Caffeine-free South African red bush tea',
     shortTags: ['Herbal', 'No Caffeine', 'Earthy'],
     emoji: '🍂',
-    isBase: true,
+    
     costPerOz: 1.25,
     tier: 'standard',
     flavorProfile: { floral: 15, citrus: 5, earthy: 50, sweet: 35, caffeine: 0 },
@@ -100,7 +100,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     description: 'Delicate and romantic floral notes',
     shortTags: ['Floral', 'Sweet'],
     emoji: '🌹',
-    isBase: false,
+    
     baseAmount: 0.25,
     incrementAmount: 0.25,
     costPerOz: 4.00,
@@ -115,7 +115,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     description: 'Calming and aromatic purple flowers',
     shortTags: ['Floral', 'Calming'],
     emoji: '💜',
-    isBase: false,
+    
     baseAmount: 0.25,
     incrementAmount: 0.25,
     costPerOz: 3.50,
@@ -130,7 +130,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     description: 'Sweet and intensely fragrant',
     shortTags: ['Floral', 'Intense'],
     emoji: '🤍',
-    isBase: false,
+    
     baseAmount: 0.25,
     incrementAmount: 0.25,
     costPerOz: 5.00,
@@ -147,7 +147,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     description: 'Bright and zesty citrus notes',
     shortTags: ['Citrus', 'Zesty'],
     emoji: '🍊',
-    isBase: false,
+    
     baseAmount: 0.25,
     incrementAmount: 0.25,
     costPerOz: 2.00,
@@ -162,7 +162,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     description: 'Sharp and refreshing citrus',
     shortTags: ['Citrus', 'Tart'],
     emoji: '🍋',
-    isBase: false,
+    
     baseAmount: 0.25,
     incrementAmount: 0.25,
     costPerOz: 2.00,
@@ -177,7 +177,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     description: 'Sweet and fruity berry blend',
     shortTags: ['Fruity', 'Sweet'],
     emoji: '🫐',
-    isBase: false,
+    
     baseAmount: 0.5,
     incrementAmount: 0.25,
     costPerOz: 3.00,
@@ -194,7 +194,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     description: 'Warm and comforting spice',
     shortTags: ['Spicy', 'Warm'],
     emoji: '🪵',
-    isBase: false,
+    
     baseAmount: 0.25,
     incrementAmount: 0.25,
     costPerOz: 2.50,
@@ -209,7 +209,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     description: 'Spicy and invigorating',
     shortTags: ['Spicy', 'Warming'],
     emoji: '🫚',
-    isBase: false,
+    
     baseAmount: 0.25,
     incrementAmount: 0.25,
     costPerOz: 2.50,
@@ -224,7 +224,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     description: 'Rich and creamy sweetness',
     shortTags: ['Sweet', 'Creamy'],
     emoji: '🍦',
-    isBase: false,
+    
     baseAmount: 0.25,
     incrementAmount: 0.25,
     costPerOz: 8.00,
@@ -239,7 +239,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     description: 'Exotic and aromatic',
     shortTags: ['Spicy', 'Exotic'],
     emoji: '🫘',
-    isBase: false,
+    
     baseAmount: 0.25,
     incrementAmount: 0.25,
     costPerOz: 6.00,
@@ -256,7 +256,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     description: 'Cool and refreshing mint',
     shortTags: ['Minty', 'Cool'],
     emoji: '🌿',
-    isBase: false,
+    
     baseAmount: 0.25,
     incrementAmount: 0.25,
     costPerOz: 2.00,
@@ -271,7 +271,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     description: 'Soothing and calming',
     shortTags: ['Calming', 'Gentle'],
     emoji: '🌼',
-    isBase: false,
+    
     baseAmount: 0.5,
     incrementAmount: 0.25,
     costPerOz: 2.50,
@@ -289,7 +289,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     shortTags: ['Magical', 'Color-Changing'],
     badges: ['Premium'],
     emoji: '🦋',
-    isBase: false,
+    
     baseAmount: 0.25,
     incrementAmount: 0.25,
     costPerOz: 10.00,
@@ -305,7 +305,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     shortTags: ['Energizing', 'Earthy'],
     badges: ['Premium'],
     emoji: '🍵',
-    isBase: false,
+    
     baseAmount: 0.25,
     incrementAmount: 0.25,
     costPerOz: 12.00,
@@ -321,7 +321,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     shortTags: ['Luxurious', 'Decorative'],
     badges: ['Ultra'],
     emoji: '✨',
-    isBase: false,
+    
     baseAmount: 0.1,
     incrementAmount: 0.05,
     costPerOz: 50.00,

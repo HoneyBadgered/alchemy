@@ -392,11 +392,6 @@ export default function BulkIngredientImportPage() {
                 <td className="px-4 py-2">Comma-separated badges (e.g., organic,premium)</td>
               </tr>
               <tr>
-                <td className="px-4 py-2 font-mono text-xs">isBase</td>
-                <td className="px-4 py-2">No</td>
-                <td className="px-4 py-2">true or false (default: false)</td>
-              </tr>
-              <tr>
                 <td className="px-4 py-2 font-mono text-xs">baseAmount</td>
                 <td className="px-4 py-2">No</td>
                 <td className="px-4 py-2">Base amount in grams</td>

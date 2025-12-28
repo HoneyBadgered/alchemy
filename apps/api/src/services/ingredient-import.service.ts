@@ -36,7 +36,6 @@ interface IngredientRow {
   emoji?: string;
   tags?: string;
   badges?: string;
-  isBase?: string;
   baseAmount?: string;
   incrementAmount?: string;
 }
@@ -72,7 +71,6 @@ export class IngredientImportService {
       'emoji',
       'tags',
       'badges',
-      'isBase',
       'baseAmount',
       'incrementAmount',
     ];
@@ -103,7 +101,6 @@ export class IngredientImportService {
       '🌼',
       'relaxing,bedtime,caffeine-free',
       'organic,premium',
-      'false',
       '',
       '',
     ];
@@ -186,11 +183,6 @@ export class IngredientImportService {
         // Validate caffeine level
         if (row.caffeineLevel && !['none', 'low', 'medium', 'high'].includes(row.caffeineLevel)) {
           errors.push(`Row ${rowNum}: caffeineLevel must be 'none', 'low', 'medium', or 'high'`);
-        }
-
-        // Validate boolean
-        if (row.isBase && !['true', 'false', ''].includes(row.isBase.toLowerCase())) {
-          errors.push(`Row ${rowNum}: isBase must be 'true' or 'false'`);
         }
 
         // Validate image URL if provided
@@ -285,7 +277,6 @@ export class IngredientImportService {
             emoji: row.emoji || null,
             tags,
             badges,
-            isBase: row.isBase ? row.isBase.toLowerCase() === 'true' : false,
             baseAmount: row.baseAmount ? Number(row.baseAmount) : null,
             incrementAmount: row.incrementAmount ? Number(row.incrementAmount) : null,
           };

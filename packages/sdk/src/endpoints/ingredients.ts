@@ -24,7 +24,6 @@ export class IngredientsEndpoints {
    */
   async getIngredients(params?: {
     category?: string;
-    isBase?: boolean;
   }): Promise<GetIngredientsResponse> {
     return this.http.get<GetIngredientsResponse>('/ingredients', { params });
   }

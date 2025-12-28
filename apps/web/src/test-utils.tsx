@@ -26,7 +26,7 @@ export function createMockIngredient(overrides?: Partial<any>) {
     id: 'test-ingredient',
     name: 'Test Ingredient',
     category: 'addIn',
-    isBase: false,
+    
     baseAmount: 2,
     incrementAmount: 1,
     flavorProfile: {

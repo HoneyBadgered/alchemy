@@ -16,10 +16,6 @@ const ingredientFiltersSchema = z.object({
   page: z.coerce.number().positive().default(1).optional(),
   perPage: z.coerce.number().positive().max(100).default(50).optional(),
   category: z.string().optional(),
-  isBase: z.preprocess(
-    (val) => val === 'true' ? true : val === 'false' ? false : undefined,
-    z.boolean().optional()
-  ),
   search: z.string().optional(),
   caffeineLevel: z.enum(['none', 'low', 'medium', 'high']).optional(),
   status: z.enum(['active', 'archived', 'outOfStock']).optional(),
@@ -69,7 +65,6 @@ const createIngredientSchema = z.object({
   emoji: z.string().optional(),
   tags: z.array(z.string()).optional().default([]),
   badges: z.array(z.string()).optional().default([]),
-  isBase: z.boolean().optional().default(false),
   baseAmount: z.number().positive().optional(),
   incrementAmount: z.number().positive().optional(),
 });

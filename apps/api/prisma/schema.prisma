@@ -159,7 +159,6 @@ model ingredients {
   emoji                                                                   String?
   tags                                                                    String[]              @default([])
   badges                                                                  String[]              @default([])
-  isBase                                                                  Boolean               @default(false)
   baseAmount                                                              Decimal?              @db.Decimal(10, 2)
   incrementAmount                                                         Decimal?              @db.Decimal(10, 2)
   createdAt                                                               DateTime              @default(now())

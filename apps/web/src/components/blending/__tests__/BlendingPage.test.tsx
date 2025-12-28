@@ -25,7 +25,7 @@ const mockBases = [
     description: 'Light and refreshing green tea',
     shortTags: ['Green', 'Low Caffeine'],
     emoji: '🍵',
-    isBase: true,
+    
     baseAmount: 10,
     incrementAmount: 5,
     costPerOz: 2.00,
@@ -40,7 +40,7 @@ const mockBases = [
     description: 'Bold and robust black tea',
     shortTags: ['Black', 'Medium Caffeine'],
     emoji: '☕',
-    isBase: true,
+    
     baseAmount: 10,
     incrementAmount: 5,
     costPerOz: 1.50,
@@ -58,7 +58,7 @@ const mockAddIns = [
     description: 'Fragrant lavender flowers',
     shortTags: ['Floral'],
     emoji: '💜',
-    isBase: false,
+    
     baseAmount: 2,
     incrementAmount: 1,
     costPerOz: 8.00,
@@ -73,7 +73,7 @@ const mockAddIns = [
     description: 'Spicy ginger root',
     shortTags: ['Spicy'],
     emoji: '🫚',
-    isBase: false,
+    
     baseAmount: 2,
     incrementAmount: 1,
     costPerOz: 5.00,
@@ -88,7 +88,7 @@ const mockAddIns = [
     description: 'Bright lemon peel',
     shortTags: ['Citrus'],
     emoji: '🍋',
-    isBase: false,
+    
     baseAmount: 2,
     incrementAmount: 1,
     costPerOz: 4.00,

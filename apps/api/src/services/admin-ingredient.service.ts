@@ -22,7 +22,6 @@ export interface IngredientFilters {
   page?: number;
   perPage?: number;
   category?: IngredientCategory | string;
-  isBase?: boolean;
   search?: string;
   caffeineLevel?: string;
   status?: string;
@@ -69,7 +68,6 @@ export interface CreateIngredientInput {
   emoji?: string;
   tags?: string[];
   badges?: string[];
-  isBase?: boolean;
   baseAmount?: number;
   incrementAmount?: number;
 }
@@ -102,7 +100,6 @@ export class AdminIngredientService {
       page = 1,
       perPage = 50,
       category,
-      isBase,
       search,
       caffeineLevel,
       status,
@@ -129,10 +126,6 @@ export class AdminIngredientService {
 
     if (category) {
       where.category = category;
-    }
-
-    if (isBase !== undefined) {
-      where.isBase = isBase;
     }
 
     if (caffeineLevel) {
@@ -252,7 +245,7 @@ export class AdminIngredientService {
    * Get all add-ins (non-base ingredients)
    */
   async getAddIns() {
-    const result = await this.getIngredients({ isBase: false, perPage: 1000 });
+    const result = await this.getIngredients({ category: 'addIn', perPage: 1000 });
     return result.ingredients;
   }
 
@@ -268,9 +261,7 @@ export class AdminIngredientService {
     const minimumStockLevel = data.minimumStockLevel ?? 0;
     const calculatedStatus = data.status || calculateInventoryStatus(inventoryAmount, minimumStockLevel);
 
-    // Automatically set isBase based on role if not explicitly provided
     const role = data.role || 'addIn';
-    const isBase = data.isBase ?? (role === 'base' || role === 'either');
 
     const ingredient = await prisma.ingredients.create({
       data: {
@@ -306,7 +297,6 @@ export class AdminIngredientService {
         emoji: data.emoji,
         tags: data.tags || [],
         badges: data.badges || [],
-        isBase,
         baseAmount: data.baseAmount,
         incrementAmount: data.incrementAmount,
         updatedAt: new Date(),
@@ -361,16 +351,10 @@ export class AdminIngredientService {
     // Build update data, excluding pairings (handled separately)
     const { pairings, ...updateData } = data;
     
-    // Automatically set isBase based on role if role is being updated
-    const finalUpdateData = { ...updateData };
-    if (data.role !== undefined && data.isBase === undefined) {
-      finalUpdateData.isBase = data.role === 'base' || data.role === 'either';
-    }
-    
     const ingredient = await prisma.ingredients.update({
       where: { id },
       data: {
-        ...finalUpdateData,
+        ...updateData,
         ...(costPerGram !== undefined && { costPerGram }),
         ...(calculatedStatus && { status: calculatedStatus }),
       },
@@ -528,17 +512,16 @@ export class AdminIngredientService {
         data: {
           id: crypto.randomUUID(),
           name: ing.name,
-          role: ing.isBase ? 'base' : 'addIn',
+          role: ing.category === 'base' ? 'base' : 'addIn',
           category: ing.category,
           descriptionShort: ing.description,
           emoji: ing.emoji,
           tags: ing.tags || [],
           badges: ing.badges || [],
-          isBase: ing.isBase ?? false,
           baseAmount: ing.baseAmount,
           incrementAmount: ing.incrementAmount,
           status: 'active',
-          caffeineLevel: ing.isBase ? 'medium' : 'none',
+          caffeineLevel: ing.category === 'base' ? 'medium' : 'none',
           updatedAt: new Date(),
         },
       });

@@ -44,7 +44,6 @@ interface Ingredient {
   emoji?: string;
   tags?: string[];
   badges?: string[];
-  isBase?: boolean;
   baseAmount?: number;
   incrementAmount?: number;
   pairings?: { id: string; name: string; category: string; emoji?: string }[];
@@ -245,9 +244,6 @@ export default function AdminIngredientsPage() {
       if (formData.caffeineLevel) payload.caffeineLevel = formData.caffeineLevel;
       if (formData.role) payload.role = formData.role;
       
-      // Handle boolean
-      if (typeof formData.isBase === 'boolean') payload.isBase = formData.isBase;
-      
       // Handle numbers
       if (formData.costPerOunce !== undefined && formData.costPerOunce !== null) {
         payload.costPerOunce = typeof formData.costPerOunce === 'string' 
@@ -398,7 +394,6 @@ export default function AdminIngredientsPage() {
       emoji: ingredient.emoji,
       tags: ingredient.tags,
       badges: ingredient.badges,
-      isBase: ingredient.isBase,
       baseAmount: ingredient.baseAmount,
       incrementAmount: ingredient.incrementAmount,
     });

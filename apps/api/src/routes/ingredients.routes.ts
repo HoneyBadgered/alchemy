@@ -12,10 +12,6 @@ import { BlendingIngredientsService } from '../services/blending-ingredients.ser
 // Validation schemas
 const getIngredientsQuerySchema = z.object({
   category: z.string().optional(),
-  isBase: z.preprocess(
-    (val) => val === 'true' ? true : val === 'false' ? false : undefined,
-    z.boolean().optional()
-  ),
   status: z.enum(['active', 'archived', 'outOfStock']).optional().default('active'),
 });
 

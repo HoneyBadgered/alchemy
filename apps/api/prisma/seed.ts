@@ -341,7 +341,7 @@ async function main() {
       inventoryAmount: 100,
       minimumStockLevel: 20,
       status: 'active',
-      isBase: true,
+      
       tags: ['black-tea', 'caffeinated', 'base'],
     },
     {
@@ -361,7 +361,7 @@ async function main() {
       inventoryAmount: 80,
       minimumStockLevel: 15,
       status: 'active',
-      isBase: true,
+      
       tags: ['green-tea', 'caffeinated', 'base'],
     },
     {
@@ -381,7 +381,7 @@ async function main() {
       inventoryAmount: 50,
       minimumStockLevel: 10,
       status: 'active',
-      isBase: true,
+      
       tags: ['white-tea', 'low-caffeine', 'premium', 'base'],
     },
     {
@@ -401,7 +401,7 @@ async function main() {
       inventoryAmount: 60,
       minimumStockLevel: 12,
       status: 'active',
-      isBase: true,
+      
       tags: ['oolong-tea', 'caffeinated', 'base'],
     },
     {
@@ -421,7 +421,7 @@ async function main() {
       inventoryAmount: 90,
       minimumStockLevel: 18,
       status: 'active',
-      isBase: true,
+      
       tags: ['rooibos', 'caffeine-free', 'herbal', 'base'],
     },
 
@@ -440,7 +440,7 @@ async function main() {
       inventoryAmount: 40,
       minimumStockLevel: 8,
       status: 'active',
-      isBase: false,
+      
       tags: ['botanical', 'floral', 'calming'],
     },
     {
@@ -457,7 +457,7 @@ async function main() {
       inventoryAmount: 35,
       minimumStockLevel: 7,
       status: 'active',
-      isBase: false,
+      
       tags: ['botanical', 'floral', 'premium'],
     },
     {
@@ -474,7 +474,7 @@ async function main() {
       inventoryAmount: 60,
       minimumStockLevel: 12,
       status: 'active',
-      isBase: false,
+      
       tags: ['botanical', 'calming', 'bedtime'],
     },
     {
@@ -491,7 +491,7 @@ async function main() {
       inventoryAmount: 50,
       minimumStockLevel: 10,
       status: 'active',
-      isBase: false,
+      
       tags: ['botanical', 'tart', 'colorful'],
     },
 
@@ -510,7 +510,7 @@ async function main() {
       inventoryAmount: 45,
       minimumStockLevel: 9,
       status: 'active',
-      isBase: false,
+      
       tags: ['fruit', 'citrus', 'refreshing'],
     },
     {
@@ -527,7 +527,7 @@ async function main() {
       inventoryAmount: 45,
       minimumStockLevel: 9,
       status: 'active',
-      isBase: false,
+      
       tags: ['fruit', 'citrus', 'sweet'],
     },
     {
@@ -544,7 +544,7 @@ async function main() {
       inventoryAmount: 55,
       minimumStockLevel: 11,
       status: 'active',
-      isBase: false,
+      
       tags: ['spice', 'warming', 'digestive'],
     },
     {
@@ -561,7 +561,7 @@ async function main() {
       inventoryAmount: 50,
       minimumStockLevel: 10,
       status: 'active',
-      isBase: false,
+      
       tags: ['spice', 'sweet', 'warming'],
     },
     {
@@ -578,7 +578,7 @@ async function main() {
       inventoryAmount: 20,
       minimumStockLevel: 5,
       status: 'active',
-      isBase: false,
+      
       tags: ['spice', 'premium', 'sweet', 'luxury'],
     },
 
@@ -597,7 +597,7 @@ async function main() {
       inventoryAmount: 15,
       minimumStockLevel: 3,
       status: 'active',
-      isBase: false,
+      
       tags: ['premium', 'jasmine', 'artisanal', 'floral'],
     },
     {
@@ -614,7 +614,7 @@ async function main() {
       inventoryAmount: 25,
       minimumStockLevel: 5,
       status: 'active',
-      isBase: false,
+      
       tags: ['premium', 'color-changing', 'visual', 'unique'],
     },
     {
@@ -631,7 +631,7 @@ async function main() {
       inventoryAmount: 5,
       minimumStockLevel: 1,
       status: 'active',
-      isBase: false,
+      
       tags: ['premium', 'luxury', 'rare', 'exotic'],
     },
   ];

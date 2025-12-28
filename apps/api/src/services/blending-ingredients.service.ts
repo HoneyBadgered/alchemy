@@ -15,7 +15,6 @@ export interface BlendingIngredient {
   description: string;
   shortTags: string[];
   emoji: string;
-  isBase: boolean;
   costPerOz: number;
   tier: 'standard' | 'premium';
   flavorProfile: {
@@ -32,7 +31,6 @@ export interface BlendingIngredient {
 
 export interface BlendingIngredientsFilters {
   category?: string;
-  isBase?: boolean;
   status?: string;
 }
 
@@ -55,7 +53,6 @@ export class BlendingIngredientsService {
       description: ingredient.descriptionShort || ingredient.descriptionLong || '',
       shortTags: this.generateShortTags(ingredient),
       emoji: ingredient.emoji || this.getDefaultEmoji(ingredient.category),
-      isBase: ingredient.isBase || false,
       costPerOz: Number(ingredient.costPerOunce) || 0,
       tier,
       flavorProfile,
@@ -182,10 +179,6 @@ export class BlendingIngredientsService {
 
     if (filters.category) {
       where.category = filters.category;
-    }
-
-    if (filters.isBase !== undefined) {
-      where.isBase = filters.isBase;
     }
 
     const ingredients = await prisma.ingredients.findMany({

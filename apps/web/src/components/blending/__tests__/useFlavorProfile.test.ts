@@ -14,7 +14,7 @@ const mockBases = [
     id: 'moonlit-black',
     name: 'Moonlit Black',
     category: 'base' as const,
-    isBase: true,
+    
     baseAmount: 10,
     incrementAmount: 5,
     costPerOz: 3,
@@ -29,7 +29,7 @@ const mockBases = [
     id: 'herbal-rooibos',
     name: 'Herbal Rooibos',
     category: 'base' as const,
-    isBase: true,
+    
     baseAmount: 10,
     incrementAmount: 5,
     costPerOz: 2,
@@ -47,7 +47,7 @@ const mockAddIns = [
     id: 'rose-petals',
     name: 'Rose Petals',
     category: 'floral' as const,
-    isBase: false,
+    
     baseAmount: 2,
     incrementAmount: 1,
     costPerOz: 8,
@@ -62,7 +62,7 @@ const mockAddIns = [
     id: 'vanilla',
     name: 'Vanilla',
     category: 'addIn' as const,
-    isBase: false,
+    
     baseAmount: 2,
     incrementAmount: 1,
     costPerOz: 5,
