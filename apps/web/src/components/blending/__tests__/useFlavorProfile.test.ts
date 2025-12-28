@@ -5,8 +5,96 @@
 import { renderHook } from '@testing-library/react';
 import { useFlavorProfile } from '../useFlavorProfile';
 import type { ExtendedBlendState } from '../types';
+import { vi, beforeEach } from 'vitest';
+import * as useIngredientsHook from '@/hooks/useIngredients';
+
+// Mock data
+const mockBases = [
+  {
+    id: 'moonlit-black',
+    name: 'Moonlit Black',
+    category: 'base' as const,
+    isBase: true,
+    baseAmount: 10,
+    incrementAmount: 5,
+    costPerOz: 3,
+    description: 'Bold black tea',
+    shortTags: ['Black', 'Medium Caffeine'],
+    emoji: '🌙',
+    tier: 'standard' as const,
+    caffeineLevel: 'medium' as const,
+    flavorProfile: { earthy: 8, floral: 1, spicy: 0, sweet: 2, citrus: 0, caffeine: 70 },
+  },
+  {
+    id: 'herbal-rooibos',
+    name: 'Herbal Rooibos',
+    category: 'base' as const,
+    isBase: true,
+    baseAmount: 10,
+    incrementAmount: 5,
+    costPerOz: 2,
+    description: 'Caffeine-free rooibos',
+    shortTags: ['Herbal', 'No Caffeine'],
+    emoji: '🌿',
+    tier: 'standard' as const,
+    caffeineLevel: 'none' as const,
+    flavorProfile: { earthy: 5, floral: 1, spicy: 0, sweet: 6, citrus: 0, caffeine: 0 },
+  },
+];
+
+const mockAddIns = [
+  {
+    id: 'rose-petals',
+    name: 'Rose Petals',
+    category: 'floral' as const,
+    isBase: false,
+    baseAmount: 2,
+    incrementAmount: 1,
+    costPerOz: 8,
+    description: 'Fragrant rose petals',
+    shortTags: ['Floral'],
+    emoji: '🌹',
+    tier: 'standard' as const,
+    caffeineLevel: 'none' as const,
+    flavorProfile: { earthy: 0, floral: 10, spicy: 0, sweet: 2, citrus: 0, caffeine: 0 },
+  },
+  {
+    id: 'vanilla',
+    name: 'Vanilla',
+    category: 'addIn' as const,
+    isBase: false,
+    baseAmount: 2,
+    incrementAmount: 1,
+    costPerOz: 5,
+    description: 'Sweet vanilla',
+    shortTags: ['Sweet'],
+    emoji: '🍦',
+    tier: 'standard' as const,
+    caffeineLevel: 'none' as const,
+    flavorProfile: { earthy: 0, floral: 1, spicy: 0, sweet: 10, citrus: 0, caffeine: 0 },
+  },
+];
 
 describe('useFlavorProfile', () => {
+  beforeEach(() => {
+    // Mock the useIngredients hook
+    vi.spyOn(useIngredientsHook, 'useIngredients').mockReturnValue({
+      bases: mockBases,
+      addIns: {
+        addIns: mockAddIns,
+        botanicals: [],
+        premium: [],
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    // Mock getIngredientById
+    vi.spyOn(useIngredientsHook, 'getIngredientById').mockImplementation((id) => {
+      return [...mockBases, ...mockAddIns].find(i => i.id === id);
+    });
+  });
+
   const emptyBlendState: ExtendedBlendState = {
     baseTeaId: undefined,
     addIns: [],

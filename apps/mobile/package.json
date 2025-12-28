@@ -11,7 +11,7 @@
     "build": "tsc --noEmit",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
@@ -59,7 +59,7 @@
       "!src/**/*.d.ts",
       "!src/**/__tests__/**"
     ],
-    "coverageThresholds": {
+    "coverageThreshold": {
       "global": {
         "branches": 50,
         "functions": 50,

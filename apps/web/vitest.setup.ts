@@ -2,6 +2,10 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
 
+// Set environment variables for tests
+process.env.NEXT_PUBLIC_API_URL = 'http://localhost:3000';
+process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = 'pk_test_mock_key_for_testing';
+
 // Cleanup after each test
 afterEach(() => {
   cleanup();
@@ -39,7 +43,7 @@ vi.mock('framer-motion', () => ({
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation((query) => ({
-    matches: false,
+    matches: query === '(min-width: 1024px)', // Match lg breakpoint for tests
     media: query,
     onchange: null,
     addListener: vi.fn(),
