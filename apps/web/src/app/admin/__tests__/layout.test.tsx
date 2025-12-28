@@ -52,10 +52,10 @@ interface MockAuthContext {
   user: TestUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: ReturnType<typeof vi.fn>;
-  register: ReturnType<typeof vi.fn>;
-  logout: ReturnType<typeof vi.fn>;
-  refreshAuth: ReturnType<typeof vi.fn>;
+  login: vi.MockedFunction<() => void>;
+  register: vi.MockedFunction<() => void>;
+  logout: vi.MockedFunction<() => void>;
+  refreshAuth: vi.MockedFunction<() => void>;
 }
 
 // Factory function to create fresh mock auth context
