@@ -38,6 +38,7 @@ export interface CreateIngredientInput {
   descriptionShort?: string;
   descriptionLong?: string;
   image?: string;
+  latinName?: string;
   
   // Flavor & Use
   flavorNotes?: string[];
@@ -272,6 +273,7 @@ export class AdminIngredientService {
         descriptionShort: data.descriptionShort,
         descriptionLong: data.descriptionLong,
         image: data.image,
+        latinName: data.latinName,
         
         flavorNotes: data.flavorNotes || [],
         cutOrGrade: data.cutOrGrade,

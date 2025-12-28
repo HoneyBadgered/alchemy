@@ -14,12 +14,6 @@ import type {
 } from '@alchemy/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-  lowStockThreshold: number;
-  averageRating?: number;
-  reviewCount: number;
-  category?: string;
-  relationType?: string;
-}
 
 // API Client
 export const catalogApi = {

@@ -35,6 +35,7 @@ const createIngredientSchema = z.object({
   descriptionShort: z.string().optional(),
   descriptionLong: z.string().optional(),
   image: z.string().url().optional().nullable().transform(val => val || undefined),
+  latinName: z.string().optional(),
   
   // Flavor & Use
   flavorNotes: z.array(z.string()).optional().default([]),

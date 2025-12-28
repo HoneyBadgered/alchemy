@@ -17,6 +17,7 @@ interface IngredientRow {
   descriptionShort?: string;
   descriptionLong?: string;
   image?: string;
+  latinName?: string;
   flavorNotes?: string;
   cutOrGrade?: string;
   recommendedUsageMin?: string;
@@ -52,6 +53,7 @@ export class IngredientImportService {
       'descriptionShort',
       'descriptionLong',
       'image',
+      'latinName',
       'flavorNotes',
       'cutOrGrade',
       'recommendedUsageMin',
@@ -82,6 +84,7 @@ export class IngredientImportService {
       'Calming floral tea',
       'Premium Egyptian chamomile flowers with sweet apple notes',
       'https://example.com/chamomile.jpg',
+      'Matricaria chamomilla',
       'sweet,floral,apple',
       'whole flowers',
       '5',
@@ -257,6 +260,7 @@ export class IngredientImportService {
             descriptionShort: row.descriptionShort || null,
             descriptionLong: row.descriptionLong || null,
             image: row.image || null,
+            latinName: row.latinName || null,
             flavorNotes,
             cutOrGrade: row.cutOrGrade || null,
             recommendedUsageMin: row.recommendedUsageMin ? Number(row.recommendedUsageMin) : null,

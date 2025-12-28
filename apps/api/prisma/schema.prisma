@@ -139,6 +139,7 @@ model ingredients {
   descriptionShort                                                        String?
   descriptionLong                                                         String?
   image                                                                   String?
+  latinName                                                               String?
   flavorNotes                                                             String[]              @default([])
   cutOrGrade                                                              String?
   recommendedUsageMin                                                     Decimal?              @db.Decimal(10, 4)

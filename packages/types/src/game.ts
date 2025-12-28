@@ -139,6 +139,7 @@ export interface Ingredient {
   descriptionShort?: string;
   descriptionLong?: string;
   image?: string;
+  latinName?: string;
   
   // Flavor & Use
   flavorNotes?: string[];
