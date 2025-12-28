@@ -3,12 +3,13 @@
  */
 
 import { render, screen } from '@testing-library/react';
+import { vi } from 'vitest';
 import { ProtectedRoute } from '../ProtectedRoute';
 import { useAuthStore } from '@/store/authStore';
 
 // Mock the Next.js router
-const mockPush = jest.fn();
-jest.mock('next/navigation', () => ({
+const mockPush = vi.fn();
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
   }),
@@ -19,17 +20,17 @@ const createMockAuthContext = (overrides = {}) => ({
   user: null,
   isAuthenticated: false,
   isLoading: false,
-  login: jest.fn(),
-  register: jest.fn(),
-  logout: jest.fn(),
-  refreshAuth: jest.fn(),
+  login: vi.fn(),
+  register: vi.fn(),
+  logout: vi.fn(),
+  refreshAuth: vi.fn(),
   ...overrides,
 });
 
 // Mock auth context holder
 let mockAuthContext = createMockAuthContext();
 
-jest.mock('@/contexts/AuthContext', () => ({
+vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => mockAuthContext,
 }));
 
@@ -46,7 +47,7 @@ const createTestUser = (overrides = {}) => ({
 
 describe('ProtectedRoute', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     // Reset to fresh mock auth context
     mockAuthContext = createMockAuthContext();
     

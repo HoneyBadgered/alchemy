@@ -6,16 +6,6 @@ import { render, screen } from '@testing-library/react';
 import { BowlFillVisual } from '../BowlFillVisual';
 import type { ExtendedBlendState } from '../types';
 
-// Mock framer-motion to avoid animation issues in tests
-jest.mock('framer-motion', () => ({
-  motion: {
-    div: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => (
-      <div {...props}>{children}</div>
-    ),
-  },
-  AnimatePresence: ({ children }: React.PropsWithChildren<Record<string, unknown>>) => <>{children}</>,
-}));
-
 describe('BowlFillVisual', () => {
   const emptyBlendState: ExtendedBlendState = {
     baseTeaId: undefined,

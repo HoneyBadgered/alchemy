@@ -15,7 +15,105 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BlendingPage } from '@/components/blending/BlendingPage';
-import * as useIngredientsHook from '@/hooks/useIngredients';
+
+// Mock data - define before mocks
+const mockBases = [
+  {
+    id: 'green-tea',
+    name: 'Green Tea',
+    category: 'base' as const,
+    description: 'Light and refreshing green tea',
+    shortTags: ['Green', 'Low Caffeine'],
+    emoji: '🍵',
+    isBase: true,
+    baseAmount: 10,
+    incrementAmount: 5,
+    costPerOz: 2.00,
+    tier: 'standard' as const,
+    flavorProfile: { earthy: 7, floral: 3, spicy: 0, sweet: 2, citrus: 1, caffeine: 40 },
+    caffeineLevel: 'low' as const,
+  },
+  {
+    id: 'black-tea',
+    name: 'Black Tea',
+    category: 'base' as const,
+    description: 'Bold and robust black tea',
+    shortTags: ['Black', 'Medium Caffeine'],
+    emoji: '☕',
+    isBase: true,
+    baseAmount: 10,
+    incrementAmount: 5,
+    costPerOz: 1.50,
+    tier: 'standard' as const,
+    flavorProfile: { earthy: 5, floral: 2, spicy: 1, sweet: 3, citrus: 0, caffeine: 70 },
+    caffeineLevel: 'medium' as const,
+  },
+];
+
+const mockAddIns = [
+  {
+    id: 'lavender',
+    name: 'Lavender',
+    category: 'floral' as const,
+    description: 'Fragrant lavender flowers',
+    shortTags: ['Floral'],
+    emoji: '💜',
+    isBase: false,
+    baseAmount: 2,
+    incrementAmount: 1,
+    costPerOz: 8.00,
+    tier: 'standard' as const,
+    flavorProfile: { earthy: 2, floral: 9, spicy: 0, sweet: 1, citrus: 0, caffeine: 0 },
+    caffeineLevel: 'none' as const,
+  },
+  {
+    id: 'ginger',
+    name: 'Ginger',
+    category: 'spice' as const,
+    description: 'Spicy ginger root',
+    shortTags: ['Spicy'],
+    emoji: '🫚',
+    isBase: false,
+    baseAmount: 2,
+    incrementAmount: 1,
+    costPerOz: 5.00,
+    tier: 'standard' as const,
+    flavorProfile: { earthy: 1, floral: 0, spicy: 10, sweet: 1, citrus: 2, caffeine: 0 },
+    caffeineLevel: 'none' as const,
+  },
+  {
+    id: 'lemon-peel',
+    name: 'Lemon Peel',
+    category: 'fruit' as const,
+    description: 'Bright lemon peel',
+    shortTags: ['Citrus'],
+    emoji: '🍋',
+    isBase: false,
+    baseAmount: 2,
+    incrementAmount: 1,
+    costPerOz: 4.00,
+    tier: 'standard' as const,
+    flavorProfile: { earthy: 0, floral: 1, spicy: 0, sweet: 2, citrus: 10, caffeine: 0 },
+    caffeineLevel: 'none' as const,
+  },
+];
+
+// Mock the useIngredients hook at module level
+vi.mock('@/hooks/useIngredients', () => ({
+  useIngredients: () => ({
+    bases: mockBases,
+    addIns: {
+      addIns: mockAddIns,
+      botanicals: [],
+      premium: [],
+    },
+    isLoading: false,
+    error: null,
+  }),
+  getIngredientById: (id: string) => {
+    return [...mockBases, ...mockAddIns].find(i => i.id === id);
+  },
+}));
 
 // Mock the useCart hook
 vi.mock('@/contexts/CartContext', () => ({
@@ -25,78 +123,17 @@ vi.mock('@/contexts/CartContext', () => ({
   }),
 }));
 
-// Mock data
-const mockBases = [
-  {
-    id: 'green-tea',
-    name: 'Green Tea',
-    category: 'base',
-    isBase: true,
-    baseAmount: 10,
-    incrementAmount: 5,
-    flavorProfile: { earthy: 7, floral: 3, spicy: 0, sweet: 2, citrus: 1 },
-  },
-  {
-    id: 'black-tea',
-    name: 'Black Tea',
-    category: 'base',
-    isBase: true,
-    baseAmount: 10,
-    incrementAmount: 5,
-    flavorProfile: { earthy: 5, floral: 2, spicy: 1, sweet: 3, citrus: 0 },
-  },
-];
-
-const mockAddIns = [
-  {
-    id: 'lavender',
-    name: 'Lavender',
-    category: 'botanical',
-    isBase: false,
-    baseAmount: 2,
-    incrementAmount: 1,
-    flavorProfile: { earthy: 2, floral: 9, spicy: 0, sweet: 1, citrus: 0 },
-  },
-  {
-    id: 'ginger',
-    name: 'Ginger',
-    category: 'addIn',
-    isBase: false,
-    baseAmount: 2,
-    incrementAmount: 1,
-    flavorProfile: { earthy: 1, floral: 0, spicy: 10, sweet: 1, citrus: 2 },
-  },
-  {
-    id: 'lemon-peel',
-    name: 'Lemon Peel',
-    category: 'addIn',
-    isBase: false,
-    baseAmount: 2,
-    incrementAmount: 1,
-    flavorProfile: { earthy: 0, floral: 1, spicy: 0, sweet: 2, citrus: 10 },
-  },
-];
+// Helper function to open the base selection panel
+async function openBasePanel(user: ReturnType<typeof userEvent.setup>) {
+  // Click on "Choose your base" text/button to open the panel
+  const trigger = screen.getByText(/choose your base/i);
+  await user.click(trigger);
+  // Wait a bit for the animation
+  await new Promise(resolve => setTimeout(resolve, 250));
+}
 
 describe('BlendingPage - Base Tea Selection', () => {
   beforeEach(() => {
-    // Mock the useIngredients hook
-    vi.spyOn(useIngredientsHook, 'useIngredients').mockReturnValue({
-      bases: mockBases,
-      addIns: {
-        addIns: { addIns: mockAddIns, botanicals: [], premium: [] },
-        botanicals: [],
-        premium: [],
-      },
-      isLoading: false,
-      error: null,
-    });
-
-    // Mock getIngredientById
-    vi.spyOn(useIngredientsHook, 'getIngredientById').mockImplementation((id) => {
-      return [...mockBases, ...mockAddIns].find(i => i.id === id);
-    });
-
-    // Clear sessionStorage
     sessionStorage.clear();
   });
 
@@ -113,6 +150,10 @@ describe('BlendingPage - Base Tea Selection', () => {
     const user = userEvent.setup();
     render(<BlendingPage />);
 
+    // Open the base selection panel
+    await openBasePanel(user);
+
+    // Wait for Green Tea to appear
     await waitFor(() => {
       expect(screen.getByText('Green Tea')).toBeInTheDocument();
     });
@@ -184,21 +225,6 @@ describe('BlendingPage - Base Tea Selection', () => {
 
 describe('BlendingPage - Add-Ins Selection', () => {
   beforeEach(() => {
-    vi.spyOn(useIngredientsHook, 'useIngredients').mockReturnValue({
-      bases: mockBases,
-      addIns: {
-        addIns: { addIns: mockAddIns, botanicals: [], premium: [] },
-        botanicals: [],
-        premium: [],
-      },
-      isLoading: false,
-      error: null,
-    });
-
-    vi.spyOn(useIngredientsHook, 'getIngredientById').mockImplementation((id) => {
-      return [...mockBases, ...mockAddIns].find(i => i.id === id);
-    });
-
     sessionStorage.clear();
   });
 
@@ -339,17 +365,6 @@ describe('BlendingPage - Add-Ins Selection', () => {
 
 describe('BlendingPage - Empty Bowl', () => {
   beforeEach(() => {
-    vi.spyOn(useIngredientsHook, 'useIngredients').mockReturnValue({
-      bases: mockBases,
-      addIns: { addIns: mockAddIns, botanicals: [], premium: [] },
-      isLoading: false,
-      error: null,
-    });
-
-    vi.spyOn(useIngredientsHook, 'getIngredientById').mockImplementation((id) => {
-      return [...mockBases, ...mockAddIns].find(i => i.id === id);
-    });
-
     sessionStorage.clear();
   });
 
@@ -386,17 +401,6 @@ describe('BlendingPage - Empty Bowl', () => {
 
 describe('BlendingPage - Randomize Blend', () => {
   beforeEach(() => {
-    vi.spyOn(useIngredientsHook, 'useIngredients').mockReturnValue({
-      bases: mockBases,
-      addIns: { addIns: mockAddIns, botanicals: [], premium: [] },
-      isLoading: false,
-      error: null,
-    });
-
-    vi.spyOn(useIngredientsHook, 'getIngredientById').mockImplementation((id) => {
-      return [...mockBases, ...mockAddIns].find(i => i.id === id);
-    });
-
     sessionStorage.clear();
   });
 
@@ -426,17 +430,6 @@ describe('BlendingPage - Randomize Blend', () => {
 
 describe('BlendingPage - Session Storage', () => {
   beforeEach(() => {
-    vi.spyOn(useIngredientsHook, 'useIngredients').mockReturnValue({
-      bases: mockBases,
-      addIns: { addIns: mockAddIns, botanicals: [], premium: [] },
-      isLoading: false,
-      error: null,
-    });
-
-    vi.spyOn(useIngredientsHook, 'getIngredientById').mockImplementation((id) => {
-      return [...mockBases, ...mockAddIns].find(i => i.id === id);
-    });
-
     sessionStorage.clear();
   });
 

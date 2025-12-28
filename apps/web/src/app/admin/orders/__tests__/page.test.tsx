@@ -4,16 +4,17 @@
  */
 
 import { render, screen, waitFor } from '@testing-library/react';
+import { vi } from 'vitest';
 import AdminOrdersPage from '../page';
 import { useAuthStore } from '@/store/authStore';
 
 // Mock fetch
-const mockFetch = jest.fn();
+const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 describe('AdminOrdersPage', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Reset store with authenticated admin state
     useAuthStore.setState({
