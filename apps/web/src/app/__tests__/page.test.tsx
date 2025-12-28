@@ -3,11 +3,12 @@
  */
 
 import { render, screen } from '@testing-library/react';
+import { vi } from 'vitest';
 import HomePage from '../page';
 
 // Mock the Next.js router
-const mockPush = jest.fn();
-jest.mock('next/navigation', () => ({
+const mockPush = vi.fn();
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
   }),
@@ -19,13 +20,13 @@ const mockAuthContext = {
   user: null,
   isAuthenticated: false,
   isLoading: false,
-  login: jest.fn(),
-  register: jest.fn(),
-  logout: jest.fn(),
-  refreshAuth: jest.fn(),
+  login: vi.fn(),
+  register: vi.fn(),
+  logout: vi.fn(),
+  refreshAuth: vi.fn(),
 };
 
-jest.mock('@/contexts/AuthContext', () => ({
+vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => mockAuthContext,
 }));
 
@@ -35,20 +36,20 @@ const mockCartContext = {
   isLoading: false,
   itemCount: 0,
   subtotal: 0,
-  addToCart: jest.fn(),
-  updateCartItem: jest.fn(),
-  removeFromCart: jest.fn(),
-  clearCart: jest.fn(),
-  refreshCart: jest.fn(),
+  addToCart: vi.fn(),
+  updateCartItem: vi.fn(),
+  removeFromCart: vi.fn(),
+  clearCart: vi.fn(),
+  refreshCart: vi.fn(),
 };
 
-jest.mock('@/contexts/CartContext', () => ({
+vi.mock('@/contexts/CartContext', () => ({
   useCart: () => mockCartContext,
 }));
 
 describe('HomePage', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     // Reset auth context to unauthenticated state
     mockAuthContext.user = null;
     mockAuthContext.isAuthenticated = false;

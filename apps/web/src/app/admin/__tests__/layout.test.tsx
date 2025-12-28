@@ -4,12 +4,13 @@
  */
 
 import { render, screen } from '@testing-library/react';
+import { vi } from 'vitest';
 import AdminLayout from '../layout';
 import { useAuthStore } from '@/store/authStore';
 
 // Mock the Next.js router
-const mockPush = jest.fn();
-jest.mock('next/navigation', () => ({
+const mockPush = vi.fn();
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
   }),
@@ -51,10 +52,10 @@ interface MockAuthContext {
   user: TestUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: jest.Mock;
-  register: jest.Mock;
-  logout: jest.Mock;
-  refreshAuth: jest.Mock;
+  login: ReturnType<typeof vi.fn>;
+  register: ReturnType<typeof vi.fn>;
+  logout: ReturnType<typeof vi.fn>;
+  refreshAuth: ReturnType<typeof vi.fn>;
 }
 
 // Factory function to create fresh mock auth context
@@ -62,23 +63,23 @@ const createMockAuthContext = (overrides: Partial<MockAuthContext> = {}): MockAu
   user: null,
   isAuthenticated: false,
   isLoading: false,
-  login: jest.fn(),
-  register: jest.fn(),
-  logout: jest.fn(),
-  refreshAuth: jest.fn(),
+  login: vi.fn(),
+  register: vi.fn(),
+  logout: vi.fn(),
+  refreshAuth: vi.fn(),
   ...overrides,
 });
 
 // Mock auth context holder
 let mockAuthContext = createMockAuthContext();
 
-jest.mock('@/contexts/AuthContext', () => ({
+vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => mockAuthContext,
 }));
 
 describe('AdminLayout', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     // Reset to fresh mock auth context
     mockAuthContext = createMockAuthContext();
     
