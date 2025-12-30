@@ -269,7 +269,7 @@ export class IngredientImportService {
             steepTimeMin: row.steepTimeMin ? Number(row.steepTimeMin) : null,
             steepTimeMax: row.steepTimeMax ? Number(row.steepTimeMax) : null,
             brewNotes: row.brewNotes || null,
-            supplierId: row.supplierId || null,
+            supplierId: row.supplierId && row.supplierId.trim() !== '' ? row.supplierId : null,
             costPerOunce,
             costPerGram,
             inventoryAmount: row.inventoryAmount ? Number(row.inventoryAmount) : 0,

@@ -108,6 +108,34 @@ export default function AdminDashboardPage() {
         <p className="text-gray-600 mt-1">Welcome to the admin dashboard</p>
       </div>
 
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <a
+          href="/admin/products"
+          className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg shadow-lg p-6 hover:from-purple-600 hover:to-purple-700 transition-all transform hover:scale-105"
+        >
+          <div className="text-2xl mb-2">📦</div>
+          <h3 className="text-lg font-semibold">Products</h3>
+          <p className="text-sm text-purple-100 mt-1">Manage product catalog</p>
+        </a>
+        <a
+          href="/admin/blends"
+          className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg shadow-lg p-6 hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105"
+        >
+          <div className="text-2xl mb-2">🍵</div>
+          <h3 className="text-lg font-semibold">Blend Management</h3>
+          <p className="text-sm text-green-100 mt-1">Create & convert blends</p>
+        </a>
+        <a
+          href="/admin/ingredients"
+          className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg shadow-lg p-6 hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105"
+        >
+          <div className="text-2xl mb-2">🌿</div>
+          <h3 className="text-lg font-semibold">Ingredients</h3>
+          <p className="text-sm text-blue-100 mt-1">Manage ingredient inventory</p>
+        </a>
+      </div>
+
       {/* Today's Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white rounded-lg shadow p-6">

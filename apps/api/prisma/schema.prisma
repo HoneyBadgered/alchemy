@@ -132,7 +132,7 @@ model ingredient_pairings {
 }
 
 model ingredients {
-  id                                                                      String                @id
+  id                                                                      String                @id @default(cuid())
   name                                                                    String
   role                                                                    String                @default("addIn")
   category                                                                String
@@ -163,7 +163,7 @@ model ingredients {
   baseAmount                                                              Decimal?              @db.Decimal(10, 2)
   incrementAmount                                                         Decimal?              @db.Decimal(10, 2)
   createdAt                                                               DateTime              @default(now())
-  updatedAt                                                               DateTime
+  updatedAt                                                               DateTime              @updatedAt
   ingredient_pairings_ingredient_pairings_sourceIngredientIdToingredients ingredient_pairings[] @relation("ingredient_pairings_sourceIngredientIdToingredients")
   ingredient_pairings_ingredient_pairings_targetIngredientIdToingredients ingredient_pairings[] @relation("ingredient_pairings_targetIngredientIdToingredients")
   suppliers                                                               suppliers?            @relation(fields: [supplierId], references: [id])
@@ -383,6 +383,7 @@ model products {
   price                                                          Decimal             @db.Decimal(10, 2)
   imageUrl                                                       String?
   category                                                       String?
+  zone                                                           String?
   isActive                                                       Boolean             @default(true)
   stock                                                          Int                 @default(0)
   createdAt                                                      DateTime            @default(now())
