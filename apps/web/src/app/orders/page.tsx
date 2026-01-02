@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Header } from '@/components/layout';
 import { useAuthStore } from '@/store/authStore';
 import { orderApi, type Order } from '@/lib/order-api';
 import BottomNavigation from '@/components/BottomNavigation';
@@ -53,15 +54,16 @@ export default function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-100 to-blue-100 pb-20">
-      {/* Header */}
-      <div className="bg-white shadow-sm">
+      <Header />
+      {/* Page Header */}
+      <div className="bg-white/90 backdrop-blur-sm shadow-sm mt-16">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <h1 className="text-2xl font-bold text-purple-900">Order History</h1>
           <p className="text-sm text-gray-600 mt-1">View your past orders</p>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto px-4 py-6">{
         {isLoading && (
           <div className="flex justify-center items-center py-20">
             <div className="text-purple-900 text-lg">Loading orders...</div>

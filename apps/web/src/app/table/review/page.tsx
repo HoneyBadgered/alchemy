@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Head from 'next/head';
+import { Header } from '@/components/layout';
 import { useCart } from '@/contexts/CartContext';
 import { useIngredients, getIngredientById } from '@/hooks/useIngredients';
 import type { ExtendedBlendState } from '@/components/blending/types';
@@ -97,8 +98,13 @@ export default function BlendReviewPage() {
     setError(null);
 
     try {
+      console.log('Adding blend to cart:', {
+        baseTeaId: blendState.baseTeaId,
+        addIns: blendState.addIns,
+        blendName: blendName.trim(),
+      });
       // baseTeaId is guaranteed to be defined after the guard above
-      await addBlendToCart(blendState.baseTeaId, blendState.addIns, blendName);
+      await addBlendToCart(blendState.baseTeaId, blendState.addIns, blendName.trim());
       // Clear the pending blend from storage
       sessionStorage.removeItem('pendingBlend');
       // Navigate to cart

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Header } from '@/components/layout';
 import { useCart } from '@/contexts/CartContext';
 import { useAuthStore } from '@/store/authStore';
 import { orderApi, type ShippingAddress } from '@/lib/order-api';
@@ -98,6 +99,15 @@ export default function CheckoutPage() {
         throw new Error('Payment processing is not configured. Please contact the store administrator.');
       }
 
+      // Debug logging
+      console.log('Checkout state:', {
+        isAuthenticated,
+        hasAccessToken: !!accessToken,
+        hasSessionId: !!sessionId,
+        sessionId: sessionId,
+        guestEmail: !isAuthenticated ? guestEmail : undefined,
+      });
+
       // Step 1: Create the order
       const order = await orderApi.placeOrder(
         {
@@ -183,15 +193,16 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-100 to-blue-100 pb-20">
-      {/* Header */}
-      <div className="bg-white shadow-sm">
+      <Header />
+      {/* Page Header */}
+      <div className="bg-white/90 backdrop-blur-sm shadow-sm mt-16">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <h1 className="text-2xl font-bold text-purple-900">Checkout</h1>
           <p className="text-sm text-gray-600 mt-1">Complete your order</p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 py-6">{
         {/* Warning banner when payment is not configured */}
         {paymentConfigured === false && (
           <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">

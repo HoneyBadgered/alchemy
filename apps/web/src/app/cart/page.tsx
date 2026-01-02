@@ -1,5 +1,6 @@
 'use client';
 
+import { Header } from '@/components/layout';
 import { useCart } from '@/contexts/CartContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -92,8 +93,9 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-100 to-blue-100 pb-20">
-      {/* Header */}
-      <div className="bg-white shadow-sm">
+      <Header />
+      {/* Page Header */}
+      <div className="bg-white/90 backdrop-blur-sm shadow-sm mt-16">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>

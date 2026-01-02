@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
+import { Header } from '@/components/layout';
 import BottomNavigation from '@/components/BottomNavigation';
 import AddedToCartModal from '@/components/AddedToCartModal';
 import { apiClient } from '@/lib/api-client';
@@ -121,29 +122,14 @@ export default function ShopPage() {
 
   return (
     <div className="min-h-screen pb-20" style={{ backgroundImage: 'url(/images/background-products-page.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }}>
-      {/* Header */}
-      <div className="bg-white shadow-sm">
+      <Header />
+      {/* Page Header */}
+      <div className="bg-white/90 backdrop-blur-sm shadow-sm mt-16">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-purple-900">Shop</h1>
-              <p className="text-sm text-gray-600 mt-1">
-                Discover magical blends and potions
-              </p>
-            </div>
-            <Link
-              href="/cart"
-              className="relative bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-full font-semibold transition-colors flex items-center gap-2"
-            >
-              <span>🛒</span>
-              <span>Cart</span>
-              {itemCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-                  {itemCount > 9 ? '9+' : itemCount}
-                </span>
-              )}
-            </Link>
-          </div>
+          <h1 className="text-2xl font-bold text-purple-900">Shop</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Discover magical blends and potions
+          </p>
         </div>
       </div>
 

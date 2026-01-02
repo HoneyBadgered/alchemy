@@ -105,6 +105,13 @@ export const orderApi = {
 
     if (!response.ok) {
       const error = await response.json();
+      console.error('Order API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error,
+        headers: Object.fromEntries(Object.entries(headers)),
+        input,
+      });
       throw new Error(error.message || 'Failed to place order');
     }
 
