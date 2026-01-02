@@ -383,7 +383,7 @@ model products {
   price                                                          Decimal             @db.Decimal(10, 2)
   imageUrl                                                       String?
   category                                                       String?
-  zone                                                           String?
+  zones                                                          String[]            @default([])
   isActive                                                       Boolean             @default(true)
   stock                                                          Int                 @default(0)
   createdAt                                                      DateTime            @default(now())

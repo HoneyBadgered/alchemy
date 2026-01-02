@@ -15,6 +15,31 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Alchemy Table",
   },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://alchemy.yourdomain.com",
+    siteName: "The Alchemy Table",
+    title: "The Alchemy Table - Craft Your Perfect Tea Blend",
+    description: "Create custom tea blends with magical ingredients. Join thousands of blend enthusiasts and craft something extraordinary.",
+    images: [
+      {
+        url: "/images/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "The Alchemy Table - Custom Tea Blending",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@AlchemyTable",
+    creator: "@AlchemyTable",
+    title: "The Alchemy Table - Craft Your Perfect Tea Blend",
+    description: "Create custom tea blends with magical ingredients. Join thousands of blend enthusiasts and craft something extraordinary.",
+    images: ["/images/twitter-image.jpg"],
+  },
+  keywords: ["tea", "custom blends", "tea blending", "alchemy", "organic tea", "artisan tea", "craft tea"],
 };
 
 export const viewport: Viewport = {

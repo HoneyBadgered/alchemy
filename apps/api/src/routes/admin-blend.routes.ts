@@ -38,6 +38,15 @@ const convertBlendToProductSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+const updateBlendSchema = z.object({
+  baseTeaId: z.string(),
+  addIns: z.array(z.object({
+    ingredientId: z.string(),
+    quantity: z.number().min(0),
+  })),
+  name: z.string().optional(),
+});
+
 export async function adminBlendRoutes(fastify: FastifyInstance) {
   const blendService = new AdminBlendService();
 
@@ -144,6 +153,28 @@ export async function adminBlendRoutes(fastify: FastifyInstance) {
       
       const cost = await blendService.calculateBlendCost(data);
       return reply.send(cost);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return reply.status(400).send({ message: 'Validation error', errors: error.errors });
+      }
+      return reply.status(500).send({ message: (error as Error).message });
+    }
+  });
+
+  /**
+   * Update a blend's composition
+   * PUT /admin/blends/:id
+   */
+  fastify.put('/admin/blends/:id', {
+    preHandler: adminMiddleware,
+  }, async (request: FastifyRequest<{
+    Params: { id: string }
+  }>, reply) => {
+    try {
+      const { id } = request.params;
+      const data = updateBlendSchema.parse(request.body);
+      const blend = await blendService.updateBlend(id, data);
+      return reply.send(blend);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return reply.status(400).send({ message: 'Validation error', errors: error.errors });

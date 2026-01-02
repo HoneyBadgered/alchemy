@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
@@ -14,7 +14,7 @@ interface Blend {
   createdAt: string;
   users: {
     id: string;
-    name: string;
+    username: string;
     email: string;
   } | null;
   products: {
@@ -23,6 +23,17 @@ interface Blend {
     price: number;
     isActive: boolean;
   } | null;
+  baseTea?: {
+    id: string;
+    name: string;
+    category: string;
+  } | null;
+  addInsWithDetails?: Array<{
+    ingredientId: string;
+    quantity: number;
+    name: string;
+    category: string;
+  }>;
 }
 
 interface BlendsResponse {
@@ -46,7 +57,7 @@ export default function AdminBlendsPage() {
     totalPages: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'converted' | 'unconverted'>('all');
+  const [filter, setFilter] = useState<'products' | 'user' | 'all'>('products');
 
   const fetchBlends = async (page = 1, filterValue = filter) => {
     setLoading(true);
@@ -56,11 +67,13 @@ export default function AdminBlendsPage() {
         perPage: '20',
       });
       
-      if (filterValue === 'converted') {
+      // Apply filter based on selection
+      if (filterValue === 'products') {
         params.append('hasProduct', 'true');
-      } else if (filterValue === 'unconverted') {
+      } else if (filterValue === 'user') {
         params.append('hasProduct', 'false');
       }
+      // 'all' doesn't add any hasProduct filter
 
       const response = await fetch(`http://localhost:3000/admin/blends?${params}`, {
         headers: {
@@ -68,7 +81,11 @@ export default function AdminBlendsPage() {
         },
       });
 
-      if (!response.ok) throw new Error('Failed to fetch blends');
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Failed to fetch blends:', response.status, errorData);
+        throw new Error('Failed to fetch blends');
+      }
 
       const data: BlendsResponse = await response.json();
       setBlends(data.blends);
@@ -80,9 +97,11 @@ export default function AdminBlendsPage() {
     }
   };
 
-  useState(() => {
-    fetchBlends();
-  });
+  useEffect(() => {
+    if (accessToken) {
+      fetchBlends();
+    }
+  }, [accessToken]);
 
   const handleFilterChange = (newFilter: typeof filter) => {
     setFilter(newFilter);
@@ -113,6 +132,26 @@ export default function AdminBlendsPage() {
       {/* Filters */}
       <div className="mb-6 flex gap-2">
         <button
+          onClick={() => handleFilterChange('products')}
+          className={`px-4 py-2 rounded-lg ${
+            filter === 'products'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          Products
+        </button>
+        <button
+          onClick={() => handleFilterChange('user')}
+          className={`px-4 py-2 rounded-lg ${
+            filter === 'user'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          User Blends
+        </button>
+        <button
           onClick={() => handleFilterChange('all')}
           className={`px-4 py-2 rounded-lg ${
             filter === 'all'
@@ -120,27 +159,7 @@ export default function AdminBlendsPage() {
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
           }`}
         >
-          All Blends
-        </button>
-        <button
-          onClick={() => handleFilterChange('converted')}
-          className={`px-4 py-2 rounded-lg ${
-            filter === 'converted'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          Converted to Products
-        </button>
-        <button
-          onClick={() => handleFilterChange('unconverted')}
-          className={`px-4 py-2 rounded-lg ${
-            filter === 'unconverted'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          Not Yet Converted
+          All
         </button>
       </div>
 
@@ -159,9 +178,6 @@ export default function AdminBlendsPage() {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Blend Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Created By
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Ingredients
@@ -185,17 +201,20 @@ export default function AdminBlendsPage() {
                         {blend.name || 'Unnamed Blend'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">
-                        {blend.users?.name || 'Guest'}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {blend.users?.email || ''}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        Base + {blend.addIns.length} add-ins
+                        <div className="font-medium text-gray-700 mb-1">
+                          {blend.baseTea?.name || 'Unknown Base Tea'}
+                        </div>
+                        {blend.addInsWithDetails && blend.addInsWithDetails.length > 0 && (
+                          <div className="text-xs text-gray-500 space-y-0.5">
+                            {blend.addInsWithDetails.map((addIn, idx) => (
+                              <div key={addIn.ingredientId}>
+                                + {addIn.name} ({addIn.quantity}g)
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

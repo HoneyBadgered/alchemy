@@ -21,6 +21,10 @@ interface Product {
   imageUrl: string | null;
   images: string[];
   isActive: boolean;
+  blends: Array<{
+    id: string;
+    name: string | null;
+  }>;
 }
 
 export default function EditProductPage({
@@ -174,12 +178,22 @@ export default function EditProductPage({
           <h1 className="text-3xl font-bold text-gray-900">Edit Product</h1>
           <p className="text-gray-600 mt-1">Update product information</p>
         </div>
-        <Link
-          href="/admin/products"
-          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
-        >
-          Cancel
-        </Link>
+        <div className="flex gap-3">
+          {product.blends && product.blends.length > 0 && (
+            <Link
+              href={`/admin/blends/${product.blends[0].id}/edit`}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+            >
+              Edit Blend
+            </Link>
+          )}
+          <Link
+            href="/admin/products"
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
+          >
+            Cancel
+          </Link>
+        </div>
       </div>
 
       {error && (

@@ -20,7 +20,7 @@ interface CreateBlendProductInput {
   imageUrl?: string;
   images?: string[];
   category?: string;
-  zone?: string;
+  zones?: string[];
   tags?: string[];
   stock?: number;
   isActive?: boolean;
@@ -34,7 +34,7 @@ interface ConvertBlendInput {
   imageUrl?: string;
   images?: string[];
   category?: string;
-  zone?: string;
+  zones?: string[];
   tags?: string[];
   stock?: number;
   isActive?: boolean;
@@ -82,7 +82,7 @@ export class AdminBlendService {
           imageUrl: data.imageUrl || null,
           images: data.images || [],
           category: data.category || 'Custom Blends',
-          zone: data.zone || null,
+          zones: data.zones || [],
           tags: data.tags || ['custom', 'blend'],
           stock: data.stock ?? 0,
           isActive: data.isActive ?? true,
@@ -146,7 +146,7 @@ export class AdminBlendService {
           imageUrl: data.imageUrl || null,
           images: data.images || [],
           category: data.category || 'Custom Blends',
-          zone: data.zone || null,
+          zones: data.zones || [],
           tags: data.tags || ['custom', 'blend'],
           stock: data.stock ?? 0,
           isActive: data.isActive ?? true,
@@ -190,7 +190,7 @@ export class AdminBlendService {
           users: {
             select: {
               id: true,
-              name: true,
+              username: true,
               email: true,
             },
           },
@@ -207,8 +207,44 @@ export class AdminBlendService {
       prisma.blends.count({ where }),
     ]);
 
+    // Enrich blends with ingredient details
+    const enrichedBlends = await Promise.all(
+      blends.map(async (blend) => {
+        // Get base tea
+        const baseTea = await prisma.ingredients.findUnique({
+          where: { id: blend.baseTeaId },
+          select: { id: true, name: true, category: true },
+        });
+
+        // Get add-in ingredients
+        const addIns = blend.addIns as BlendIngredient[];
+        const addInIds = addIns.map(a => a.ingredientId);
+        const addInIngredients = await prisma.ingredients.findMany({
+          where: { id: { in: addInIds } },
+          select: { id: true, name: true, category: true },
+        });
+
+        // Map add-ins with their details
+        const addInsWithDetails = addIns.map(addIn => {
+          const ingredient = addInIngredients.find(i => i.id === addIn.ingredientId);
+          return {
+            ingredientId: addIn.ingredientId,
+            quantity: addIn.quantity,
+            name: ingredient?.name || 'Unknown',
+            category: ingredient?.category || 'Unknown',
+          };
+        });
+
+        return {
+          ...blend,
+          baseTea,
+          addInsWithDetails,
+        };
+      })
+    );
+
     return {
-      blends,
+      blends: enrichedBlends,
       pagination: {
         page,
         perPage,
@@ -228,7 +264,7 @@ export class AdminBlendService {
         users: {
           select: {
             id: true,
-            name: true,
+            username: true,
             email: true,
           },
         },
@@ -335,5 +371,53 @@ export class AdminBlendService {
       suggestedPrice: Number(suggestedPrice.toFixed(2)),
       breakdown,
     };
+  }
+
+  /**
+   * Update a blend's composition
+   */
+  async updateBlend(
+    id: string,
+    data: {
+      baseTeaId: string;
+      addIns: BlendIngredient[];
+      name?: string;
+    }
+  ) {
+    // Validate that base tea exists
+    const baseTea = await prisma.ingredients.findUnique({
+      where: { id: data.baseTeaId },
+    });
+
+    if (!baseTea) {
+      throw new Error(`Base tea with ID ${data.baseTeaId} not found`);
+    }
+
+    // Validate all add-in ingredients
+    const ingredientIds = data.addIns.map(a => a.ingredientId);
+    const ingredients = await prisma.ingredients.findMany({
+      where: { id: { in: ingredientIds } },
+    });
+
+    if (ingredients.length !== ingredientIds.length) {
+      throw new Error('One or more add-in ingredients not found');
+    }
+
+    // Update the blend
+    const blend = await prisma.blends.update({
+      where: { id },
+      data: {
+        baseTeaId: data.baseTeaId,
+        addIns: data.addIns,
+        name: data.name,
+        updatedAt: new Date(),
+      },
+      include: {
+        products: true,
+        users: true,
+      },
+    });
+
+    return blend;
   }
 }

@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Head from 'next/head';
 import { useCart } from '@/contexts/CartContext';
 import { useIngredients, getIngredientById } from '@/hooks/useIngredients';
 import type { ExtendedBlendState } from '@/components/blending/types';
 import { useBlendPricing } from '@/components/blending/useBlendPricing';
 import BottomNavigation from '@/components/BottomNavigation';
+import { ShareBlend } from '@/components/ShareBlend';
 
 // Default empty blend state for pricing calculation
 const EMPTY_BLEND_STATE: ExtendedBlendState = {
@@ -112,8 +114,21 @@ export default function BlendReviewPage() {
     );
   }
 
+  // Generate dynamic meta description for sharing
+  const shareDescription = `${blendState.size} oz custom tea blend with ${baseTea?.name || 'base tea'} and ${blendState.addIns.length} special ingredients. Created at The Alchemy Table ✨`;
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-100 via-pink-100 to-orange-100 pb-20">
+    <>
+      <Head>
+        <title>{blendName || 'Custom Tea Blend'} - The Alchemy Table</title>
+        <meta name="description" content={shareDescription} />
+        <meta property="og:title" content={`${blendName || 'My Custom Tea Blend'} - The Alchemy Table`} />
+        <meta property="og:description" content={shareDescription} />
+        <meta property="og:type" content="article" />
+        <meta name="twitter:title" content={`${blendName || 'My Custom Tea Blend'} - The Alchemy Table`} />
+        <meta name="twitter:description" content={shareDescription} />
+      </Head>
+      <div className="min-h-screen bg-gradient-to-b from-purple-100 via-pink-100 to-orange-100 pb-20">
       {/* Header */}
       <div className="bg-white/80 backdrop-blur shadow-sm sticky top-0 z-30">
         <div className="max-w-2xl mx-auto px-4 py-4">
@@ -244,17 +259,25 @@ export default function BlendReviewPage() {
               )}
             </button>
 
-            <button
-              onClick={handleEditBlend}
-              className="w-full bg-white hover:bg-gray-50 text-purple-600 py-4 rounded-xl font-semibold transition-colors border border-purple-200"
-            >
-              ← Edit Blend
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={handleEditBlend}
+                className="flex-1 bg-white hover:bg-gray-50 text-purple-600 py-4 rounded-xl font-semibold transition-colors border border-purple-200"
+              >
+                ← Edit Blend
+              </button>
+              
+              <ShareBlend 
+                blendName={blendName || 'My Custom Blend'} 
+                blendDetails={`${blendState.size} oz blend with ${baseTea?.name || 'base tea'} and ${blendState.addIns.length} special ingredients`}
+              />
+            </div>
           </div>
         </div>
       </div>
 
       <BottomNavigation />
-    </div>
+      </div>
+    </>
   );
 }

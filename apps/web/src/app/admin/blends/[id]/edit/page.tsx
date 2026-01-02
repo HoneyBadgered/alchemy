@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import ImageUpload from '@/components/admin/ImageUpload';
@@ -31,10 +31,37 @@ interface CostBreakdown {
   }>;
 }
 
-export default function CreateBlendProductPage() {
+interface BlendDetail {
+  id: string;
+  name: string | null;
+  baseTeaId: string;
+  addIns: Array<{ ingredientId: string; quantity: number }>;
+  productId: string | null;
+  products: {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    stock: number;
+    category: string | null;
+    tags: string[];
+    imageUrl: string | null;
+    zones: string[];
+    isActive: boolean;
+  } | null;
+}
+
+export default function EditBlendPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
   const router = useRouter();
   const { accessToken } = useAuthStore();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [blend, setBlend] = useState<BlendDetail | null>(null);
   const [baseTeas, setBaseTeas] = useState<Ingredient[]>([]);
   const [addIns, setAddIns] = useState<Ingredient[]>([]);
   const [selectedBaseTea, setSelectedBaseTea] = useState('');
@@ -53,10 +80,49 @@ export default function CreateBlendProductPage() {
   const [isActive, setIsActive] = useState(false);
 
   useEffect(() => {
-    if (accessToken) {
+    if (accessToken && id) {
+      fetchBlend();
       fetchIngredients();
     }
-  }, [accessToken]);
+  }, [accessToken, id]);
+
+  const fetchBlend = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/admin/blends/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch blend');
+
+      const data: BlendDetail = await response.json();
+      setBlend(data);
+      
+      // Populate form with blend data
+      setSelectedBaseTea(data.baseTeaId);
+      setSelectedAddIns(data.addIns);
+      
+      // If product exists, populate product fields
+      if (data.products) {
+        setProductName(data.products.name);
+        setDescription(data.products.description);
+        setPrice(data.products.price.toString());
+        setStock(data.products.stock.toString());
+        setCategory(data.products.category || 'Custom Blends');
+        setTags((data.products.tags || []).join(','));
+        setImageUrl(data.products.imageUrl || '');
+        setZones(data.products.zones || []);
+        setIsActive(data.products.isActive);
+      } else if (data.name) {
+        setProductName(data.name);
+      }
+    } catch (error) {
+      console.error('Error fetching blend:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchIngredients = async () => {
     try {
@@ -67,17 +133,13 @@ export default function CreateBlendProductPage() {
       });
       
       if (!response.ok) {
-        const errorData = await response.text();
-        console.error('Failed to fetch ingredients:', response.status, errorData);
         throw new Error('Failed to fetch ingredients');
       }
       
       const data = await response.json();
-      console.log('Fetched ingredients data:', data);
       const bases = data.ingredients.filter((i: Ingredient) => i.role === 'base');
       const adds = data.ingredients.filter((i: Ingredient) => i.role === 'addIn');
       
-      console.log('Base teas:', bases.length, 'Add-ins:', adds.length);
       setBaseTeas(bases);
       setAddIns(adds);
     } catch (error) {
@@ -108,18 +170,15 @@ export default function CreateBlendProductPage() {
       
       const data = await response.json();
       setCostBreakdown(data);
-      
-      // Auto-populate price with suggested price if not already set
-      if (!price) {
-        setPrice(data.suggestedPrice.toFixed(2));
-      }
     } catch (error) {
       console.error('Error calculating cost:', error);
     }
   };
 
   useEffect(() => {
-    calculateCost();
+    if (selectedBaseTea && selectedAddIns.length > 0) {
+      calculateCost();
+    }
   }, [selectedBaseTea, selectedAddIns]);
 
   const addIngredient = (ingredientId: string) => {
@@ -142,11 +201,17 @@ export default function CreateBlendProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setSaving(true);
 
     try {
-      const response = await fetch('http://localhost:3000/admin/blends/products', {
-        method: 'POST',
+      if (!blend?.productId) {
+        alert('This blend has not been converted to a product yet.');
+        return;
+      }
+
+      // Update the product
+      const productResponse = await fetch(`http://localhost:3000/admin/products/${blend.productId}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${accessToken}`,
@@ -154,8 +219,6 @@ export default function CreateBlendProductPage() {
         body: JSON.stringify({
           name: productName,
           description,
-          baseTeaId: selectedBaseTea,
-          addIns: selectedAddIns,
           price: parseFloat(price),
           stock: parseInt(stock),
           category,
@@ -166,19 +229,37 @@ export default function CreateBlendProductPage() {
         }),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create product');
+      if (!productResponse.ok) {
+        const error = await productResponse.json();
+        throw new Error(error.message || 'Failed to update product');
       }
 
-      const data = await response.json();
+      // Update the blend composition
+      const blendResponse = await fetch(`http://localhost:3000/admin/blends/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          baseTeaId: selectedBaseTea,
+          addIns: selectedAddIns,
+          name: productName,
+        }),
+      });
+
+      if (!blendResponse.ok) {
+        const error = await blendResponse.json();
+        throw new Error(error.message || 'Failed to update blend');
+      }
+
       // Redirect to the products list page
       router.push('/admin/products');
     } catch (error) {
-      console.error('Error creating blend product:', error);
+      console.error('Error updating blend:', error);
       alert(`Error: ${(error as Error).message}`);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -187,14 +268,30 @@ export default function CreateBlendProductPage() {
     return ingredient?.name || 'Unknown';
   };
 
+  if (loading) {
+    return <div className="p-6">Loading blend...</div>;
+  }
+
+  if (!blend) {
+    return <div className="p-6">Blend not found</div>;
+  }
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">Create Blend Product</h1>
+        <h1 className="text-3xl font-bold">Edit Blend Product</h1>
         <p className="text-gray-600 mt-1">
-          Create a new product from a custom tea blend
+          Update blend composition and product details
         </p>
       </div>
+
+      {!blend.productId && (
+        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-yellow-800">
+            This blend hasn't been converted to a product yet. Please convert it first from the blend list.
+          </p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Blend Composition */}
@@ -371,7 +468,7 @@ export default function CreateBlendProductPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Initial Stock
+                  Stock
                 </label>
                 <input
                   type="number"
@@ -439,19 +536,6 @@ export default function CreateBlendProductPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Image URL
-              </label>
-              <input
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="https://..."
-              />
-            </div>
-
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -478,10 +562,10 @@ export default function CreateBlendProductPage() {
           </button>
           <button
             type="submit"
-            disabled={loading || !selectedBaseTea || selectedAddIns.length === 0}
+            disabled={saving || !selectedBaseTea || selectedAddIns.length === 0 || !blend.productId}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Creating...' : isActive ? 'Create Active Product' : 'Save as Draft'}
+            {saving ? 'Saving...' : 'Update Blend & Product'}
           </button>
         </div>
       </form>

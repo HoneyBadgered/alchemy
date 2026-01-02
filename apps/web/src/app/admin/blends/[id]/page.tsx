@@ -14,7 +14,7 @@ interface BlendDetail {
   createdAt: string;
   users: {
     id: string;
-    name: string;
+    username: string;
     email: string;
   } | null;
   products: {
@@ -27,7 +27,7 @@ interface BlendDetail {
     id: string;
     name: string;
     category: string;
-  };
+  } | null;
   addInsWithDetails: Array<{
     ingredientId: string;
     quantity: number;
@@ -131,8 +131,8 @@ export default function BlendDetailPage() {
           <h3 className="text-sm font-medium text-gray-500 mb-2">Base Tea</h3>
           <div className="flex items-center justify-between">
             <div>
-              <div className="font-medium">{blend.baseTea.name}</div>
-              <div className="text-sm text-gray-500">{blend.baseTea.category}</div>
+              <div className="font-medium">{blend.baseTea?.name || 'Unknown Base Tea'}</div>
+              <div className="text-sm text-gray-500">{blend.baseTea?.category || 'N/A'}</div>
             </div>
             <div className="text-sm text-gray-500">~5g (standard serving)</div>
           </div>

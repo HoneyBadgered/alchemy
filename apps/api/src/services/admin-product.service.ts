@@ -108,6 +108,7 @@ export class AdminProductService {
     const product = await prisma.products.findUnique({
       where: { id },
       include: {
+        blends: true,
         order_items: {
           include: {
             orders: {
