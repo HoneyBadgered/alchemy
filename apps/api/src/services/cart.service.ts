@@ -363,6 +363,7 @@ export class CartService {
   /**
    * Add custom blend to cart
    * Creates a product for the blend if it doesn't exist, saves the blend, then adds to cart
+   * Validates ingredient availability before adding to cart
    */
   async addBlendToCart({
     baseTeaId,
@@ -377,14 +378,63 @@ export class CartService {
     sessionId?: string;
     blendName?: string;
   }) {
-    // Fetch the base tea ingredient to get its actual name
-    const baseTea = await prisma.ingredients.findUnique({
-      where: { id: baseTeaId },
-      select: { id: true, name: true },
+    // INGREDIENT AVAILABILITY VALIDATION
+    // Check that all required ingredients have sufficient inventory
+    const ingredientIds = [baseTeaId, ...addIns.map(a => a.ingredientId)];
+    const ingredients = await prisma.ingredients.findMany({
+      where: { id: { in: ingredientIds } },
+      select: { id: true, name: true, inventoryAmount: true, status: true },
     });
 
+    // Create a map for quick lookup
+    const ingredientMap = new Map(ingredients.map(i => [i.id, i]));
+
+    // Validate base tea
+    const baseTea = ingredientMap.get(baseTeaId);
     if (!baseTea) {
-      throw new Error(`Base tea with ID "${baseTeaId}" not found`);
+      throw new NotFoundError(`Base tea with ID "${baseTeaId}" not found`);
+    }
+
+    if (baseTea.status !== 'active') {
+      throw new CartError(`Base tea "${baseTea.name}" is not currently available`);
+    }
+
+    // Each blend requires 1 unit of base tea (can be adjusted if needed)
+    if (Number(baseTea.inventoryAmount) < 1) {
+      throw new InsufficientStockError(
+        `Insufficient inventory for base tea "${baseTea.name}"`,
+        { 
+          ingredientId: baseTea.id,
+          ingredientName: baseTea.name,
+          requested: 1,
+          available: Number(baseTea.inventoryAmount),
+        }
+      );
+    }
+
+    // Validate add-ins
+    for (const addIn of addIns) {
+      const ingredient = ingredientMap.get(addIn.ingredientId);
+      
+      if (!ingredient) {
+        throw new NotFoundError(`Add-in ingredient with ID "${addIn.ingredientId}" not found`);
+      }
+
+      if (ingredient.status !== 'active') {
+        throw new CartError(`Ingredient "${ingredient.name}" is not currently available`);
+      }
+
+      if (Number(ingredient.inventoryAmount) < addIn.quantity) {
+        throw new InsufficientStockError(
+          `Insufficient inventory for ingredient "${ingredient.name}"`,
+          { 
+            ingredientId: ingredient.id,
+            ingredientName: ingredient.name,
+            requested: addIn.quantity,
+            available: Number(ingredient.inventoryAmount),
+          }
+        );
+      }
     }
 
     // Generate a unique product ID based on blend composition

@@ -5,8 +5,15 @@
  * INVENTORY LOCKING STRATEGY:
  * - Uses pessimistic locking (SELECT ... FOR UPDATE) to prevent race conditions
  * - Locks product rows during order placement to prevent overselling
+ * - Locks ingredient rows for blend products to prevent ingredient overselling
  * - Transaction isolation: ReadCommitted with 15s timeout
  * - Lock acquisition timeout: 5s max wait
+ * 
+ * BLEND INGREDIENT TRACKING:
+ * - When blend products are ordered, ingredient inventory is also decremented
+ * - Blends store ingredients in JSON format: { baseTeaId, addIns: [{ingredientId, quantity}] }
+ * - Both product stock AND ingredient inventory are validated and locked
+ * - Prevents selling blends when ingredient stock is insufficient
  */
 
 import { prisma } from '../utils/prisma';
@@ -227,6 +234,97 @@ export class OrderService {
           }
         }
 
+        // INGREDIENT INVENTORY TRACKING FOR BLENDS
+        // Identify blend products and extract ingredient requirements
+        const blendProducts = cart.cart_items.filter((item: CartItemWithProduct) => 
+          item.products.category === 'custom-blend'
+        );
+
+        let lockedIngredients: Map<string, { id: string; inventoryAmount: number; name: string }> = new Map();
+        const ingredientRequirements: Map<string, number> = new Map();
+
+        if (blendProducts.length > 0) {
+          // Fetch blend records to get ingredient composition
+          const blendProductIds = blendProducts.map(item => item.productId);
+          const blendRecords = await tx.blends.findMany({
+            where: { productId: { in: blendProductIds } },
+            select: {
+              id: true,
+              productId: true,
+              baseTeaId: true,
+              addIns: true,
+            },
+          });
+
+          // Build a map of productId -> blend record
+          const blendMap = new Map(blendRecords.map(b => [b.productId, b]));
+
+          // Calculate total ingredient requirements across all blend items
+          for (const item of blendProducts) {
+            const blend = blendMap.get(item.productId);
+            if (!blend) continue;
+
+            // Add base tea ingredient
+            const currentBaseQty = ingredientRequirements.get(blend.baseTeaId) || 0;
+            // Each blend uses 1 unit of base tea per quantity ordered
+            ingredientRequirements.set(blend.baseTeaId, currentBaseQty + item.quantity);
+
+            // Add add-in ingredients
+            const addIns = blend.addIns as Array<{ ingredientId: string; quantity: number }>;
+            for (const addIn of addIns) {
+              const currentQty = ingredientRequirements.get(addIn.ingredientId) || 0;
+              // Multiply add-in quantity by number of blends ordered
+              ingredientRequirements.set(addIn.ingredientId, currentQty + (addIn.quantity * item.quantity));
+            }
+          }
+
+          // Lock ingredient rows with FOR UPDATE if we have ingredient requirements
+          if (ingredientRequirements.size > 0) {
+            const ingredientIds = Array.from(ingredientRequirements.keys());
+            
+            const lockedIngredientsArray = await tx.$queryRaw<Array<{ 
+              id: string; 
+              inventoryAmount: Prisma.Decimal; 
+              name: string;
+              status: string;
+            }>>`
+              SELECT id, "inventoryAmount", name, status
+              FROM ingredients
+              WHERE id IN (${Prisma.join(ingredientIds)})
+              FOR UPDATE
+            `;
+
+            lockedIngredients = new Map(
+              lockedIngredientsArray.map(i => [i.id, { 
+                id: i.id, 
+                inventoryAmount: Number(i.inventoryAmount),
+                name: i.name,
+              }])
+            );
+
+            // Validate ingredient availability
+            for (const [ingredientId, requiredQty] of ingredientRequirements.entries()) {
+              const ingredient = lockedIngredients.get(ingredientId);
+              
+              if (!ingredient) {
+                throw new OrderValidationError(`Ingredient with ID ${ingredientId} not found`);
+              }
+
+              if (ingredient.inventoryAmount < requiredQty) {
+                throw new InsufficientStockError(
+                  `Insufficient ingredient inventory for ${ingredient.name}`,
+                  { 
+                    ingredientId,
+                    ingredientName: ingredient.name,
+                    requested: requiredQty,
+                    available: ingredient.inventoryAmount,
+                  }
+                );
+              }
+            }
+          }
+        }
+
         // Create order
         const newOrder = await tx.orders.create({
           data: {
@@ -272,6 +370,30 @@ export class OrderService {
               decrement: item.quantity,
             },
           },
+        });
+      }
+
+      // Update ingredient inventory for blend products
+      if (ingredientRequirements.size > 0) {
+        for (const [ingredientId, requiredQty] of ingredientRequirements.entries()) {
+          await tx.ingredients.update({
+            where: { id: ingredientId },
+            data: {
+              inventoryAmount: {
+                decrement: requiredQty,
+              },
+            },
+          });
+        }
+
+        console.log('Ingredient inventory updated:', {
+          orderId: newOrder.id,
+          ingredientsUpdated: ingredientRequirements.size,
+          details: Array.from(ingredientRequirements.entries()).map(([id, qty]) => ({
+            ingredientId: id,
+            ingredientName: lockedIngredients.get(id)?.name,
+            quantityDeducted: qty,
+          })),
         });
       }
 
