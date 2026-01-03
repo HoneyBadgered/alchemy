@@ -5,6 +5,7 @@
 
 import { prisma } from '../utils/prisma';
 import { BadRequestError, NotFoundError } from '../utils/errors';
+import { sanitizeStrict } from '../utils/sanitizer';
 
 export interface BlendAddIn {
   ingredientId: string;
@@ -41,6 +42,9 @@ export class BlendService {
       throw new BadRequestError('Either userId or sessionId must be provided');
     }
 
+    // Sanitize blend name if provided
+    const sanitizedName = name ? sanitizeStrict(name) : undefined;
+
     // Validate that at least base tea is provided
     if (!baseTeaId) {
       throw new BadRequestError('Base tea is required');
@@ -55,7 +59,7 @@ export class BlendService {
       data: {
         userId: userId || null,
         sessionId: sessionId || null,
-        name: name || null,
+        name: sanitizedName || null,
         baseTeaId,
         addIns: addIns as any, // Prisma will store this as JSONB
         productId: productId || null,

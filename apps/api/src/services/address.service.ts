@@ -5,6 +5,7 @@
 
 import { prisma } from '../utils/prisma';
 import crypto from 'crypto';
+import { sanitizeStrict } from '../utils/sanitizer';
 
 export interface CreateAddressInput {
   label?: string;
@@ -75,6 +76,21 @@ export class AddressService {
     // Validate required fields
     this.validateAddressFields(input);
 
+    // Sanitize text fields
+    const sanitizedInput = {
+      ...input,
+      label: input.label ? sanitizeStrict(input.label) : undefined,
+      firstName: sanitizeStrict(input.firstName) || input.firstName,
+      lastName: sanitizeStrict(input.lastName) || input.lastName,
+      addressLine1: sanitizeStrict(input.addressLine1) || input.addressLine1,
+      addressLine2: input.addressLine2 ? sanitizeStrict(input.addressLine2) : undefined,
+      city: sanitizeStrict(input.city) || input.city,
+      state: sanitizeStrict(input.state) || input.state,
+      zipCode: sanitizeStrict(input.zipCode) || input.zipCode,
+      country: sanitizeStrict(input.country) || input.country,
+      phone: input.phone ? sanitizeStrict(input.phone) : undefined,
+    };
+
     // If this is set as default, unset other defaults
     if (input.isDefault) {
       await prisma.addresses.updateMany({
@@ -91,7 +107,7 @@ export class AddressService {
       data: {
         id: crypto.randomUUID(),
         userId,
-        ...input,
+        ...sanitizedInput,
         isDefault,
         updatedAt: new Date(),
       },
@@ -116,6 +132,39 @@ export class AddressService {
       throw new Error('Address not found');
     }
 
+    // Sanitize text fields
+    const sanitizedInput: UpdateAddressInput = { ...input };
+    if (input.label !== undefined) {
+      sanitizedInput.label = input.label ? sanitizeStrict(input.label) : undefined;
+    }
+    if (input.firstName) {
+      sanitizedInput.firstName = sanitizeStrict(input.firstName) || input.firstName;
+    }
+    if (input.lastName) {
+      sanitizedInput.lastName = sanitizeStrict(input.lastName) || input.lastName;
+    }
+    if (input.addressLine1) {
+      sanitizedInput.addressLine1 = sanitizeStrict(input.addressLine1) || input.addressLine1;
+    }
+    if (input.addressLine2 !== undefined) {
+      sanitizedInput.addressLine2 = input.addressLine2 ? sanitizeStrict(input.addressLine2) : null;
+    }
+    if (input.city) {
+      sanitizedInput.city = sanitizeStrict(input.city) || input.city;
+    }
+    if (input.state) {
+      sanitizedInput.state = sanitizeStrict(input.state) || input.state;
+    }
+    if (input.zipCode) {
+      sanitizedInput.zipCode = sanitizeStrict(input.zipCode) || input.zipCode;
+    }
+    if (input.country) {
+      sanitizedInput.country = sanitizeStrict(input.country) || input.country;
+    }
+    if (input.phone !== undefined) {
+      sanitizedInput.phone = input.phone ? sanitizeStrict(input.phone) : null;
+    }
+
     // If setting as default, unset other defaults
     if (input.isDefault) {
       await prisma.addresses.updateMany({
@@ -126,7 +175,7 @@ export class AddressService {
 
     const address = await prisma.addresses.update({
       where: { id: addressId },
-      data: input,
+      data: sanitizedInput,
     });
 
     return address;

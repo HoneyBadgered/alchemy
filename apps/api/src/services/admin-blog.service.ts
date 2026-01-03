@@ -3,15 +3,16 @@ import { randomUUID } from 'crypto';
 import { z } from 'zod';
 import { PostCategory, PostFilters } from '@alchemy/core';
 import type { Prisma } from '@prisma/client';
+import { sanitizeStrict, sanitizeMarkdown } from '../utils/sanitizer';
 
 const prisma = new PrismaClient();
 
 // Zod validation schemas
 export const createPostSchema = z.object({
   type: z.enum(['log', 'grimoire']),
-  title: z.string().min(1).max(200),
-  body: z.string().min(1).max(100000),
-  excerpt: z.string().max(500).optional(),
+  title: z.string().min(1).max(200).transform(val => sanitizeStrict(val) || val),
+  body: z.string().min(1).max(100000).transform(val => sanitizeMarkdown(val) || val),
+  excerpt: z.string().max(500).optional().transform(val => val ? sanitizeStrict(val) : undefined),
   category: z.nativeEnum(PostCategory).optional(),
   heroImageUrl: z.string().url().or(z.literal('')).optional(),
   tagIds: z.array(z.string()).max(10).optional().default([]),
@@ -32,9 +33,9 @@ export const createPostSchema = z.object({
 );
 
 export const updatePostSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
-  body: z.string().min(1).max(100000).optional(),
-  excerpt: z.string().max(500).optional(),
+  title: z.string().min(1).max(200).optional().transform(val => val ? sanitizeStrict(val) : undefined),
+  body: z.string().min(1).max(100000).optional().transform(val => val ? sanitizeMarkdown(val) : undefined),
+  excerpt: z.string().max(500).optional().transform(val => val ? sanitizeStrict(val) : undefined),
   category: z.nativeEnum(PostCategory).optional(),
   heroImageUrl: z.string().url().or(z.literal('')).optional(),
   tagIds: z.array(z.string()).max(10).optional(),
@@ -45,7 +46,7 @@ export const updatePostSchema = z.object({
 export const createTagSchema = z.object({
   name: z.string().min(1).max(50).regex(/^[a-zA-Z0-9\s\-]+$/, {
     message: 'Only letters, numbers, spaces, and hyphens allowed',
-  }),
+  }).transform(val => sanitizeStrict(val) || val),
 });
 
 // Helper functions

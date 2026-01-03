@@ -5,6 +5,7 @@
 import { prisma } from '../utils/prisma';
 import crypto from 'crypto';
 import type { Prisma } from '@prisma/client';
+import { sanitizeStrict, sanitizeBasic } from '../utils/sanitizer';
 
 export interface ProductFilters {
   page?: number;
@@ -139,8 +140,8 @@ export class AdminProductService {
     const product = await prisma.products.create({
       data: {
         id: crypto.randomUUID(),
-        name: data.name,
-        description: data.description,
+        name: sanitizeStrict(data.name) || data.name,
+        description: sanitizeBasic(data.description) || data.description,
         price: data.price,
         imageUrl: data.imageUrl,
         images: data.images || [],
@@ -159,9 +160,18 @@ export class AdminProductService {
    * Update product
    */
   async updateProduct(id: string, data: UpdateProductInput) {
+    const sanitizedData: UpdateProductInput = { ...data };
+    
+    if (data.name) {
+      sanitizedData.name = sanitizeStrict(data.name) || data.name;
+    }
+    if (data.description) {
+      sanitizedData.description = sanitizeBasic(data.description) || data.description;
+    }
+
     const product = await prisma.products.update({
       where: { id },
-      data,
+      data: sanitizedData,
     });
 
     return product;

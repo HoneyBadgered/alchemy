@@ -5,6 +5,7 @@
 
 import { prisma } from '../utils/prisma';
 import { hashPassword, verifyPassword } from '../utils/password';
+import { sanitizeBasic, sanitizeStrict } from '../utils/sanitizer';
 import crypto from 'crypto';
 
 export interface UpdateProfileInput {
@@ -67,6 +68,17 @@ export class UserProfileService {
    * Update user profile details
    */
   async updateProfile(userId: string, input: UpdateProfileInput) {
+    // Sanitize text inputs
+    if (input.firstName) {
+      input.firstName = sanitizeStrict(input.firstName) || undefined;
+    }
+    if (input.lastName) {
+      input.lastName = sanitizeStrict(input.lastName) || undefined;
+    }
+    if (input.allergyNotes) {
+      input.allergyNotes = sanitizeBasic(input.allergyNotes);
+    }
+
     // Validate flavor preferences if provided
     if (input.flavorPreferences) {
       const invalidFlavors = input.flavorPreferences.filter(
