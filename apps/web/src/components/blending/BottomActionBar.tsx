@@ -7,13 +7,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import type { BlendSize, BlendStatus } from './types';
+import type { BlendSize, BlendStatus, BlendClassification } from './types';
 
 interface BottomActionBarProps {
   /** Selected size */
   size: BlendSize;
-  /** Blend status (e.g., "Balanced", "Extra floral") */
+  /** Blend status (e.g., "Balanced", "Extra floral") - legacy */
   status: BlendStatus;
+  /** Blend classification with emoji and description */
+  classification?: BlendClassification;
   /** Estimated price */
   price: number;
   /** Whether the blend is ready (has base + at least one add-in) */
@@ -35,6 +37,7 @@ interface BottomActionBarProps {
 export const BottomActionBar: React.FC<BottomActionBarProps> = ({
   size,
   status,
+  classification,
   price,
   isReady,
   isProcessing = false,
@@ -63,6 +66,11 @@ export const BottomActionBar: React.FC<BottomActionBarProps> = ({
   };
 
   console.log('BottomActionBar render - hasContents:', hasContents, 'showConfirmDialog:', showConfirmDialog);
+  
+  // Use classification if available, otherwise fall back to status
+  const displayLabel = classification?.label || status.label;
+  const displayEmoji = classification?.emoji || '✨';
+  const displayDescription = classification?.description || status.description;
 
   return (
     <>
@@ -125,11 +133,14 @@ export const BottomActionBar: React.FC<BottomActionBarProps> = ({
               </div>
             </div>
 
-            {/* Center: Status + Price */}
+            {/* Center: Classification with Emoji + Price */}
             <div className="flex-1 flex flex-col items-center text-center">
-              <span className={`text-sm font-semibold ${isReady ? 'text-purple-300' : 'text-white/50'}`}>
-                {status.label}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-lg">{displayEmoji}</span>
+                <span className={`text-sm font-semibold ${isReady ? 'text-purple-300' : 'text-white/50'}`}>
+                  {displayLabel}
+                </span>
+              </div>
               <span className="text-xs text-white/60 hidden sm:inline">
                 Estimated: <span className="font-bold text-amber-400">${price}</span>
               </span>

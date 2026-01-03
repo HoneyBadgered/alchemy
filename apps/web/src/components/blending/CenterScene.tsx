@@ -7,7 +7,7 @@
 'use client';
 
 import React from 'react';
-import type { ExtendedBlendState, FlavorProfile, BlendSize, BlendBreakdownItem } from './types';
+import type { ExtendedBlendState, FlavorProfile, BlendSize, BlendBreakdownItem, BlendClassification } from './types';
 import type { BlendingIngredient } from './mockData';
 import { BowlFillVisual } from './BowlFillVisual';
 import { getIngredientById } from '@/hooks/useIngredients';
@@ -35,6 +35,8 @@ interface CenterSceneProps {
   isBasePanelOpen?: boolean;
   /** Callback when enchant/continue is clicked */
   onContinue?: () => void;
+  /** Blend classification */
+  classification?: BlendClassification;
 }
 
 interface BlendNameFieldProps {
@@ -156,6 +158,7 @@ interface BlendBreakdownListProps {
     botanicals: BlendingIngredient[];
     premium: BlendingIngredient[];
   };
+  classification?: BlendClassification;
 }
 
 const BlendBreakdownList: React.FC<BlendBreakdownListProps> = ({
@@ -163,6 +166,7 @@ const BlendBreakdownList: React.FC<BlendBreakdownListProps> = ({
   onRemoveIngredient,
   bases,
   addInsData,
+  classification,
 }) => {
   // Calculate total weight
   const baseWeight = blendState.baseTeaId ? blendState.size * 0.6 : 0;
@@ -204,6 +208,20 @@ const BlendBreakdownList: React.FC<BlendBreakdownListProps> = ({
 
   return (
     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+      {/* Classification Badge */}
+      {classification && (
+        <div className="mb-3 pb-3 border-b border-white/20">
+          <div className="inline-flex items-center gap-2 px-3 py-2 bg-purple-900/30 rounded-full">
+            <span className="text-lg">{classification.emoji}</span>
+            <div className="text-left">
+              <div className="text-xs text-purple-300">Blend Character</div>
+              <div className="font-semibold text-white text-sm">{classification.label}</div>
+            </div>
+          </div>
+          <p className="text-xs text-white/70 mt-2">{classification.description}</p>
+        </div>
+      )}
+      
       <h3 className="text-white/80 text-sm font-medium mb-3">Blend Breakdown</h3>
       <div className="space-y-2">
         {items.map((item, index) => (
@@ -250,6 +268,7 @@ export const CenterScene: React.FC<CenterSceneProps> = ({
   addInsData,
   isBasePanelOpen = false,
   onContinue,
+  classification,
 }) => {
   return (
     <div className="relative flex flex-col h-full min-h-screen">
@@ -280,6 +299,7 @@ export const CenterScene: React.FC<CenterSceneProps> = ({
             onRemoveIngredient={onRemoveIngredient}
             bases={bases}
             addInsData={addInsData}
+            classification={classification}
           />
         </div>
       </div>

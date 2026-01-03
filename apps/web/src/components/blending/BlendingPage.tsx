@@ -118,9 +118,23 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
           addIns: prev.addIns.filter((_, i) => i !== existingIndex),
         };
       } else {
-        // Add add-in with default quantity
+        // Calculate current add-ins total
+        const currentAddInsTotal = prev.addIns.reduce((sum, a) => sum + a.quantity, 0);
+        const maxAddIns = prev.size * 0.6;
+        
+        // Get default quantity for this ingredient
         const ingredient = getIngredientById(ingredientId, bases, addIns);
         const defaultQuantity = ingredient?.baseAmount || 0.25;
+        
+        // Check if adding this ingredient would exceed the limit
+        if (currentAddInsTotal + defaultQuantity > maxAddIns) {
+          // Show a warning (we could add a toast notification here)
+          console.warn(`Cannot add ${ingredient?.name}. Would exceed 60% add-ins limit.`);
+          alert(`Cannot add ${ingredient?.name || 'ingredient'}. Would exceed 60% add-ins limit (${(maxAddIns).toFixed(2)}oz max). Current total: ${currentAddInsTotal.toFixed(2)}oz`);
+          return prev; // Don't add the ingredient
+        }
+        
+        // Add add-in with default quantity
         return {
           ...prev,
           addIns: [...prev.addIns, { ingredientId, quantity: defaultQuantity }],
@@ -130,13 +144,35 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
   }, [bases, addIns]);
 
   const handleQuantityChange = useCallback((ingredientId: string, quantity: number) => {
-    setBlendState(prev => ({
-      ...prev,
-      addIns: prev.addIns.map(a =>
-        a.ingredientId === ingredientId ? { ...a, quantity } : a
-      ),
-    }));
-  }, []);
+    setBlendState(prev => {
+      // Calculate what the total would be with this change
+      const otherAddIns = prev.addIns.filter(a => a.ingredientId !== ingredientId);
+      const otherAddInsTotal = otherAddIns.reduce((sum, a) => sum + a.quantity, 0);
+      const newTotal = otherAddInsTotal + quantity;
+      const maxAddIns = prev.size * 0.6;
+      
+      // Validate against 60% limit
+      if (newTotal > maxAddIns) {
+        const ingredient = getIngredientById(ingredientId, bases, addIns);
+        console.warn(`Cannot set ${ingredient?.name} to ${quantity}oz. Would exceed 60% add-ins limit.`);
+        // Cap the quantity at the maximum allowed
+        const maxAllowed = maxAddIns - otherAddInsTotal;
+        return {
+          ...prev,
+          addIns: prev.addIns.map(a =>
+            a.ingredientId === ingredientId ? { ...a, quantity: Math.max(0.1, maxAllowed) } : a
+          ),
+        };
+      }
+      
+      return {
+        ...prev,
+        addIns: prev.addIns.map(a =>
+          a.ingredientId === ingredientId ? { ...a, quantity } : a
+        ),
+      };
+    });
+  }, [bases, addIns]);
 
   const handleRemoveIngredient = useCallback((ingredientId: string) => {
     setBlendState(prev => ({
@@ -296,6 +332,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
               onRemoveIngredient={handleRemoveIngredient}
               onBasePanelOpenChange={setIsBasePanelOpen}
               onContinue={handleContinue}
+              classification={classification}
             />
 
             {/* Mobile View */}
@@ -318,6 +355,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
         <BottomActionBar
           size={blendState.size}
           status={isReady ? status : DEFAULT_STATUS}
+          classification={classification}
           price={pricing.price}
           isReady={isReady}
           isProcessing={isProcessing}
