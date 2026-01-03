@@ -451,6 +451,7 @@ export class PaymentService {
 
   /**
    * Handle Stripe webhook event
+   * Integrated with webhook retry system - initializes retry metadata on creation
    */
   async handleWebhookEvent(event: Stripe.Event) {
     try {
@@ -465,7 +466,10 @@ export class PaymentService {
         return;
       }
 
-      // Create or update webhook event record
+      // Determine max retries based on event type
+      const maxRetries = this.getMaxRetriesForEventType(event.type);
+
+      // Create or update webhook event record with retry metadata
       const webhookEvent = await prisma.stripe_webhook_events.upsert({
         where: { eventId: event.id },
         create: {
@@ -473,6 +477,11 @@ export class PaymentService {
           eventId: event.id,
           eventType: event.type,
           payload: JSON.parse(JSON.stringify(event)) as Prisma.InputJsonValue,
+          status: 'pending',
+          retryCount: 0,
+          maxRetries,
+          nextRetryAt: new Date(), // Process immediately
+          priority: this.getPriorityForEventType(event.type),
         },
         update: {},
       });
@@ -514,27 +523,32 @@ export class PaymentService {
 
         console.log(`Successfully processed webhook event: ${event.type} (${event.id})`);
 
-        // Mark as processed
+        // Mark as processed with retry metadata
         await prisma.stripe_webhook_events.update({
           where: { id: webhookEvent.id },
           data: {
+            status: 'processed',
             processed: true,
             processedAt: new Date(),
+            error: null,
           },
         });
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error(`Failed to process webhook event ${event.id}:`, error);
         
-        // Mark as failed
+        // Don't update retry metadata here - let the retry worker handle it
+        // Just mark as failed with current error
         await prisma.stripe_webhook_events.update({
           where: { id: webhookEvent.id },
           data: {
+            status: 'failed',
             error: errorMessage,
           },
         });
         
-        // Re-throw to signal webhook failure (Stripe will retry)
+        // Re-throw to signal webhook failure
+        // Note: Retry worker will handle exponential backoff retries
         throw new PaymentError(`Webhook processing failed: ${errorMessage}`);
       }
     } catch (error) {
@@ -797,5 +811,35 @@ export class PaymentService {
       }
       throw error;
     }
+  }
+
+  /**
+   * Get maximum retry attempts for webhook event type
+   * Critical payment events get more retries
+   */
+  private getMaxRetriesForEventType(eventType: string): number {
+    const maxRetriesByType: Record<string, number> = {
+      'payment_intent.succeeded': 5,
+      'payment_intent.payment_failed': 3,
+      'payment_intent.processing': 5,
+      'payment_intent.canceled': 3,
+      'charge.succeeded': 5,
+    };
+    return maxRetriesByType[eventType] || 5;
+  }
+
+  /**
+   * Get priority for webhook event type
+   * Higher priority events are processed first
+   */
+  private getPriorityForEventType(eventType: string): number {
+    const priorityByType: Record<string, number> = {
+      'payment_intent.succeeded': 10,      // Highest - customer waiting for confirmation
+      'charge.succeeded': 10,
+      'payment_intent.processing': 5,
+      'payment_intent.payment_failed': 3,
+      'payment_intent.canceled': 1,
+    };
+    return priorityByType[eventType] || 0;
   }
 }

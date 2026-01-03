@@ -49,9 +49,19 @@ import blogRoutes from './routes/blog.routes';
 import searchRoutes from './routes/search.routes';
 import { fileUploadRoutes } from './routes/file-upload.routes';
 import { errorHandlerPlugin } from './plugins/error-handler';
+import { WebhookRetryWorker } from './services/webhook-retry.service';
+import { adminWebhookRoutes } from './routes/admin-webhook.routes';
 
 const fastify = Fastify({
   logger: config.isDevelopment,
+});
+
+// Initialize webhook retry worker
+const webhookRetryWorker = new WebhookRetryWorker({
+  pollingInterval: 30000, // 30 seconds
+  batchSize: 10,
+  enableConcurrencyLock: true,
+  maxProcessingTime: 60000, // 60 seconds
 });
 
 // Register error handler plugin first
@@ -136,6 +146,8 @@ fastify.register(purchaseHistoryRoutes);
 fastify.register(adminBlogRoutes);
 fastify.register(blogRoutes);
 fastify.register(searchRoutes);
+fastify.register(fileUploadRoutes);
+fastify.register((instance) => adminWebhookRoutes(instance, webhookRetryWorker));
 
 // Health check endpoint
 fastify.get('/health', async (_request, reply) => {
@@ -202,10 +214,42 @@ async function start() {
   try {
     await fastify.listen({ port: config.port, host: '0.0.0.0' });
     console.log(`🧪 Alchemy Table API running on port ${config.port}`);
+    
+    // Start webhook retry worker
+    webhookRetryWorker.start();
+    console.log('✅ Webhook retry worker started');
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
   }
 }
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received, shutting down gracefully...');
+  
+  // Stop webhook retry worker
+  await webhookRetryWorker.stop();
+  
+  // Close Fastify server
+  await fastify.close();
+  
+  // Close Prisma connection
+  await prisma.$disconnect();
+  
+  console.log('Shutdown complete');
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.log('SIGINT received, shutting down gracefully...');
+  
+  await webhookRetryWorker.stop();
+  await fastify.close();
+  await prisma.$disconnect();
+  
+  console.log('Shutdown complete');
+  process.exit(0);
+});
 
 start();

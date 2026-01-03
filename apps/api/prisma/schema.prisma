@@ -526,17 +526,38 @@ model site_settings {
 }
 
 model stripe_webhook_events {
-  id          String    @id
-  eventId     String    @unique
-  eventType   String
-  payload     Json
-  processed   Boolean   @default(false)
-  processedAt DateTime?
-  error       String?
-  createdAt   DateTime  @default(now())
+  id              String    @id
+  eventId         String    @unique
+  eventType       String
+  payload         Json
+  
+  // Status tracking
+  status          String    @default("pending") // pending, processing, processed, failed, dead_letter
+  processed       Boolean   @default(false)     // Kept for backwards compatibility
+  processedAt     DateTime?
+  
+  // Retry metadata
+  retryCount      Int       @default(0)
+  maxRetries      Int       @default(5)
+  nextRetryAt     DateTime  @default(now())
+  lastAttemptAt   DateTime?
+  
+  // Error tracking
+  error           String?   // Current error message
+  errorHistory    Json?     // Array of previous errors with timestamps
+  
+  // Priority
+  priority        Int       @default(0) // Higher = processed first
+  
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@index([eventType])
   @@index([processed])
+  @@index([status, nextRetryAt])
+  @@index([createdAt])
+  @@index([retryCount])
 }
 
 model subscriptions {
