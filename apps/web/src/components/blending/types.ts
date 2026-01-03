@@ -72,3 +72,23 @@ export interface BlendStatus {
   label: string;
   description: string;
 }
+
+/**
+ * Blend classification based on composition
+ */
+export interface BlendClassification {
+  /** Display label (e.g., "Floral Forward", "Very Spicy") */
+  label: string;
+  /** Detailed description of the blend character */
+  description: string;
+  /** Emoji representing the blend character */
+  emoji: string;
+  /** Base tea percentage */
+  baseTeaPercentage: number;
+  /** Total add-ins percentage */
+  addInsPercentage: number;
+  /** Dominant category if any */
+  dominantCategory?: string;
+  /** Intensity level */
+  intensity?: 'moderate' | 'very';
+}

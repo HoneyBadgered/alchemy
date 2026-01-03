@@ -32,6 +32,8 @@ interface CollapsibleMagicColumnProps {
     botanicals: BlendingIngredient[];
     premium: BlendingIngredient[];
   };
+  /** Current blend size in ounces */
+  blendSize: number;
 }
 
 interface IngredientItemProps {
@@ -42,6 +44,8 @@ interface IngredientItemProps {
   onQuantityChange: (quantity: number) => void;
   useMobileBehavior: boolean;
   onOpenDetails?: () => void;
+  blendSize: number;
+  maxAllowedQuantity: number;
 }
 
 const IngredientItem: React.FC<IngredientItemProps> = ({
@@ -52,10 +56,39 @@ const IngredientItem: React.FC<IngredientItemProps> = ({
   onQuantityChange,
   useMobileBehavior,
   onOpenDetails,
+  blendSize,
+  maxAllowedQuantity,
 }) => {
-  const incrementAmount = ingredient.incrementAmount || 0.25;
-  const minQuantity = ingredient.baseAmount || 0.25;
-  const maxQuantity = 2; // Max 2 oz per add-in
+  // Calculate slider range based on percentages if available
+  const calculateRange = () => {
+    if (ingredient.recommendedUsageMin !== undefined && 
+        ingredient.recommendedUsageMax !== undefined &&
+        ingredient.recommendedUsageMin !== null &&
+        ingredient.recommendedUsageMax !== null) {
+      const minOz = (blendSize * Number(ingredient.recommendedUsageMin)) / 100;
+      const maxOz = (blendSize * Number(ingredient.recommendedUsageMax)) / 100;
+      const effectiveMax = Math.min(maxOz, maxAllowedQuantity);
+      
+      return {
+        min: Math.max(0.1, minOz),
+        max: Math.max(0.1, effectiveMax),
+        step: 0.1,
+      };
+    }
+    
+    // Fallback to old system
+    const incrementAmount = ingredient.incrementAmount || 0.25;
+    const minQuantity = ingredient.baseAmount || 0.25;
+    const maxQuantity = Math.min(2, maxAllowedQuantity);
+    
+    return {
+      min: minQuantity,
+      max: maxQuantity,
+      step: incrementAmount,
+    };
+  };
+
+  const range = calculateRange();
 
   const handleClick = () => {
     if (useMobileBehavior && onOpenDetails) {
@@ -69,17 +102,19 @@ const IngredientItem: React.FC<IngredientItemProps> = ({
 
   const handleIncrement = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (quantity < maxQuantity) {
-      onQuantityChange(Math.min(maxQuantity, quantity + incrementAmount));
+    if (quantity < range.max) {
+      onQuantityChange(Math.min(range.max, quantity + range.step));
     }
   };
 
   const handleDecrement = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (quantity > minQuantity) {
-      onQuantityChange(Math.max(minQuantity, quantity - incrementAmount));
+    if (quantity > range.min) {
+      onQuantityChange(Math.max(range.min, quantity - range.step));
     }
   };
+  
+  const percentage = ((quantity / blendSize) * 100).toFixed(1);
 
   const tooltipText = [
     ingredient.shortTags?.join(' · ') || ingredient.description,
@@ -144,7 +179,7 @@ const IngredientItem: React.FC<IngredientItemProps> = ({
         <div className="mt-1 flex items-center justify-center gap-2">
           <button
             onClick={handleDecrement}
-            disabled={quantity <= minQuantity}
+            disabled={quantity <= range.min}
             className="w-6 h-6 rounded-full bg-purple-500 hover:bg-purple-600 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
             aria-label="Decrease quantity"
           >
@@ -157,7 +192,7 @@ const IngredientItem: React.FC<IngredientItemProps> = ({
           </span>
           <button
             onClick={handleIncrement}
-            disabled={quantity >= maxQuantity}
+            disabled={quantity >= range.max}
             className="w-6 h-6 rounded-full bg-purple-500 hover:bg-purple-600 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
             aria-label="Increase quantity"
           >
@@ -218,6 +253,8 @@ interface CategorySectionProps {
   onQuantityChange: (ingredientId: string, quantity: number) => void;
   useMobileBehavior: boolean;
   onOpenDetails: (ingredient: BlendingIngredient) => void;
+  blendSize: number;
+  maxAddInsBudget: number;
 }
 
 const CategorySection: React.FC<CategorySectionProps> = ({
@@ -317,6 +354,7 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
   onToggleAddIn,
   onQuantityChange,
   addInsData,
+  blendSize,
 }) => {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [detailsIngredient, setDetailsIngredient] = useState<BlendingIngredient | null>(null);
@@ -349,6 +387,11 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
   }, []);
 
   const totalSelectedCount = selectedAddIns.length;
+  
+  // Calculate add-ins budget (60% of blend size)
+  const maxAddIns = blendSize * 0.6;
+  const currentAddInsTotal = selectedAddIns.reduce((sum, a) => sum + a.quantity, 0);
+  const remainingBudget = maxAddIns - currentAddInsTotal;
 
   return (
     <div className="relative" data-testid="collapsible-magic-panel">
@@ -431,6 +474,11 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
                   return addInsData[categoryKey].map((ingredient) => {
                     const isSelected = selectedAddIns.some(a => a.ingredientId === ingredient.id);
                     const quantity = selectedAddIns.find(a => a.ingredientId === ingredient.id)?.quantity || ingredient.baseAmount || 0.25;
+                    // Calculate max allowed for this ingredient
+                    const maxAllowed = isSelected 
+                      ? remainingBudget + quantity
+                      : remainingBudget;
+                    
                     return (
                       <IngredientItem
                         key={`${categoryId}-${ingredient.id}`}
@@ -441,6 +489,8 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
                         onQuantityChange={(q) => onQuantityChange(ingredient.id, q)}
                         useMobileBehavior={useMobileBehavior}
                         onOpenDetails={() => handleOpenDetails(ingredient)}
+                        blendSize={blendSize}
+                        maxAllowedQuantity={maxAllowed}
                       />
                     );
                   });

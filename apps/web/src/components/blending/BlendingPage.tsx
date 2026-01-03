@@ -13,6 +13,7 @@ import type { ExtendedBlendState, BlendSize } from './types';
 import { useIngredients, getIngredientById } from '@/hooks/useIngredients';
 import { useBlendPricing } from './useBlendPricing';
 import { useFlavorProfile, DEFAULT_STATUS } from './useFlavorProfile';
+import { useBlendClassification } from '@/hooks/useBlendClassification';
 import { ImmersiveHeader } from './ImmersiveHeader';
 import { BottomActionBar } from './BottomActionBar';
 import { DesktopBlendingView } from './DesktopBlendingView';
@@ -75,6 +76,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
   // Calculate pricing and flavor profile
   const pricing = useBlendPricing(blendState);
   const { normalizedProfile, status } = useFlavorProfile(blendState, bases, addIns);
+  const classification = useBlendClassification(blendState, bases, addIns);
 
   // Determine if blend is ready (has base + at least something selected)
   const isReady = !!blendState.baseTeaId;
