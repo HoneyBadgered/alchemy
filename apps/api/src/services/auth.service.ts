@@ -235,6 +235,15 @@ export class AuthService {
     });
   }
 
+  async logoutAll(userId: string) {
+    // Remove ALL refresh tokens for this user (all devices/sessions)
+    await prisma.refresh_tokens.deleteMany({
+      where: {
+        userId,
+      },
+    });
+  }
+
   async getMe(userId: string) {
     const user = await prisma.users.findUnique({
       where: { id: userId },

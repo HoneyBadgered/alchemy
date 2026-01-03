@@ -59,6 +59,13 @@ export default function CheckoutPage() {
     checkPaymentConfig();
   }, []);
 
+  // Redirect if cart is empty (but not when processing payment or showing success)
+  useEffect(() => {
+    if (!cartLoading && itemCount === 0 && currentStep !== 'processing' && currentStep !== 'success') {
+      router.push('/cart');
+    }
+  }, [cartLoading, itemCount, currentStep, router]);
+
   // Wait for auth state to be hydrated before rendering
   if (!hasHydrated) {
     return (
@@ -68,9 +75,8 @@ export default function CheckoutPage() {
     );
   }
 
-  // Redirect if cart is empty (but not when processing payment or showing success - cart is cleared after successful payment)
+  // Show loading while cart is being checked
   if (!cartLoading && itemCount === 0 && currentStep !== 'processing' && currentStep !== 'success') {
-    router.push('/cart');
     return null;
   }
 

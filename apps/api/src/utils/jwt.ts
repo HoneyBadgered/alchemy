@@ -2,8 +2,8 @@
  * JWT Authentication Utilities
  */
 
-import jwt, { SignOptions } from 'jsonwebtoken';
-import { config } from '../config';
+import { SignOptions } from 'jsonwebtoken';
+import { config, jwtKeyManager } from '../config';
 
 export interface JwtPayload {
   userId: string;
@@ -11,21 +11,22 @@ export interface JwtPayload {
 }
 
 export function generateAccessToken(payload: JwtPayload): string {
-  return jwt.sign(payload, config.jwt.secret, {
+  return jwtKeyManager.signAccessToken(payload, {
     expiresIn: config.jwt.expiresIn,
   } as SignOptions);
 }
 
 export function generateRefreshToken(payload: JwtPayload): string {
-  return jwt.sign(payload, config.jwt.refreshSecret, {
+  return jwtKeyManager.signRefreshToken(payload, {
     expiresIn: config.jwt.refreshExpiresIn,
   } as SignOptions);
 }
 
 export function verifyAccessToken(token: string): JwtPayload {
-  return jwt.verify(token, config.jwt.secret) as JwtPayload;
+  return jwtKeyManager.verifyAccessToken<JwtPayload>(token);
 }
 
 export function verifyRefreshToken(token: string): JwtPayload {
-  return jwt.verify(token, config.jwt.refreshSecret) as JwtPayload;
+  return jwtKeyManager.verifyRefreshToken<JwtPayload>(token);
 }
+

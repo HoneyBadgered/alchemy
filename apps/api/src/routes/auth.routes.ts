@@ -6,6 +6,8 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { AuthService } from '../services/auth.service';
 import { authMiddleware } from '../middleware/auth';
+import { tokenBlacklist, getTokenExpirationSeconds } from '../services/token-blacklist.service';
+import jwt from 'jsonwebtoken';
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -110,6 +112,10 @@ export async function authRoutes(fastify: FastifyInstance) {
   // POST /auth/logout
   fastify.post('/auth/logout', { preHandler: authMiddleware }, async (request, reply) => {
     try {
+      // Get access token from authorization header
+      const authHeader = request.headers.authorization;
+      const accessToken = authHeader?.split(' ')[1];
+
       // Get refresh token from body or cookie
       const bodyToken = request.body && typeof request.body === 'object' && 'refreshToken' in request.body
         ? (request.body as { refreshToken?: string }).refreshToken
@@ -121,12 +127,44 @@ export async function authRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({ message: 'Refresh token is required (provide in body or cookie)' });
       }
       
+      // Invalidate refresh token in database
       await authService.logout(request.user!.userId, refreshToken);
+
+      // Blacklist the current access token
+      if (accessToken) {
+        const decoded = jwt.decode(accessToken) as { exp?: number } | null;
+        const expirationSeconds = decoded ? getTokenExpirationSeconds(decoded) : 3600;
+        await tokenBlacklist.blacklist(accessToken, expirationSeconds);
+      }
       
       // Clear refresh token cookie
       reply.clearCookie('refreshToken', { path: '/' });
 
       return reply.send({ message: 'Logged out successfully' });
+    } catch (error) {
+      return reply.status(400).send({ message: (error as Error).message });
+    }
+  });
+
+  // POST /auth/logout-all
+  // Immediately invalidate ALL tokens for the current user (all sessions/devices)
+  fastify.post('/auth/logout-all', { preHandler: authMiddleware }, async (request, reply) => {
+    try {
+      const userId = request.user!.userId;
+
+      // Blacklist all tokens for this user (1 hour to match access token expiry)
+      await tokenBlacklist.blacklistUser(userId, 3600);
+
+      // Invalidate all refresh tokens in database
+      await authService.logoutAll(userId);
+
+      // Clear refresh token cookie
+      reply.clearCookie('refreshToken', { path: '/' });
+
+      return reply.send({ 
+        message: 'All sessions terminated successfully',
+        devicesLoggedOut: 'all'
+      });
     } catch (error) {
       return reply.status(400).send({ message: (error as Error).message });
     }

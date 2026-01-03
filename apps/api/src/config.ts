@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import { z } from 'zod';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
+import { JwtKeyManager, parseJwtSecretsFromEnv } from './utils/jwt-keys';
 
 // Load .env file if it exists (not required when running in Docker with environment variables)
 const envPath = resolve(process.cwd(), '.env');
@@ -21,10 +22,22 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('3000'),
   DATABASE_URL: z.string().default('postgresql://alchemy:alchemy_password@localhost:5432/alchemy?schema=public'),
+  
+  // Legacy JWT secrets (backward compatibility)
   // WARNING: These JWT secrets are insecure development defaults only!
   // Always set JWT_SECRET and JWT_REFRESH_SECRET in production environments
   JWT_SECRET: z.string().default('dev-secret-key-change-in-production'),
   JWT_REFRESH_SECRET: z.string().default('dev-refresh-secret-key-change-in-production'),
+  
+  // Versioned JWT secrets (for rotation support)
+  // Format: JWT_ACCESS_SECRET_V1, JWT_ACCESS_SECRET_V2, etc.
+  JWT_ACCESS_SECRET_V1: z.string().optional(),
+  JWT_ACCESS_SECRET_V2: z.string().optional(),
+  JWT_REFRESH_SECRET_V1: z.string().optional(),
+  JWT_REFRESH_SECRET_V2: z.string().optional(),
+  JWT_CURRENT_ACCESS_VERSION: z.string().default('1'),
+  JWT_CURRENT_REFRESH_VERSION: z.string().default('1'),
+  
   APP_URL: z.string().default('http://localhost:3001'),
   EMAIL_HOST: z.string().optional(),
   EMAIL_PORT: z.string().optional(),
@@ -79,10 +92,14 @@ export const config = {
     url: env.DATABASE_URL,
   },
   jwt: {
+    // Legacy secrets (backward compatibility)
     secret: env.JWT_SECRET,
     refreshSecret: env.JWT_REFRESH_SECRET,
     expiresIn: '1h',
     refreshExpiresIn: '7d',
+    // Versioned secrets configuration
+    currentAccessVersion: parseInt(env.JWT_CURRENT_ACCESS_VERSION, 10),
+    currentRefreshVersion: parseInt(env.JWT_CURRENT_REFRESH_VERSION, 10),
   },
   app: {
     url: env.APP_URL,
@@ -102,3 +119,24 @@ export const config = {
   stripeSecretKey: env.STRIPE_SECRET_KEY,
   stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET,
 };
+
+/**
+ * Initialize JWT Key Manager with versioned secrets
+ * Supports multiple active secrets for zero-downtime rotation
+ */
+const jwtKeyManagerConfig = parseJwtSecretsFromEnv(
+  {
+    JWT_SECRET: env.JWT_SECRET,
+    JWT_ACCESS_SECRET_V1: env.JWT_ACCESS_SECRET_V1 || '',
+    JWT_ACCESS_SECRET_V2: env.JWT_ACCESS_SECRET_V2 || '',
+  },
+  {
+    JWT_REFRESH_SECRET: env.JWT_REFRESH_SECRET,
+    JWT_REFRESH_SECRET_V1: env.JWT_REFRESH_SECRET_V1 || '',
+    JWT_REFRESH_SECRET_V2: env.JWT_REFRESH_SECRET_V2 || '',
+  },
+  config.jwt.currentAccessVersion,
+  config.jwt.currentRefreshVersion
+);
+
+export const jwtKeyManager = new JwtKeyManager(jwtKeyManagerConfig);
