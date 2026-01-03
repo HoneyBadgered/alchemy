@@ -8,7 +8,6 @@ import { useCart } from '@/contexts/CartContext';
 import { useIngredients, getIngredientById } from '@/hooks/useIngredients';
 import type { ExtendedBlendState } from '@/components/blending/types';
 import { useBlendPricing } from '@/components/blending/useBlendPricing';
-import BottomNavigation from '@/components/BottomNavigation';
 import { ShareBlend } from '@/components/ShareBlend';
 
 // Default empty blend state for pricing calculation
@@ -141,7 +140,6 @@ export default function BlendReviewPage() {
             </button>
           </div>
         </div>
-        <BottomNavigation />
       </div>
     );
   }
@@ -219,11 +217,13 @@ export default function BlendReviewPage() {
         <meta name="twitter:description" content={shareDescription} />
       </Head>
       
+      <Header />
+      
       {/* Immersive Background */}
       <div className="fixed inset-0 bg-gradient-to-b from-slate-900 via-purple-900/40 to-slate-900 -z-10" />
       <div className="fixed inset-0 bg-[url('/images/tea-steam.png')] opacity-5 -z-10" />
       
-      <div className="min-h-screen relative">
+      <div className="min-h-screen relative pt-16">
         {/* Desktop Layout */}
         <div className="hidden lg:grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto px-8 py-16 min-h-screen">
           
@@ -680,11 +680,6 @@ export default function BlendReviewPage() {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Mobile Bottom Navigation */}
-      <div className="lg:hidden">
-        <BottomNavigation />
       </div>
     </>
   );

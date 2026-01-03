@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { Header } from '@/components/layout';
-import BottomNavigation from '@/components/BottomNavigation';
 import AddedToCartModal from '@/components/AddedToCartModal';
 import { apiClient } from '@/lib/api-client';
 import { useCart } from '@/contexts/CartContext';
@@ -53,8 +52,43 @@ interface ProductsResponse {
   };
 }
 
+type Zone = 'The Hearthhouse' | 'The Conservatory' | 'The East Pavilion' | 'The Observatory' | 'The Liminal Tent';
+
+const ZONES: { name: Zone; description: string; theme: string; gradient: string }[] = [
+  {
+    name: 'The Hearthhouse',
+    description: 'Dark and smoky',
+    theme: 'Warmth and comfort',
+    gradient: 'from-amber-900 via-orange-800 to-red-900',
+  },
+  {
+    name: 'The Conservatory',
+    description: 'Light, floral, restorative',
+    theme: 'Renewal and vitality',
+    gradient: 'from-emerald-600 via-green-500 to-teal-600',
+  },
+  {
+    name: 'The East Pavilion',
+    description: 'Mornings, greens, clarity',
+    theme: 'Focus and awakening',
+    gradient: 'from-cyan-600 via-blue-500 to-indigo-600',
+  },
+  {
+    name: 'The Observatory',
+    description: 'Night, quiet, contemplation',
+    theme: 'Rest and reflection',
+    gradient: 'from-indigo-900 via-purple-800 to-violet-900',
+  },
+  {
+    name: 'The Liminal Tent',
+    description: 'Seasonal and limited finds',
+    theme: 'Rare and ephemeral',
+    gradient: 'from-pink-600 via-rose-500 to-fuchsia-600',
+  },
+];
+
 export default function ShopPage() {
-  const [category, setCategory] = useState<string | undefined>(undefined);
+  const [selectedZone, setSelectedZone] = useState<Zone>('The Conservatory');
   const [page, setPage] = useState(1);
   const { addToCart, itemCount } = useCart();
   const [addingToCart, setAddingToCart] = useState<Set<string>>(new Set());
@@ -67,26 +101,18 @@ export default function ShopPage() {
   } | null>(null);
 
   const { data, isLoading, error } = useQuery<ProductsResponse>({
-    queryKey: ['products', page, category],
+    queryKey: ['products', page, selectedZone],
     queryFn: async () => {
       const params = new URLSearchParams();
       params.set('page', page.toString());
       params.set('perPage', '12');
-      if (category) params.set('category', category);
+      params.set('category', selectedZone);
       
       return apiClient.get<ProductsResponse>(
         `/catalog/products?${params.toString()}`
       );
     },
   });
-
-  const categories = [
-    'Coffee Blends',
-    'Tea Blends',
-    'Brewing Equipment',
-    'Accessories',
-    'Specialty Items',
-  ];
 
   const handleAddToCart = async (productId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -120,51 +146,62 @@ export default function ShopPage() {
     }
   };
 
+  const currentZone = ZONES.find(z => z.name === selectedZone);
+
   return (
     <div className="min-h-screen pb-20" style={{ backgroundImage: 'url(/images/background-products-page.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }}>
       <Header />
-      {/* Page Header */}
-      <div className="bg-white/90 backdrop-blur-sm shadow-sm mt-16">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold text-purple-900">Shop</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Discover magical blends and potions
+      
+      {/* Zone Header */}
+      <div className={`bg-gradient-to-r ${currentZone?.gradient} mt-16 shadow-lg`}>
+        <div className="max-w-7xl mx-auto px-4 py-8 text-center">
+          <h1 className="text-4xl font-bold font-serif text-white mb-2">
+            {selectedZone}
+          </h1>
+          <p className="text-white/90 text-lg italic mb-1">
+            {currentZone?.description}
+          </p>
+          <p className="text-white/70 text-sm">
+            {currentZone?.theme}
           </p>
         </div>
       </div>
 
-      {/* Category Filter */}
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          <button
-            onClick={() => {
-              setCategory(undefined);
-              setPage(1);
-            }}
-            className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
-              category === undefined
-                ? 'bg-purple-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            All
-          </button>
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => {
-                setCategory(cat);
-                setPage(1);
-              }}
-              className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
-                category === cat
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
+      {/* Zone Navigation */}
+      <div className="bg-black/20 backdrop-blur-md border-b border-white/10 sticky top-16 z-40">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            <Link
+              href="/shop/hearthhouse"
+              className="px-6 py-3 rounded-lg font-semibold whitespace-nowrap bg-white/80 text-gray-700 hover:bg-white hover:shadow-md transition-all"
             >
-              {cat}
-            </button>
-          ))}
+              The Hearthhouse
+            </Link>
+            <Link
+              href="/shop/conservatory"
+              className="px-6 py-3 rounded-lg font-semibold whitespace-nowrap bg-white/80 text-gray-700 hover:bg-white hover:shadow-md transition-all"
+            >
+              The Conservatory
+            </Link>
+            <Link
+              href="/shop/east-pavilion"
+              className="px-6 py-3 rounded-lg font-semibold whitespace-nowrap bg-white/80 text-gray-700 hover:bg-white hover:shadow-md transition-all"
+            >
+              The East Pavilion
+            </Link>
+            <Link
+              href="/shop/observatory"
+              className="px-6 py-3 rounded-lg font-semibold whitespace-nowrap bg-white/80 text-gray-700 hover:bg-white hover:shadow-md transition-all"
+            >
+              The Observatory
+            </Link>
+            <Link
+              href="/shop/liminal-tent"
+              className="px-6 py-3 rounded-lg font-semibold whitespace-nowrap bg-white/80 text-gray-700 hover:bg-white hover:shadow-md transition-all"
+            >
+              The Liminal Tent
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -302,9 +339,6 @@ export default function ShopPage() {
         )}
       </div>
 
-      <BottomNavigation />
-
-      {/* Added to Cart Modal */}
       {addedProduct && (
         <AddedToCartModal
           isOpen={showModal}

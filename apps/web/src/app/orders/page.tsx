@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout';
 import { useAuthStore } from '@/store/authStore';
 import { orderApi, type Order } from '@/lib/order-api';
-import BottomNavigation from '@/components/BottomNavigation';
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -63,7 +62,7 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6">{
+      <div className="max-w-4xl mx-auto px-4 py-6">
         {isLoading && (
           <div className="flex justify-center items-center py-20">
             <div className="text-purple-900 text-lg">Loading orders...</div>
@@ -158,8 +157,6 @@ export default function OrdersPage() {
           </div>
         )}
       </div>
-
-      <BottomNavigation />
     </div>
   );
 }

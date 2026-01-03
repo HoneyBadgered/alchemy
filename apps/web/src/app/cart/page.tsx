@@ -4,7 +4,6 @@ import { Header } from '@/components/layout';
 import { useCart } from '@/contexts/CartContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import BottomNavigation from '@/components/BottomNavigation';
 import { useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { catalogApi, CouponValidation } from '@/lib/catalog-api';
@@ -301,8 +300,6 @@ export default function CartPage() {
           </div>
         )}
       </div>
-
-      <BottomNavigation />
     </div>
   );
 }

@@ -121,12 +121,20 @@ export default function AdminBlendsPage() {
             Create products from custom blends
           </p>
         </div>
-        <Link
-          href="/admin/blends/create"
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          Create New Blend Product
-        </Link>
+        <div className="flex gap-3">
+          <Link
+            href="/admin/blends/bulk-import"
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
+          >
+            Bulk Import
+          </Link>
+          <Link
+            href="/admin/blends/create"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Create New Blend Product
+          </Link>
+        </div>
       </div>
 
       {/* Filters */}

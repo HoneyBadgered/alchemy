@@ -145,6 +145,23 @@ export default function CreateBlendProductPage() {
     setLoading(true);
 
     try {
+      // Client-side validation
+      if (!productName.trim()) {
+        throw new Error('Product name is required');
+      }
+      if (!description.trim()) {
+        throw new Error('Description is required');
+      }
+      if (!selectedBaseTea) {
+        throw new Error('Base tea is required');
+      }
+      if (!price || parseFloat(price) <= 0) {
+        throw new Error('Valid price is required');
+      }
+      if (!stock || parseInt(stock) < 0) {
+        throw new Error('Valid stock quantity is required');
+      }
+
       const response = await fetch('http://localhost:3000/admin/blends/products', {
         method: 'POST',
         headers: {
@@ -168,6 +185,13 @@ export default function CreateBlendProductPage() {
 
       if (!response.ok) {
         const error = await response.json();
+        // Display detailed validation errors if available
+        if (error.details) {
+          const errorMessages = Array.isArray(error.details) 
+            ? error.details.join('\n') 
+            : JSON.stringify(error.details, null, 2);
+          throw new Error(`Validation error:\n${errorMessages}`);
+        }
         throw new Error(error.message || 'Failed to create product');
       }
 
