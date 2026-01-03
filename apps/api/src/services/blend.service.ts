@@ -50,6 +50,30 @@ export class BlendService {
     if (!Array.isArray(addIns)) {
       throw new BadRequestError('Add-ins must be an array');
     }
+    
+    // Validate 60% add-ins limit (blend size is not stored, but we can validate percentages)
+    // Note: For now we'll just validate that add-ins exist. Full validation would require blend size.
+    // In a real scenario, we'd add a 'size' field to SaveBlendParams
+    const totalAddInsWeight = addIns.reduce((sum, a) => sum + a.quantity, 0);
+    
+    // Basic sanity check - each add-in should have reasonable quantities
+    for (const addIn of addIns) {
+      if (!addIn.ingredientId) {
+        throw new BadRequestError('Each add-in must have an ingredientId');
+      }
+      if (typeof addIn.quantity !== 'number' || addIn.quantity <= 0) {
+        throw new BadRequestError('Each add-in must have a positive quantity');
+      }
+      if (addIn.quantity > 10) {
+        // Very generous upper limit per ingredient
+        throw new BadRequestError(`Add-in quantity too large: ${addIn.quantity}oz`);
+      }
+    }
+    
+    // Total add-ins sanity check (assuming common blend sizes 1-4oz, max would be 2.4oz)
+    if (totalAddInsWeight > 10) {
+      throw new BadRequestError(`Total add-ins weight too large: ${totalAddInsWeight}oz`);
+    }
 
     const blend = await prisma.blends.create({
       data: {

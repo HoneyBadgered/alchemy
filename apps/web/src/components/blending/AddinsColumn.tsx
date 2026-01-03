@@ -18,6 +18,14 @@ interface AddinsColumnProps {
   onToggleAddIn: (ingredientId: string) => void;
   /** Callback when add-in quantity is changed */
   onQuantityChange: (ingredientId: string, quantity: number) => void;
+  /** Current blend size in ounces */
+  blendSize: number;
+  /** All available add-ins data */
+  addInsData: {
+    addIns: BlendingIngredient[];
+    botanicals: BlendingIngredient[];
+    premium: BlendingIngredient[];
+  };
 }
 
 interface IngredientItemProps {
@@ -26,6 +34,8 @@ interface IngredientItemProps {
   isSelected: boolean;
   onToggle: () => void;
   onQuantityChange: (quantity: number) => void;
+  blendSize: number;
+  maxAllowedQuantity: number;
 }
 
 const IngredientItem: React.FC<IngredientItemProps> = ({
@@ -34,24 +44,55 @@ const IngredientItem: React.FC<IngredientItemProps> = ({
   isSelected,
   onToggle,
   onQuantityChange,
+  blendSize,
+  maxAllowedQuantity,
 }) => {
-  const incrementAmount = ingredient.incrementAmount || 0.25;
-  const minQuantity = ingredient.baseAmount || 0.25;
-  const maxQuantity = 2; // Max 2 oz per add-in
+  // Calculate slider range based on percentages if available
+  const calculateRange = () => {
+    if (ingredient.recommendedUsageMin !== undefined && 
+        ingredient.recommendedUsageMax !== undefined &&
+        ingredient.recommendedUsageMin !== null &&
+        ingredient.recommendedUsageMax !== null) {
+      const minOz = (blendSize * Number(ingredient.recommendedUsageMin)) / 100;
+      const maxOz = (blendSize * Number(ingredient.recommendedUsageMax)) / 100;
+      const effectiveMax = Math.min(maxOz, maxAllowedQuantity);
+      
+      return {
+        min: Math.max(0.1, minOz),
+        max: Math.max(0.1, effectiveMax),
+        step: 0.1,
+      };
+    }
+    
+    // Fallback to old system
+    const incrementAmount = ingredient.incrementAmount || 0.25;
+    const minQuantity = ingredient.baseAmount || 0.25;
+    const maxQuantity = Math.min(2, maxAllowedQuantity);
+    
+    return {
+      min: minQuantity,
+      max: maxQuantity,
+      step: incrementAmount,
+    };
+  };
+
+  const range = calculateRange();
 
   const handleIncrement = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (quantity < maxQuantity) {
-      onQuantityChange(Math.min(maxQuantity, quantity + incrementAmount));
+    if (quantity < range.max) {
+      onQuantityChange(Math.min(range.max, quantity + range.step));
     }
   };
 
   const handleDecrement = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (quantity > minQuantity) {
-      onQuantityChange(Math.max(minQuantity, quantity - incrementAmount));
+    if (quantity > range.min) {
+      onQuantityChange(Math.max(range.min, quantity - range.step));
     }
   };
+  
+  const percentage = ((quantity / blendSize) * 100).toFixed(1);
 
   return (
     <div
@@ -122,7 +163,7 @@ const IngredientItem: React.FC<IngredientItemProps> = ({
           <div className="flex items-center justify-between bg-white rounded-lg border border-purple-200 p-2">
             <button
               onClick={handleDecrement}
-              disabled={quantity <= minQuantity}
+              disabled={quantity <= range.min}
               className="w-8 h-8 rounded-lg bg-purple-100 hover:bg-purple-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
               aria-label="Decrease quantity"
             >
@@ -131,11 +172,11 @@ const IngredientItem: React.FC<IngredientItemProps> = ({
               </svg>
             </button>
             <span className="font-semibold text-purple-900">
-              {quantity.toFixed(2)} oz
+              {quantity.toFixed(2)} oz ({percentage}%)
             </span>
             <button
               onClick={handleIncrement}
-              disabled={quantity >= maxQuantity}
+              disabled={quantity >= range.max}
               className="w-8 h-8 rounded-lg bg-purple-100 hover:bg-purple-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
               aria-label="Increase quantity"
             >
@@ -160,6 +201,8 @@ export const AddinsColumn: React.FC<AddinsColumnProps> = ({
   selectedAddIns,
   onToggleAddIn,
   onQuantityChange,
+  blendSize,
+  addInsData,
 }) => {
   const [activeTab, setActiveTab] = useState<AddInCategoryTab>('addIns');
 
@@ -169,6 +212,11 @@ export const AddinsColumn: React.FC<AddinsColumnProps> = ({
     const addIn = selectedAddIns.find(a => a.ingredientId === ingredientId);
     return addIn?.quantity || 0.25;
   };
+
+  // Calculate add-ins budget (60% of blend size)
+  const maxAddIns = blendSize * 0.6;
+  const currentAddInsTotal = selectedAddIns.reduce((sum, a) => sum + a.quantity, 0);
+  const remainingBudget = maxAddIns - currentAddInsTotal;
 
   return (
     <div className="bg-white/40 backdrop-blur-sm rounded-2xl p-4 border border-white/50 shadow-lg">
@@ -181,6 +229,24 @@ export const AddinsColumn: React.FC<AddinsColumnProps> = ({
         <p className="text-xs text-gray-600 mt-1">
           Select ingredients to customize your blend
         </p>
+        
+        {/* Budget indicator */}
+        <div className="mt-2 bg-purple-50 rounded-lg p-2">
+          <div className="flex items-center justify-between text-xs mb-1">
+            <span className="text-purple-700 font-medium">Add-ins Budget</span>
+            <span className={`font-bold ${remainingBudget < 0.1 ? 'text-red-600' : 'text-purple-900'}`}>
+              {currentAddInsTotal.toFixed(2)} / {maxAddIns.toFixed(2)} oz
+            </span>
+          </div>
+          <div className="h-2 bg-purple-100 rounded-full overflow-hidden">
+            <div 
+              className={`h-full transition-all ${
+                currentAddInsTotal / maxAddIns > 0.9 ? 'bg-red-500' : 'bg-purple-500'
+              }`}
+              style={{ width: `${Math.min(100, (currentAddInsTotal / maxAddIns) * 100)}%` }}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Category Tabs */}
@@ -207,14 +273,22 @@ export const AddinsColumn: React.FC<AddinsColumnProps> = ({
       <div className="space-y-2 max-h-[calc(100vh-400px)] overflow-y-auto pr-1">
         {tabIngredients.map((ingredient) => {
           const isSelected = selectedAddIns.some(a => a.ingredientId === ingredient.id);
+          const currentQuantity = getSelectedQuantity(ingredient.id);
+          // Calculate max allowed for this ingredient (remaining budget + current quantity)
+          const maxAllowed = isSelected 
+            ? remainingBudget + currentQuantity
+            : remainingBudget;
+            
           return (
             <IngredientItem
               key={ingredient.id}
               ingredient={ingredient}
-              quantity={getSelectedQuantity(ingredient.id)}
+              quantity={currentQuantity}
               isSelected={isSelected}
               onToggle={() => onToggleAddIn(ingredient.id)}
               onQuantityChange={(q) => onQuantityChange(ingredient.id, q)}
+              blendSize={blendSize}
+              maxAllowedQuantity={maxAllowed}
             />
           );
         })}

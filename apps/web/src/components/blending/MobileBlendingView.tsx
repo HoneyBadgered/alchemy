@@ -188,6 +188,7 @@ export const MobileBlendingView: React.FC<MobileBlendingViewProps> = ({
           onToggleAddIn={onToggleAddIn}
           onQuantityChange={onQuantityChange}
           addInsData={addIns}
+          blendSize={blendState.size}
         />
       </div>
 

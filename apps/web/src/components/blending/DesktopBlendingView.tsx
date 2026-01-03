@@ -8,7 +8,7 @@
 'use client';
 
 import React from 'react';
-import type { ExtendedBlendState, FlavorProfile, BlendSize } from './types';
+import type { ExtendedBlendState, FlavorProfile, BlendSize, BlendClassification } from './types';
 import type { BlendingIngredient } from './mockData';
 import { CenterScene } from './CenterScene';
 import { CollapsibleBaseColumn } from './CollapsibleBaseColumn';
@@ -32,6 +32,7 @@ interface DesktopBlendingViewProps {
   onRemoveIngredient: (ingredientId: string) => void;
   onBasePanelOpenChange: (isOpen: boolean) => void;
   onContinue?: () => void;
+  classification?: BlendClassification;
 }
 
 export const DesktopBlendingView: React.FC<DesktopBlendingViewProps> = ({
@@ -48,6 +49,7 @@ export const DesktopBlendingView: React.FC<DesktopBlendingViewProps> = ({
   onRemoveIngredient,
   onBasePanelOpenChange,
   onContinue,
+  classification,
 }) => {
   return (
     <div className="hidden lg:grid lg:grid-cols-12 gap-6">
@@ -75,6 +77,7 @@ export const DesktopBlendingView: React.FC<DesktopBlendingViewProps> = ({
           addInsData={addIns}
           isBasePanelOpen={isBasePanelOpen}
           onContinue={onContinue}
+          classification={classification}
         />
       </div>
 
@@ -86,6 +89,7 @@ export const DesktopBlendingView: React.FC<DesktopBlendingViewProps> = ({
             onToggleAddIn={onToggleAddIn}
             onQuantityChange={onQuantityChange}
             addInsData={addIns}
+            blendSize={blendState.size}
           />
         </div>
       </div>

@@ -17,6 +17,10 @@ interface IngredientListItemProps {
   onSelect: (ingredientId: string) => void;
   onQuantityChange?: (ingredientId: string, quantity: number) => void;
   mode: 'single' | 'multi';
+  /** Current blend size in ounces (required for percentage-based sliders) */
+  blendSize?: number;
+  /** Maximum allowed quantity based on add-ins budget */
+  maxAllowedQuantity?: number;
 }
 
 export const IngredientListItem: React.FC<IngredientListItemProps> = ({
@@ -26,6 +30,8 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({
   onSelect,
   onQuantityChange,
   mode,
+  blendSize = 2, // Default to 2oz for backwards compatibility
+  maxAllowedQuantity,
 }) => {
   // Get ingredient-specific amounts with fallbacks
   const baseAmount = getIngredientBaseAmount(ingredient);
@@ -51,9 +57,47 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({
   };
 
   // Calculate slider constraints based on ingredient configuration
-  // Use the smaller of incrementAmount or baseAmount as minimum to allow selecting base amount
-  const minValue = Math.min(incrementAmount, baseAmount);
-  const maxValue = Math.max(baseAmount * 10, 50); // At least 10x base amount or 50g
+  const calculateSliderRange = () => {
+    // Use percentage-based ranges if available
+    if (ingredient.recommendedUsageMin !== undefined && 
+        ingredient.recommendedUsageMax !== undefined &&
+        ingredient.recommendedUsageMin !== null &&
+        ingredient.recommendedUsageMax !== null) {
+      const minOz = (blendSize * Number(ingredient.recommendedUsageMin)) / 100;
+      const maxOz = (blendSize * Number(ingredient.recommendedUsageMax)) / 100;
+      
+      // Respect add-ins budget if provided
+      const effectiveMax = maxAllowedQuantity 
+        ? Math.min(maxOz, maxAllowedQuantity) 
+        : maxOz;
+      
+      return { 
+        min: Math.max(0.1, minOz), // At least 0.1oz
+        max: Math.max(0.1, effectiveMax), 
+        step: 0.1 
+      };
+    }
+    
+    // Fallback to old system using baseAmount
+    const minValue = Math.min(incrementAmount, baseAmount);
+    const maxValue = Math.max(baseAmount * 10, 50); // At least 10x base amount or 50g
+    
+    // Respect add-ins budget if provided
+    const effectiveMax = maxAllowedQuantity
+      ? Math.min(maxValue, maxAllowedQuantity)
+      : maxValue;
+    
+    return {
+      min: minValue,
+      max: effectiveMax,
+      step: incrementAmount,
+    };
+  };
+
+  const sliderRange = calculateSliderRange();
+  
+  // Calculate percentage for display
+  const percentage = ((localQuantity / blendSize) * 100).toFixed(1);
 
   return (
     <div
@@ -153,20 +197,24 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-700">Quantity:</span>
               <span className="font-bold text-purple-900">
-                {formatQuantity(localQuantity)}g
+                {formatQuantity(localQuantity)}oz ({percentage}%)
               </span>
             </div>
             <input
               type="range"
-              min={minValue}
-              max={maxValue}
-              step={incrementAmount}
+              min={sliderRange.min}
+              max={sliderRange.max}
+              step={sliderRange.step}
               value={localQuantity}
               onChange={handleSliderChange}
               onClick={(e) => e.stopPropagation()}
               className="w-full h-2 bg-purple-100 rounded-lg appearance-none cursor-pointer accent-purple-600"
               aria-label={`Adjust quantity for ${ingredient.name}`}
             />
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>{sliderRange.min.toFixed(1)}oz</span>
+              <span>{sliderRange.max.toFixed(1)}oz</span>
+            </div>
           </div>
         </div>
       )}
