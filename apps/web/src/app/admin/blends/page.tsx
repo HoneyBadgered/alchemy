@@ -112,6 +112,48 @@ export default function AdminBlendsPage() {
     fetchBlends(newPage);
   };
 
+  const downloadJSON = () => {
+    const dataStr = JSON.stringify(blends, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+    const exportFileDefaultName = `blends_${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
+
+  const downloadCSV = () => {
+    if (blends.length === 0) return;
+    
+    const headers = ['ID', 'Name', 'Base Tea', 'Product ID', 'Price', 'Active', 'Created At', 'Add-ins'];
+    const csvRows = [headers.join(',')];
+    
+    blends.forEach(blend => {
+      const addIns = blend.addInsWithDetails?.map(a => `${a.name}(${a.quantity})`).join('; ') || '';
+      const row = [
+        blend.id,
+        `"${blend.name || ''}"`,
+        `"${blend.baseTea?.name || ''}"`,
+        blend.productId || '',
+        blend.products?.price || '',
+        blend.products?.isActive ? 'Yes' : 'No',
+        blend.createdAt,
+        `"${addIns}"`,
+      ];
+      csvRows.push(row.join(','));
+    });
+    
+    const csvString = csvRows.join('\n');
+    const dataUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvString);
+    const exportFileDefaultName = `blends_${new Date().toISOString().split('T')[0]}.csv`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
+
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
@@ -122,6 +164,27 @@ export default function AdminBlendsPage() {
           </p>
         </div>
         <div className="flex gap-3">
+          <div className="relative group">
+            <button
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+            >
+              Export ▾
+            </button>
+            <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+              <button
+                onClick={downloadJSON}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 rounded-t-lg"
+              >
+                Download JSON
+              </button>
+              <button
+                onClick={downloadCSV}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 rounded-b-lg"
+              >
+                Download CSV
+              </button>
+            </div>
+          </div>
           <Link
             href="/admin/blends/bulk-import"
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"

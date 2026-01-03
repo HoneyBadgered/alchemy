@@ -440,6 +440,49 @@ export default function AdminIngredientsPage() {
     setPagination(prev => ({ ...prev, page: 1 }));
   };
 
+  const downloadJSON = () => {
+    const dataStr = JSON.stringify(ingredients, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+    const exportFileDefaultName = `ingredients_${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
+
+  const downloadCSV = () => {
+    if (ingredients.length === 0) return;
+    
+    const headers = ['ID', 'Name', 'Role', 'Category', 'Status', 'Caffeine Level', 'Stock (g)', 'Cost/oz', 'Supplier', 'Tags'];
+    const csvRows = [headers.join(',')];
+    
+    ingredients.forEach(ing => {
+      const row = [
+        ing.id,
+        `"${ing.name}"`,
+        ing.role,
+        ing.category,
+        ing.status,
+        ing.caffeineLevel,
+        ing.inventoryAmount || 0,
+        ing.costPerOunce || '',
+        `"${ing.supplier?.name || ''}"`,
+        `"${ing.tags?.join('; ') || ''}"`,
+      ];
+      csvRows.push(row.join(','));
+    });
+    
+    const csvString = csvRows.join('\n');
+    const dataUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvString);
+    const exportFileDefaultName = `ingredients_${new Date().toISOString().split('T')[0]}.csv`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
+
   if (loading && ingredients.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -459,6 +502,27 @@ export default function AdminIngredientsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <div className="relative group">
+            <button
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+            >
+              📥 Export ▾
+            </button>
+            <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+              <button
+                onClick={downloadJSON}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 rounded-t-lg"
+              >
+                Download JSON
+              </button>
+              <button
+                onClick={downloadCSV}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 rounded-b-lg"
+              >
+                Download CSV
+              </button>
+            </div>
+          </div>
           <Link
             href="/admin/ingredients/import"
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
