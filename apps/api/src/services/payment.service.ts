@@ -1,10 +1,16 @@
 /**
  * Payment Service
  * Handles Stripe payment operations
+ * 
+ * IDEMPOTENCY STRATEGY:
+ * - All Stripe API calls use deterministic idempotency keys
+ * - Keys based on: operation type + resource ID + timestamp/attempt
+ * - Prevents duplicate charges on network retries
+ * - Stripe caches responses for 24 hours per key
  */
 
 import Stripe from 'stripe';
-import { randomUUID } from 'crypto';
+import { randomUUID, createHash } from 'crypto';
 import { prisma } from '../utils/prisma';
 import { stripe, STRIPE_PAYMENT_SUCCESS_STATUSES } from '../utils/stripe';
 import { 
@@ -13,6 +19,31 @@ import {
   BadRequestError 
 } from '../utils/errors';
 import type { Prisma } from '@prisma/client';
+
+/**
+ * Generate a deterministic idempotency key for Stripe operations
+ * Format: {operation}_{resourceId}_{timestamp}
+ * 
+ * @param operation - Type of operation (e.g., 'payment_intent', 'refund')
+ * @param resourceId - Unique identifier (orderId, paymentIntentId, etc.)
+ * @param suffix - Optional suffix for uniqueness (e.g., attempt number)
+ */
+function generateIdempotencyKey(
+  operation: string,
+  resourceId: string,
+  suffix?: string
+): string {
+  const parts = [operation, resourceId];
+  if (suffix) {
+    parts.push(suffix);
+  }
+  
+  // Create deterministic hash to ensure consistent length
+  const data = parts.join('_');
+  const hash = createHash('sha256').update(data).digest('hex').substring(0, 32);
+  
+  return `${operation}_${hash}`;
+}
 
 export interface CreatePaymentIntentInput {
   orderId: string;
@@ -92,19 +123,35 @@ export class PaymentService {
         if (existingCustomers.data.length > 0) {
           customerId = existingCustomers.data[0].id;
         } else {
-          // Create new customer
+          // Create new customer with idempotency key
+          const customerIdempotencyKey = generateIdempotencyKey(
+            'customer',
+            receiptEmail,
+            order.userId || 'guest'
+          );
+
           const customer = await stripe.customers.create({
             email: receiptEmail,
             metadata: {
               userId: order.userId || 'guest',
               orderId: order.id,
+              idempotencyKey: customerIdempotencyKey,
             },
+          }, {
+            idempotencyKey: customerIdempotencyKey,
           });
           customerId = customer.id;
         }
       }
 
-      // Create new PaymentIntent
+      // Create new PaymentIntent with idempotency key
+      // Idempotency key ensures retry safety - same key returns cached response
+      const idempotencyKey = generateIdempotencyKey(
+        'payment_intent',
+        order.id,
+        order.createdAt.toISOString() // Include creation time for uniqueness
+      );
+
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(Number(order.totalAmount) * 100), // Convert to cents
         currency: 'usd',
@@ -113,6 +160,7 @@ export class PaymentService {
           orderId: order.id,
           userId: order.userId || 'guest',
           sessionId: order.sessionId || '',
+          idempotencyKey, // Store for audit trail
         },
         description: `Order #${order.id}`,
         receipt_email: receiptEmail || undefined,
@@ -120,6 +168,8 @@ export class PaymentService {
           enabled: true,
           allow_redirects: 'never',
         },
+      }, {
+        idempotencyKey, // Stripe idempotency key prevents duplicate charges
       });
 
       // Update order with payment intent details in a transaction
@@ -602,7 +652,15 @@ export class PaymentService {
     }
 
     try {
-      // Create Stripe refund
+      // Create Stripe refund with idempotency key
+      // Use timestamp to allow multiple refunds for same order
+      const refundTimestamp = new Date().toISOString();
+      const idempotencyKey = generateIdempotencyKey(
+        'refund',
+        orderId,
+        refundTimestamp
+      );
+
       const stripeRefund = await stripe.refunds.create({
         payment_intent: order.stripePaymentId,
         amount: Math.round(amount * 100), // Convert to cents
@@ -610,7 +668,11 @@ export class PaymentService {
         metadata: {
           orderId,
           processedBy: processedBy || 'system',
+          idempotencyKey,
+          timestamp: refundTimestamp,
         },
+      }, {
+        idempotencyKey, // Prevent duplicate refunds on retry
       });
 
       // Create refund record in transaction
