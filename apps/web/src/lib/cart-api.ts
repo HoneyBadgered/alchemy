@@ -2,7 +2,25 @@
  * Cart API Client
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+import { apiClient } from './api-client';
+
+/**
+ * Get cookie value by name
+ */
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') {
+    return null;
+  }
+  
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  
+  if (parts.length === 2) {
+    return parts.pop()?.split(';').shift() || null;
+  }
+  
+  return null;
+}
 
 export interface Product {
   id: string;
@@ -49,26 +67,12 @@ export const cartApi = {
    * Get cart
    */
   async getCart(token?: string, sessionId?: string): Promise<CartResponse> {
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
+    const customHeaders: Record<string, string> = {};
     if (sessionId) {
-      headers['x-session-id'] = sessionId;
+      customHeaders['x-session-id'] = sessionId;
     }
 
-    const response = await fetch(`${API_URL}/cart`, {
-      method: 'GET',
-      headers,
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: 'Failed to fetch cart' }));
-      throw new Error(errorData.message || 'Failed to fetch cart');
-    }
-
-    return response.json();
+    return apiClient.get<CartResponse>('/cart', token, customHeaders);
   },
 
   /**
@@ -80,29 +84,17 @@ export const cartApi = {
     token?: string,
     sessionId?: string
   ): Promise<CartResponse> {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
+    const customHeaders: Record<string, string> = {};
     if (sessionId) {
-      headers['x-session-id'] = sessionId;
+      customHeaders['x-session-id'] = sessionId;
     }
 
-    const response = await fetch(`${API_URL}/cart/items`, {
-      method: 'POST',
-      headers,
-      credentials: 'include',
-      body: JSON.stringify({ productId, quantity }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to add to cart');
-    }
-
-    return response.json();
+    return apiClient.post<CartResponse>(
+      '/cart/items',
+      { productId, quantity },
+      token,
+      customHeaders
+    );
   },
 
   /**
@@ -114,29 +106,17 @@ export const cartApi = {
     token?: string,
     sessionId?: string
   ): Promise<CartResponse> {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
+    const customHeaders: Record<string, string> = {};
     if (sessionId) {
-      headers['x-session-id'] = sessionId;
+      customHeaders['x-session-id'] = sessionId;
     }
 
-    const response = await fetch(`${API_URL}/cart/items`, {
-      method: 'PATCH',
-      headers,
-      credentials: 'include',
-      body: JSON.stringify({ productId, quantity }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to update cart item');
-    }
-
-    return response.json();
+    return apiClient.patch<CartResponse>(
+      '/cart/items',
+      { productId, quantity },
+      token,
+      customHeaders
+    );
   },
 
   /**
@@ -145,19 +125,24 @@ export const cartApi = {
   async removeFromCart(
     productId: string,
     token?: string,
-    sessionId?: string
+    sessionId?: string,
+    retryCount = 0
   ): Promise<CartResponse> {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
+    const customHeaders: Record<string, string> = {};
     if (sessionId) {
-      headers['x-session-id'] = sessionId;
+      customHeaders['x-session-id'] = sessionId;
     }
 
-    const response = await fetch(`${API_URL}/cart/items`, {
+    // Note: DELETE with body - need to use fetch directly since ApiClient.delete doesn't support body
+    const csrfToken = typeof document !== 'undefined' ? getCookie('XSRF-TOKEN') : null;
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...customHeaders,
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/cart/items`, {
       method: 'DELETE',
       headers,
       credentials: 'include',
@@ -165,7 +150,13 @@ export const cartApi = {
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await response.json().catch(() => ({ message: 'Failed to remove from cart' }));
+      
+      // Auto-retry once if backend issued a new CSRF token
+      if (response.status === 403 && error.code === 'CSRF_TOKEN_REQUIRED' && retryCount === 0) {
+        return this.removeFromCart(productId, token, sessionId, retryCount + 1);
+      }
+      
       throw new Error(error.message || 'Failed to remove from cart');
     }
 
@@ -176,48 +167,19 @@ export const cartApi = {
    * Clear cart
    */
   async clearCart(token?: string, sessionId?: string): Promise<CartResponse> {
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
+    const customHeaders: Record<string, string> = {};
     if (sessionId) {
-      headers['x-session-id'] = sessionId;
+      customHeaders['x-session-id'] = sessionId;
     }
 
-    const response = await fetch(`${API_URL}/cart`, {
-      method: 'DELETE',
-      headers,
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to clear cart');
-    }
-
-    return response.json();
+    return apiClient.delete<CartResponse>('/cart', token, customHeaders);
   },
 
   /**
    * Merge guest cart with user cart (after login)
    */
   async mergeCart(sessionId: string, token: string): Promise<CartResponse> {
-    const response = await fetch(`${API_URL}/cart/merge`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      credentials: 'include',
-      body: JSON.stringify({ sessionId }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: 'Failed to merge cart' }));
-      console.error('Cart merge error:', response.status, errorData);
-      throw new Error(errorData.message || 'Failed to merge cart');
-    }
-
-    return response.json();
+    return apiClient.post<CartResponse>('/cart/merge', { sessionId }, token);
   },
 
   /**
@@ -230,36 +192,14 @@ export const cartApi = {
     sessionId?: string,
     name?: string
   ): Promise<CartResponse> {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
+    const customHeaders: Record<string, string> = {};
     if (sessionId) {
-      headers['x-session-id'] = sessionId;
+      customHeaders['x-session-id'] = sessionId;
     }
 
     const requestBody = { baseTeaId, addIns, name };
     console.log('Sending blend to cart:', requestBody);
 
-    const response = await fetch(`${API_URL}/cart/blend`, {
-      method: 'POST',
-      headers,
-      credentials: 'include',
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      console.error('Blend cart error response:', error);
-      if (error.errors && Array.isArray(error.errors)) {
-        const errorMessages = error.errors.map((e: any) => `${e.path || 'unknown'}: ${e.message}`).join(', ');
-        throw new Error(`Validation error: ${errorMessages}`);
-      }
-      throw new Error(error.message || 'Failed to add blend to cart');
-    }
-
-    return response.json();
+    return apiClient.post<CartResponse>('/cart/blend', requestBody, token, customHeaders);
   },
 };

@@ -6,6 +6,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { CartService } from '../services/cart.service';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
+import { csrfProtection } from '../middleware/csrf';
 import { isValidSessionId, sanitizeSessionId } from '../utils/session';
 import { prisma } from '../utils/prisma';
 
@@ -116,7 +117,7 @@ export async function cartRoutes(fastify: FastifyInstance) {
    * Rate limit: 30 items per minute to prevent abuse
    */
   fastify.post('/cart/items', {
-    preHandler: optionalAuthMiddleware,
+    preHandler: [optionalAuthMiddleware, csrfProtection],
     config: {
       rateLimit: {
         max: 30,
@@ -149,7 +150,7 @@ export async function cartRoutes(fastify: FastifyInstance) {
    * Rate limit: 30 updates per minute to prevent abuse
    */
   fastify.patch('/cart/items', {
-    preHandler: optionalAuthMiddleware,
+    preHandler: [optionalAuthMiddleware, csrfProtection],
     config: {
       rateLimit: {
         max: 30,
@@ -181,7 +182,7 @@ export async function cartRoutes(fastify: FastifyInstance) {
    * Optional authentication (supports both authenticated users and guests)
    */
   fastify.delete('/cart/items', {
-    preHandler: optionalAuthMiddleware,
+    preHandler: [optionalAuthMiddleware, csrfProtection],
   }, async (request, reply) => {
     try {
       const auth = validateAuthOrSession(request, reply);
@@ -207,7 +208,7 @@ export async function cartRoutes(fastify: FastifyInstance) {
    * Optional authentication (supports both authenticated users and guests)
    */
   fastify.delete('/cart', {
-    preHandler: optionalAuthMiddleware,
+    preHandler: [optionalAuthMiddleware, csrfProtection],
   }, async (request, reply) => {
     try {
       const auth = validateAuthOrSession(request, reply);
@@ -226,7 +227,7 @@ export async function cartRoutes(fastify: FastifyInstance) {
    * Requires authentication
    */
   fastify.post('/cart/merge', {
-    preHandler: authMiddleware,
+    preHandler: [authMiddleware, csrfProtection],
   }, async (request, reply) => {
     try {
       const userId = request.user!.userId;
@@ -256,7 +257,7 @@ export async function cartRoutes(fastify: FastifyInstance) {
    * Optional authentication (supports both authenticated users and guests)
    */
   fastify.post('/cart/blend', {
-    preHandler: optionalAuthMiddleware,
+    preHandler: [optionalAuthMiddleware, csrfProtection],
   }, async (request, reply) => {
     try {
       const auth = validateAuthOrSession(request, reply);

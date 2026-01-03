@@ -7,6 +7,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { OrderService } from '../services/order.service';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
+import { csrfProtection } from '../middleware/csrf';
 import { isValidSessionId, sanitizeSessionId } from '../utils/session';
 import type { Prisma } from '@prisma/client';
 
@@ -57,7 +58,7 @@ export async function orderRoutes(fastify: FastifyInstance) {
    * Rate limit: 10 orders per hour to prevent spam
    */
   fastify.post('/orders', {
-    preHandler: optionalAuthMiddleware,
+    preHandler: [optionalAuthMiddleware, csrfProtection],
     config: {
       rateLimit: {
         max: 10,

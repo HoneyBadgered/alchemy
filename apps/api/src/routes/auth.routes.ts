@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { AuthService } from '../services/auth.service';
 import { authMiddleware } from '../middleware/auth';
 import { tokenBlacklist, getTokenExpirationSeconds } from '../services/token-blacklist.service';
+import { createCsrfToken, rotateCsrfToken, deleteCsrfToken } from '../utils/csrf';
 import jwt from 'jsonwebtoken';
 
 const registerSchema = z.object({
@@ -59,6 +60,17 @@ export async function authRoutes(fastify: FastifyInstance) {
       }
       const body = registerSchema.parse(request.body);
       const result = await authService.register(body);
+      
+      // Generate and set CSRF token for new user
+      const csrfToken = createCsrfToken(result.users.id);
+      reply.setCookie('XSRF-TOKEN', csrfToken, {
+        httpOnly: false,  // Must be readable by JavaScript
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 3600,  // 1 hour
+        path: '/',
+      });
+      
       return reply.status(201).send(result);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -93,6 +105,16 @@ export async function authRoutes(fastify: FastifyInstance) {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         maxAge: 7 * 24 * 60 * 60, // 7 days
+        path: '/',
+      });
+
+      // Generate and set CSRF token
+      const csrfToken = createCsrfToken(result.users.id);
+      reply.setCookie('XSRF-TOKEN', csrfToken, {
+        httpOnly: false,  // Must be readable by JavaScript
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 3600,  // 1 hour
         path: '/',
       });
 
@@ -137,8 +159,12 @@ export async function authRoutes(fastify: FastifyInstance) {
         await tokenBlacklist.blacklist(accessToken, expirationSeconds);
       }
       
-      // Clear refresh token cookie
+      // Delete CSRF token
+      deleteCsrfToken(request.user!.userId);
+      
+      // Clear cookies
       reply.clearCookie('refreshToken', { path: '/' });
+      reply.clearCookie('XSRF-TOKEN', { path: '/' });
 
       return reply.send({ message: 'Logged out successfully' });
     } catch (error) {
@@ -158,8 +184,12 @@ export async function authRoutes(fastify: FastifyInstance) {
       // Invalidate all refresh tokens in database
       await authService.logoutAll(userId);
 
-      // Clear refresh token cookie
+      // Delete CSRF token
+      deleteCsrfToken(userId);
+
+      // Clear cookies
       reply.clearCookie('refreshToken', { path: '/' });
+      reply.clearCookie('XSRF-TOKEN', { path: '/' });
 
       return reply.send({ 
         message: 'All sessions terminated successfully',
@@ -230,6 +260,17 @@ export async function authRoutes(fastify: FastifyInstance) {
   }, async (request, reply) => {
     try {
       const user = await authService.getMe(request.user!.userId);
+      
+      // Rotate CSRF token and set cookie (refresh on each /me call)
+      const csrfToken = rotateCsrfToken(request.user!.userId);
+      reply.setCookie('XSRF-TOKEN', csrfToken, {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 3600,  // 1 hour
+        path: '/',
+      });
+      
       return reply.send(user);
     } catch (error) {
       return reply.status(404).send({ message: (error as Error).message });
