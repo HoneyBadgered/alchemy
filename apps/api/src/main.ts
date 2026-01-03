@@ -3,6 +3,7 @@
  */
 
 import Fastify from 'fastify';
+import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
@@ -11,6 +12,7 @@ import multipart from '@fastify/multipart';
 import fastifyStatic from '@fastify/static';
 import path from 'path';
 import { config } from './config';
+import { getHelmetConfig } from './config/security';
 import { prisma } from './utils/prisma';
 import { authRoutes } from './routes/auth.routes';
 import { catalogRoutes } from './routes/catalog.routes';
@@ -54,6 +56,9 @@ const fastify = Fastify({
 
 // Register error handler plugin first
 fastify.register(errorHandlerPlugin);
+
+// Register Helmet for security headers
+fastify.register(helmet, getHelmetConfig(config.isDevelopment));
 
 // Register CORS support
 fastify.register(cors, {
