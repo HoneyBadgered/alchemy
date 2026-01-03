@@ -1,6 +1,12 @@
 /**
  * Order Service
  * Handles order creation and retrieval for customers
+ * 
+ * INVENTORY LOCKING STRATEGY:
+ * - Uses pessimistic locking (SELECT ... FOR UPDATE) to prevent race conditions
+ * - Locks product rows during order placement to prevent overselling
+ * - Transaction isolation: ReadCommitted with 15s timeout
+ * - Lock acquisition timeout: 5s max wait
  */
 
 import { prisma } from '../utils/prisma';
@@ -185,12 +191,25 @@ export class OrderService {
 
       // Create order and update inventory in a transaction with proper error handling
       const order = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-        // Double-check stock levels inside transaction to prevent race conditions
+        // PESSIMISTIC LOCKING: Lock all product rows with FOR UPDATE to prevent race conditions
+        // This ensures no other transaction can modify these products until we commit/rollback
+        const productIds = cart.cart_items.map((item: CartItemWithProduct) => item.productId);
+        
+        // Execute raw query to lock rows with FOR UPDATE
+        // Prisma doesn't support FOR UPDATE directly, so we use raw SQL
+        const lockedProducts = await tx.$queryRaw<Array<{ id: string; stock: number; isActive: boolean }>>`
+          SELECT id, stock, "isActive"
+          FROM products
+          WHERE id IN (${Prisma.join(productIds)})
+          FOR UPDATE
+        `;
+
+        // Create a map for quick lookup
+        const productMap = new Map(lockedProducts.map(p => [p.id, p]));
+
+        // Validate stock levels with locked data
         for (const item of cart.cart_items) {
-          const currentProduct = await tx.products.findUnique({
-            where: { id: item.productId },
-            select: { stock: true, isActive: true },
-          });
+          const currentProduct = productMap.get(item.productId);
 
           if (!currentProduct || !currentProduct.isActive) {
             throw new OrderValidationError(`Product ${item.products.name} is no longer available`);

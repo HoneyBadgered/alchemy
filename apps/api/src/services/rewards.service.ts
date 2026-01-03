@@ -276,6 +276,21 @@ export class RewardsService {
     }
 
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      // PESSIMISTIC LOCKING: Lock reward row to prevent concurrent redemptions
+      if (reward.stock !== null) {
+        const lockedReward = await tx.$queryRaw<Array<{ id: string; stock: number | null }>>`
+          SELECT id, stock
+          FROM rewards
+          WHERE id = ${reward.id}
+          FOR UPDATE
+        `;
+
+        const currentStock = lockedReward[0]?.stock;
+        if (currentStock === null || currentStock <= 0) {
+          throw new Error('Reward is out of stock');
+        }
+      }
+
       // Deduct points
       await tx.reward_points.update({
         where: { userId },
