@@ -31,6 +31,22 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     setMounted(true);
   }, []);
 
+  // Set admin theme on mount
+  useEffect(() => {
+    if (mounted) {
+      document.documentElement.setAttribute('data-theme', 'admin');
+      // Add custom CSS variable for black text
+      document.documentElement.style.setProperty('--text-base', '#000000');
+    }
+    
+    // Cleanup: restore default theme when leaving admin
+    return () => {
+      const savedTheme = localStorage.getItem('theme') || 'verdant';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      document.documentElement.style.removeProperty('--text-base');
+    };
+  }, [mounted]);
+
   // Only redirect when mounted, not loading, hydrated, and auth state is determined
   useEffect(() => {
     if (mounted && !isLoading && hasHydrated) {

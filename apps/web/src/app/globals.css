@@ -138,6 +138,21 @@
 }
 
 /* ========================================
+   ADMIN THEME (Clean, Professional)
+   ======================================== */
+[data-theme="admin"] {
+  --primary: #7c3aed;
+  --primary-hover: #6d28d9;
+  --secondary: #4c1d95;
+  --background: #f9fafb;
+  --surface: #ffffff;
+  --text-base: #000000;
+  --text-muted: #6b7280;
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+}
+
+/* ========================================
    TAILWIND THEME MAPPING
    ======================================== */
 @theme inline {
