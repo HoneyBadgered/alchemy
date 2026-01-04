@@ -18,6 +18,7 @@ import {
   PaymentError, 
   BadRequestError 
 } from '../utils/errors';
+import { OrderNotificationService } from './order-notification.service';
 import type { Prisma } from '@prisma/client';
 
 /**
@@ -57,6 +58,12 @@ export interface PaymentIntentResult {
 }
 
 export class PaymentService {
+  private notificationService: OrderNotificationService;
+
+  constructor() {
+    this.notificationService = new OrderNotificationService();
+  }
+
   /**
    * Create a Stripe PaymentIntent for an order
    */
@@ -405,6 +412,20 @@ export class PaymentService {
       newOrderStatus = 'paid';
       updates.status = 'paid';
       console.log(`Payment succeeded for order ${orderId}, updating status to 'paid'`);
+      
+      // Send order confirmation email
+      try {
+        const orderData = await this.notificationService.getOrderDataForEmail(orderId);
+        if (orderData) {
+          await this.notificationService.sendOrderConfirmation(orderData);
+          console.log(`Order confirmation email sent for order ${orderId}`);
+        } else {
+          console.warn(`Could not retrieve order data for confirmation email: ${orderId}`);
+        }
+      } catch (emailError) {
+        // Log error but don't fail the payment processing
+        console.error(`Failed to send order confirmation email for ${orderId}:`, emailError);
+      }
     } else if (paymentIntent.status === 'canceled') {
       newOrderStatus = 'payment_failed';
       updates.status = 'payment_failed';

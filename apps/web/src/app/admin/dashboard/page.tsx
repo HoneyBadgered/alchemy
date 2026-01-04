@@ -141,7 +141,7 @@ export default function AdminDashboardPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="text-sm font-medium text-gray-600">Today's Revenue</div>
           <div className="text-2xl font-bold text-green-600 mt-2">
-            ${stats.todayStats.revenue.toFixed(2)}
+            ${Number(stats.todayStats.revenue).toFixed(2)}
           </div>
         </div>
         <div className="bg-white rounded-lg shadow p-6">

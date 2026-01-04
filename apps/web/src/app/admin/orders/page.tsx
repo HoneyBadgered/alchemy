@@ -569,8 +569,12 @@ export default function AdminOrdersPage() {
                 </tr>
               ) : (
                 filteredOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                  <tr 
+                    key={order.id} 
+                    className="hover:bg-gray-50 cursor-pointer"
+                    onClick={() => window.location.href = `/admin/orders/${order.id}`}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-blue-600 hover:text-blue-800">
                       {order.id}
                     </td>
                     <td className="px-6 py-4">
@@ -594,6 +598,7 @@ export default function AdminOrdersPage() {
                       <select
                         value={order.status}
                         onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
                         className={`text-xs font-medium px-3 py-1 rounded-full border-0 ${
                           order.status === 'completed' ? 'bg-green-100 text-green-800' :
                           order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
@@ -615,7 +620,7 @@ export default function AdminOrdersPage() {
                       <div className="flex gap-2 justify-end">
                         {order.status !== 'shipped' && order.status !== 'completed' && order.status !== 'cancelled' && order.status !== 'refunded' && (
                           <button
-                            onClick={() => openShippingModal(order)}
+                            onClick={(e) => { e.stopPropagation(); openShippingModal(order); }}
                             className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
                           >
                             📦 Ship
@@ -623,7 +628,8 @@ export default function AdminOrdersPage() {
                         )}
                         {order.status !== 'pending' && order.status !== 'cancelled' && order.status !== 'refunded' && (
                           <button
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setSelectedOrder(order);
                               setRefundAmount(Number(order.totalAmount).toString());
                               setShowRefundModal(true);
@@ -635,7 +641,8 @@ export default function AdminOrdersPage() {
                         )}
                         {order.status !== 'cancelled' && order.status !== 'refunded' && order.status !== 'delivered' && (
                           <button
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setSelectedOrder(order);
                               setCancelRefundAmount(Number(order.totalAmount).toString());
                               setShowCancelModal(true);
