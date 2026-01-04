@@ -85,6 +85,7 @@ export const DesktopBlendingView: React.FC<DesktopBlendingViewProps> = ({
             selectedAddIns={blendState.addIns}
             onToggleAddIn={onToggleAddIn}
             onQuantityChange={onQuantityChange}
+            blendSize={blendState.size}
             addInsData={addIns}
           />
         </div>

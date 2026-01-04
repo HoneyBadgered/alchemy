@@ -150,7 +150,7 @@ export default function CartPage() {
                   <div className="flex gap-4 p-4">
                     {/* Product Image */}
                     <Link
-                      href={`/shop/${item.products.id}`}
+                      href={item.products.category === 'custom-blend' ? `/blends/${item.id}` : `/shop/${item.products.id}`}
                       className="flex-shrink-0 w-24 h-24 bg-gray-100 rounded-lg overflow-hidden"
                     >
                       {item.products.imageUrl ? (
@@ -169,7 +169,7 @@ export default function CartPage() {
                     {/* Product Details */}
                     <div className="flex-1 min-w-0">
                       <Link
-                        href={`/shop/${item.products.id}`}
+                        href={item.products.category === 'custom-blend' ? `/blends/${item.id}` : `/shop/${item.products.id}`}
                         className="font-bold text-lg mb-1 hover:text-purple-600 line-clamp-1"
                       >
                         {item.products.name}

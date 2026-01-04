@@ -638,4 +638,117 @@ export class CartService {
     }
     return `Custom ${baseTeaName} Blend with ${addInCount} Add-in${addInCount === 1 ? '' : 's'}`;
   }
+
+  /**
+   * Get blend details by cart item ID
+   * Returns blend composition, ingredients, size, price, and metadata
+   */
+  async getBlendByCartItemId({
+    cartItemId,
+    userId,
+    sessionId,
+  }: {
+    cartItemId: string;
+    userId?: string;
+    sessionId?: string;
+  }) {
+    // Get cart item with product and variant
+    const cartItem = await prisma.cart_items.findUnique({
+      where: { id: cartItemId },
+      include: {
+        products: true,
+        product_variants: true,
+        carts: true,
+      },
+    });
+
+    if (!cartItem) {
+      throw new NotFoundError('Cart item not found');
+    }
+
+    // Verify this cart item belongs to the user/session
+    if (userId && cartItem.carts.userId !== userId) {
+      throw new NotFoundError('Cart item not found');
+    }
+    if (sessionId && cartItem.carts.sessionId !== sessionId) {
+      throw new NotFoundError('Cart item not found');
+    }
+
+    // Check if this is a custom blend
+    if (cartItem.products.category !== 'custom-blend') {
+      throw new BadRequestError('This cart item is not a custom blend');
+    }
+
+    // Find the blend record associated with this product
+    const blend = await prisma.blends.findFirst({
+      where: {
+        productId: cartItem.productId,
+        OR: [
+          { userId: userId || undefined },
+          { sessionId: sessionId || undefined },
+        ],
+      },
+    });
+
+    if (!blend) {
+      throw new NotFoundError('Blend details not found');
+    }
+
+    // Get base tea ingredient details
+    const baseTea = await prisma.ingredients.findUnique({
+      where: { id: blend.baseTeaId },
+    });
+
+    if (!baseTea) {
+      throw new NotFoundError('Base tea not found');
+    }
+
+    // Get add-in ingredient details
+    const addIns = blend.addIns as Array<{ ingredientId: string; quantity: number }>;
+    const addInIds = addIns.map(a => a.ingredientId);
+    const addInIngredients = await prisma.ingredients.findMany({
+      where: { id: { in: addInIds } },
+    });
+
+    // Map add-ins with their details
+    const addInsWithDetails = addIns.map(addIn => {
+      const ingredient = addInIngredients.find(i => i.id === addIn.ingredientId);
+      return {
+        ingredientId: addIn.ingredientId,
+        quantity: addIn.quantity,
+        name: ingredient?.name || 'Unknown',
+        category: ingredient?.category || 'Unknown',
+      };
+    });
+
+    // Calculate recipe (total weight for size)
+    const totalGrams = blend.size * 28; // 1oz ≈ 28g
+    const addInsTotal = addIns.reduce((sum, a) => sum + a.quantity, 0);
+    const baseTeaQuantity = Math.max(0, totalGrams - addInsTotal);
+
+    return {
+      cartItemId: cartItem.id,
+      blendId: blend.id,
+      productId: cartItem.productId,
+      variantId: cartItem.variantId,
+      name: blend.name || cartItem.products.name,
+      size: blend.size,
+      quantity: cartItem.quantity,
+      price: cartItem.product_variants?.price || cartItem.products.price,
+      baseTea: {
+        id: baseTea.id,
+        name: baseTea.name,
+        category: baseTea.category,
+        quantity: baseTeaQuantity,
+      },
+      addIns: addInsWithDetails,
+      recipe: {
+        totalGrams,
+        baseTeaQuantity,
+        addInsTotal,
+      },
+      createdAt: blend.createdAt,
+    };
+  }
 }
+

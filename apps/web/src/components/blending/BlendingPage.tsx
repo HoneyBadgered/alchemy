@@ -8,7 +8,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useIngredients, getIngredientById } from '@/hooks/useIngredients';
 import { BRANDING } from '@/config/branding';
 import { BLEND_SIZES, DEFAULT_BLEND_SIZE } from '@alchemy/core';
@@ -33,6 +33,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
   onContinue,
 }) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   
   // Fetch ingredients from API
   const { bases, addIns, isLoading, error } = useIngredients();
@@ -48,20 +49,58 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [isBasePanelOpen, setIsBasePanelOpen] = useState(false);
   const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
+  const [isLoadingBlend, setIsLoadingBlend] = useState(false);
 
-  // Restore blend state from sessionStorage if available (e.g., when returning from review page)
+  // Load blend for editing if editBlend param is present
   useEffect(() => {
-    const storedBlend = sessionStorage.getItem('pendingBlend');
-    if (storedBlend) {
-      try {
-        const parsed = JSON.parse(storedBlend);
-        setBlendState(parsed);
-      } catch (e) {
-        console.error('Failed to parse stored blend:', e);
+    const editBlendId = searchParams?.get('editBlend');
+    if (editBlendId && !hasLoadedFromStorage) {
+      setIsLoadingBlend(true);
+      const sessionId = localStorage.getItem('sessionId');
+      
+      fetch(`/api/cart/blends/${editBlendId}`, {
+        headers: {
+          'x-session-id': sessionId || '',
+        },
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to load blend');
+          return res.json();
+        })
+        .then(data => {
+          setBlendState({
+            baseTeaId: data.baseTea.id,
+            addIns: data.addIns.map((addIn: any) => ({
+              ingredientId: addIn.ingredientId,
+              quantity: addIn.quantity,
+            })),
+            blendName: data.name || '',
+            size: data.size,
+          });
+          setHasLoadedFromStorage(true);
+        })
+        .catch(err => {
+          console.error('Failed to load blend for editing:', err);
+          // Still set hasLoadedFromStorage to allow normal flow
+          setHasLoadedFromStorage(true);
+        })
+        .finally(() => {
+          setIsLoadingBlend(false);
+        });
+    } else if (!editBlendId) {
+      // If no editBlend param, proceed with normal storage restore
+      const storedBlend = sessionStorage.getItem('pendingBlend');
+      if (storedBlend) {
+        try {
+          const parsed = JSON.parse(storedBlend);
+          setBlendState(parsed);
+        } catch (e) {
+          console.error('Failed to parse stored blend:', e);
+        }
       }
+      setHasLoadedFromStorage(true);
     }
-    setHasLoadedFromStorage(true);
-  }, []);
+  }, [searchParams, hasLoadedFromStorage]);
 
   // Save blend state to sessionStorage whenever it changes (but only after initial load)
   useEffect(() => {
@@ -221,12 +260,14 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
   };
 
   // Show loading state
-  if (isLoading) {
+  if (isLoading || isLoadingBlend) {
     return (
       <div className="min-h-screen bg-cover bg-center bg-fixed relative" style={{ backgroundImage: `url(${BRANDING.IMAGE_BASE_PATH}/background-image.png)` }}>
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
         <div className="relative z-10 flex items-center justify-center min-h-screen">
-          <div className="text-white text-xl">Loading ingredients...</div>
+          <div className="text-white text-xl">
+            {isLoadingBlend ? 'Loading blend...' : 'Loading ingredients...'}
+          </div>
         </div>
       </div>
     );

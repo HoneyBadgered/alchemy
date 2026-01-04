@@ -318,4 +318,28 @@ export async function cartRoutes(fastify: FastifyInstance) {
       return reply.status(400).send({ message: (error as Error).message });
     }
   });
+
+  /**
+   * Get blend details by cart item ID
+   * GET /cart/blends/:cartItemId
+   */
+  fastify.get<{
+    Params: { cartItemId: string };
+  }>('/cart/blends/:cartItemId', {
+    onRequest: [optionalAuthMiddleware],
+  }, async (request, reply) => {
+    const auth = validateAuthOrSession(request, reply);
+    if (!auth) return;
+
+    try {
+      const blend = await cartService.getBlendByCartItemId({
+        cartItemId: request.params.cartItemId,
+        ...auth,
+      });
+      return reply.send(blend);
+    } catch (error) {
+      fastify.log.error('Get blend error:', error);
+      return reply.status(404).send({ message: (error as Error).message });
+    }
+  });
 }

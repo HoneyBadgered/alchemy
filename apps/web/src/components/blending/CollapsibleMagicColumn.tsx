@@ -18,6 +18,8 @@ import type { AddInCategoryTab } from './types';
 import type { BlendingIngredient } from './mockData';
 import { useDeviceType } from '@/hooks/useDeviceType';
 import { IngredientDetailsSheet } from './IngredientDetailsSheet';
+import { IngredientSlider } from './IngredientSlider';
+import { sliderToGrams, gramsToSlider } from './sliderUtils';
 
 interface CollapsibleMagicColumnProps {
   /** Selected add-in IDs with quantities */
@@ -26,6 +28,8 @@ interface CollapsibleMagicColumnProps {
   onToggleAddIn: (ingredientId: string) => void;
   /** Callback when add-in quantity is changed */
   onQuantityChange: (ingredientId: string, quantity: number) => void;
+  /** Blend size in ounces */
+  blendSize?: number;
   /** Add-ins data from API */
   addInsData: {
     addIns: BlendingIngredient[];
@@ -38,6 +42,7 @@ interface IngredientItemProps {
   ingredient: BlendingIngredient;
   quantity: number;
   isSelected: boolean;
+  blendSize: number;
   onToggle: () => void;
   onQuantityChange: (quantity: number) => void;
   useMobileBehavior: boolean;
@@ -48,15 +53,12 @@ const IngredientItem: React.FC<IngredientItemProps> = ({
   ingredient,
   quantity,
   isSelected,
+  blendSize,
   onToggle,
   onQuantityChange,
   useMobileBehavior,
   onOpenDetails,
 }) => {
-  const incrementAmount = ingredient.incrementAmount || 0.25;
-  const minQuantity = ingredient.baseAmount || 0.25;
-  const maxQuantity = 2; // Max 2 oz per add-in
-
   const handleClick = () => {
     if (useMobileBehavior && onOpenDetails) {
       // On mobile: tap opens details sheet
@@ -67,18 +69,13 @@ const IngredientItem: React.FC<IngredientItemProps> = ({
     }
   };
 
-  const handleIncrement = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (quantity < maxQuantity) {
-      onQuantityChange(Math.min(maxQuantity, quantity + incrementAmount));
-    }
-  };
+  // Convert grams to slider value for display
+  const sliderValue = gramsToSlider(quantity, ingredient, blendSize);
 
-  const handleDecrement = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (quantity > minQuantity) {
-      onQuantityChange(Math.max(minQuantity, quantity - incrementAmount));
-    }
+  const handleSliderChange = (newSliderValue: number) => {
+    // Convert slider value back to grams
+    const grams = sliderToGrams(newSliderValue, ingredient, blendSize);
+    onQuantityChange(grams);
   };
 
   const tooltipText = [
@@ -139,32 +136,16 @@ const IngredientItem: React.FC<IngredientItemProps> = ({
         </h4>
       </button>
 
-      {/* Quantity Controls (when selected) */}
+      {/* Quantity Slider (when selected) */}
       {isSelected && (
-        <div className="mt-1 flex items-center justify-center gap-2">
-          <button
-            onClick={handleDecrement}
-            disabled={quantity <= minQuantity}
-            className="w-6 h-6 rounded-full bg-purple-500 hover:bg-purple-600 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
-            aria-label="Decrease quantity"
-          >
-            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-            </svg>
-          </button>
-          <span className="font-semibold text-white text-xs min-w-[3rem] text-center">
-            {quantity.toFixed(2)} oz
-          </span>
-          <button
-            onClick={handleIncrement}
-            disabled={quantity >= maxQuantity}
-            className="w-6 h-6 rounded-full bg-purple-500 hover:bg-purple-600 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
-            aria-label="Increase quantity"
-          >
-            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-          </button>
+        <div className="mt-2 px-2">
+          <IngredientSlider
+            value={sliderValue}
+            onChange={handleSliderChange}
+            category={ingredient.category}
+            name={ingredient.name}
+            showHelper={false}
+          />
         </div>
       )}
 
@@ -291,6 +272,7 @@ const CategorySection: React.FC<CategorySectionProps> = ({
                     ingredient={ingredient}
                     quantity={getSelectedQuantity(ingredient.id)}
                     isSelected={isSelected}
+                    blendSize={blendSize}
                     onToggle={() => onToggleAddIn(ingredient.id)}
                     onQuantityChange={(q) => onQuantityChange(ingredient.id, q)}
                     useMobileBehavior={useMobileBehavior}
@@ -316,6 +298,7 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
   selectedAddIns,
   onToggleAddIn,
   onQuantityChange,
+  blendSize = 2,
   addInsData,
 }) => {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
