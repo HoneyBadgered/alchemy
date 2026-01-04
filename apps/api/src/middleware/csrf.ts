@@ -100,7 +100,7 @@ export async function csrfProtection(
     reply.cookie('XSRF-TOKEN', token, {
       httpOnly: false, // Must be readable by JavaScript
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax', // Use 'lax' for cross-origin local development
       path: '/',
       maxAge: 60 * 60, // 1 hour
     });

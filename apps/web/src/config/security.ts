@@ -14,6 +14,7 @@ export const securityConfig = {
       "'unsafe-inline'",
       "https://js.stripe.com",
     ],
+    frameSrc: ["https://js.stripe.com", "https://hooks.stripe.com"],
     connectSrc: [
       "'self'",
       "http://localhost:3000",

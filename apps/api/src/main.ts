@@ -146,7 +146,6 @@ fastify.register(purchaseHistoryRoutes);
 fastify.register(adminBlogRoutes);
 fastify.register(blogRoutes);
 fastify.register(searchRoutes);
-fastify.register(fileUploadRoutes);
 fastify.register((instance) => adminWebhookRoutes(instance, webhookRetryWorker));
 
 // Health check endpoint

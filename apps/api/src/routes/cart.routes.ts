@@ -214,9 +214,11 @@ export async function cartRoutes(fastify: FastifyInstance) {
       const auth = validateAuthOrSession(request, reply);
       if (!auth) return;
 
+      console.log('Clearing cart for:', auth);
       const result = await cartService.clearCart(auth);
       return reply.send(result);
     } catch (error) {
+      console.error('Clear cart error:', error);
       return reply.status(500).send({ message: (error as Error).message });
     }
   });

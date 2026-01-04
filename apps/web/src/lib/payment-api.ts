@@ -4,6 +4,24 @@
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
+/**
+ * Get cookie value by name
+ */
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') {
+    return null;
+  }
+  
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  
+  if (parts.length === 2) {
+    return parts.pop()?.split(';').shift() || null;
+  }
+  
+  return null;
+}
+
 export interface CreatePaymentIntentInput {
   orderId: string;
 }
@@ -68,6 +86,12 @@ export const paymentApi = {
       headers['x-session-id'] = sessionId;
     }
     
+    // Add CSRF token for state-changing requests
+    const csrfToken = typeof document !== 'undefined' ? getCookie('XSRF-TOKEN') : null;
+    if (csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken;
+    }
+    
     const response = await fetch(`${API_URL}/payments/create-intent`, {
       method: 'POST',
       headers,
@@ -76,8 +100,17 @@ export const paymentApi = {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to create payment intent');
+      const error = await response.json().catch(() => ({ message: 'Failed to create payment intent' }));
+      
+      // Log technical details for debugging
+      console.error('Payment API error:', error);
+      
+      // Show user-friendly message
+      const userMessage = error.code?.startsWith('CSRF_') 
+        ? 'Your session has expired. Please refresh the page and try again.'
+        : error.message || 'Unable to process payment. Please try again.';
+      
+      throw new Error(userMessage);
     }
 
     return response.json();

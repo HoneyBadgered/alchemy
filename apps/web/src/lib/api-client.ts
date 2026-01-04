@@ -50,9 +50,13 @@ export class ApiClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
       ...(options.headers as Record<string, string>),
     };
+
+    // Only set Content-Type if there's a body
+    if (options.body) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     // Add CSRF token to state-changing requests
     const method = options.method?.toUpperCase() || 'GET';
@@ -72,9 +76,14 @@ export class ApiClient {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({
-        message: 'An error occurred',
-      }));
+      // Try to parse error response, handle empty bodies gracefully
+      let error: any;
+      try {
+        const text = await response.text();
+        error = text ? JSON.parse(text) : { message: `Request failed with status ${response.status}` };
+      } catch (parseError) {
+        error = { message: `Request failed with status ${response.status}` };
+      }
 
       // Auto-retry once if backend issued a new CSRF token for guest session
       if (
@@ -82,23 +91,36 @@ export class ApiClient {
         error.code === 'CSRF_TOKEN_REQUIRED' && 
         retryCount === 0
       ) {
-        // Backend set XSRF-TOKEN cookie, retry the request with the new token
+        // Silently retry - backend set XSRF-TOKEN cookie
+        console.debug('Retrying request with new CSRF token');
         return this.request<T>(endpoint, options, retryCount + 1);
       }
 
-      // Handle other CSRF errors
+      // Handle other CSRF errors with user-friendly message
       if (response.status === 403 && error.code?.startsWith('CSRF_')) {
+        console.error('CSRF validation failed:', error);
         throw new ApiError(
           response.status,
-          'Security token expired. Please refresh the page.',
+          'Your session has expired. Please refresh the page and try again.',
           error.errors
         );
       }
 
-      throw new ApiError(response.status, error.message, error.errors);
+      throw new ApiError(response.status, error.message || 'An error occurred', error.errors);
     }
 
-    return response.json();
+    // Handle empty responses (204 No Content, etc.)
+    const contentType = response.headers.get('content-type');
+    if (!contentType?.includes('application/json')) {
+      return {} as T;
+    }
+
+    const text = await response.text();
+    if (!text) {
+      return {} as T;
+    }
+
+    return JSON.parse(text);
   }
 
   async get<T>(endpoint: string, token?: string, customHeaders?: Record<string, string>): Promise<T> {

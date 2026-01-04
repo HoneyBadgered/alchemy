@@ -103,7 +103,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       reply.setCookie('refreshToken', result.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60, // 7 days
         path: '/',
       });
@@ -113,7 +113,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       reply.setCookie('XSRF-TOKEN', csrfToken, {
         httpOnly: false,  // Must be readable by JavaScript
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax',
         maxAge: 3600,  // 1 hour
         path: '/',
       });
@@ -237,7 +237,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       reply.setCookie('refreshToken', newRefreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60, // 7 days
         path: '/',
       });
@@ -266,7 +266,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       reply.setCookie('XSRF-TOKEN', csrfToken, {
         httpOnly: false,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax',
         maxAge: 3600,  // 1 hour
         path: '/',
       });

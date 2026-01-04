@@ -124,17 +124,17 @@ export const config = {
  * Initialize JWT Key Manager with versioned secrets
  * Supports multiple active secrets for zero-downtime rotation
  */
+const accessEnvVars: Record<string, string> = { JWT_SECRET: env.JWT_SECRET };
+if (env.JWT_ACCESS_SECRET_V1) accessEnvVars.JWT_ACCESS_SECRET_V1 = env.JWT_ACCESS_SECRET_V1;
+if (env.JWT_ACCESS_SECRET_V2) accessEnvVars.JWT_ACCESS_SECRET_V2 = env.JWT_ACCESS_SECRET_V2;
+
+const refreshEnvVars: Record<string, string> = { JWT_REFRESH_SECRET: env.JWT_REFRESH_SECRET };
+if (env.JWT_REFRESH_SECRET_V1) refreshEnvVars.JWT_REFRESH_SECRET_V1 = env.JWT_REFRESH_SECRET_V1;
+if (env.JWT_REFRESH_SECRET_V2) refreshEnvVars.JWT_REFRESH_SECRET_V2 = env.JWT_REFRESH_SECRET_V2;
+
 const jwtKeyManagerConfig = parseJwtSecretsFromEnv(
-  {
-    JWT_SECRET: env.JWT_SECRET,
-    JWT_ACCESS_SECRET_V1: env.JWT_ACCESS_SECRET_V1 || '',
-    JWT_ACCESS_SECRET_V2: env.JWT_ACCESS_SECRET_V2 || '',
-  },
-  {
-    JWT_REFRESH_SECRET: env.JWT_REFRESH_SECRET,
-    JWT_REFRESH_SECRET_V1: env.JWT_REFRESH_SECRET_V1 || '',
-    JWT_REFRESH_SECRET_V2: env.JWT_REFRESH_SECRET_V2 || '',
-  },
+  accessEnvVars,
+  refreshEnvVars,
   config.jwt.currentAccessVersion,
   config.jwt.currentRefreshVersion
 );
