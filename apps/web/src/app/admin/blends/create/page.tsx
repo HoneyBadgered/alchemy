@@ -40,7 +40,7 @@ export default function CreateBlendProductPage() {
   const [addIns, setAddIns] = useState<Ingredient[]>([]);
   const [selectedBaseTea, setSelectedBaseTea] = useState('');
   const [selectedAddIns, setSelectedAddIns] = useState<BlendIngredient[]>([]);
-  const [blendSize, setBlendSize] = useState<number>(DEFAULT_BLEND_SIZE);
+  const [selectedSizes, setSelectedSizes] = useState<number[]>([DEFAULT_BLEND_SIZE]); // Multiple sizes
   const [costBreakdown, setCostBreakdown] = useState<CostBreakdown | null>(null);
   
   // Product details
@@ -175,7 +175,7 @@ export default function CreateBlendProductPage() {
           description,
           baseTeaId: selectedBaseTea,
           addIns: selectedAddIns,
-          size: blendSize,
+          sizes: selectedSizes, // Send array of sizes to create variants
           price: parseFloat(price),
           stock: parseInt(stock),
           category,
@@ -310,28 +310,44 @@ export default function CreateBlendProductPage() {
           {/* Blend Size Selection */}
           <div className="mt-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Blend Size *
+              Blend Sizes * (Select one or more)
             </label>
-            <div className="flex gap-2">
-              {BLEND_SIZES.map((size) => (
-                <button
-                  key={size}
-                  type="button"
-                  onClick={() => setBlendSize(size)}
-                  className={`
-                    px-4 py-2 rounded-lg font-medium transition-all
-                    ${blendSize === size
-                      ? 'bg-purple-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }
-                  `}
-                >
-                  {getBlendSizeLabel(size)}
-                </button>
-              ))}
+            <div className="flex gap-2 flex-wrap">
+              {BLEND_SIZES.map((size) => {
+                const isSelected = selectedSizes.includes(size);
+                return (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => {
+                      if (isSelected) {
+                        // Deselect (but keep at least one selected)
+                        if (selectedSizes.length > 1) {
+                          setSelectedSizes(selectedSizes.filter(s => s !== size));
+                        }
+                      } else {
+                        // Select
+                        setSelectedSizes([...selectedSizes, size].sort((a, b) => a - b));
+                      }
+                    }}
+                    className={`
+                      px-4 py-2 rounded-lg font-medium transition-all
+                      ${isSelected
+                        ? 'bg-purple-600 text-white shadow-md'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }
+                    `}
+                  >
+                    {getBlendSizeLabel(size)}
+                  </button>
+                );
+              })}
             </div>
             <p className="text-sm text-gray-500 mt-1">
-              Select the size for this blend product
+              {selectedSizes.length === 1 
+                ? 'One size variant will be created'
+                : `${selectedSizes.length} size variants will be created: ${selectedSizes.map(s => s + 'oz').join(', ')}`
+              }
             </p>
           </div>
         </div>

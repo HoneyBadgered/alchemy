@@ -108,6 +108,7 @@ export class OrderService {
           cart_items: {
             include: {
               products: true,
+              product_variants: true,
             },
           },
         },
@@ -122,16 +123,20 @@ export class OrderService {
       // Validate all products are available and have sufficient stock BEFORE transaction
       const stockValidation: Array<{ productName: string; issue: string }> = [];
       for (const item of cart.cart_items) {
-        if (!item.products.isActive) {
+        // Check stock from variant if it exists, otherwise from product
+        const stock = item.product_variants?.stock ?? item.products.stock;
+        const isActive = item.product_variants?.isActive ?? item.products.isActive;
+        
+        if (!item.products.isActive || !isActive) {
           stockValidation.push({
-            productName: item.products.name,
+            productName: item.products.name + (item.product_variants ? ` (${item.product_variants.name})` : ''),
             issue: 'no longer available',
           });
         }
-        if (item.products.stock < item.quantity) {
+        if (stock < item.quantity) {
           stockValidation.push({
-            productName: item.products.name,
-            issue: `insufficient stock (requested: ${item.quantity}, available: ${item.products.stock})`,
+            productName: item.products.name + (item.product_variants ? ` (${item.product_variants.name})` : ''),
+            issue: `insufficient stock (requested: ${item.quantity}, available: ${stock})`,
           });
         }
       }
@@ -140,9 +145,10 @@ export class OrderService {
         throw new InsufficientStockError('Stock validation failed', { issues: stockValidation });
       }
 
-      // Calculate order totals
+      // Calculate order totals (use variant price if available)
       const subtotal = cart.cart_items.reduce((sum: number, item: CartItemWithProduct) => {
-        return sum + Number(item.products.price) * item.quantity;
+        const price = item.product_variants?.price ?? item.products.price;
+        return sum + Number(price) * item.quantity;
       }, 0);
 
       let shippingCost = 0;
@@ -342,35 +348,53 @@ export class OrderService {
             customerNotes,
             updatedAt: new Date(),
             order_items: {
-            create: cart.cart_items.map((item: CartItemWithProduct) => ({
-              id: crypto.randomUUID(),
-              productId: item.productId,
-              quantity: item.quantity,
-              price: item.products.price,
-            })),
-          },
-        },
-        include: {
-          order_items: {
-            include: {
-              products: true,
+              create: cart.cart_items.map((item: CartItemWithProduct) => {
+                const price = item.product_variants?.price ?? item.products.price;
+                return {
+                  id: crypto.randomUUID(),
+                  productId: item.productId,
+                  variantId: item.variantId || null,
+                  quantity: item.quantity,
+                  price,
+                };
+              }),
             },
           },
-        },
-      });
-
-      console.log('Order created successfully:', newOrder.id);
-
-      // Update product inventory
-      for (const item of cart.cart_items) {
-        await tx.products.update({
-          where: { id: item.productId },
-          data: {
-            stock: {
-              decrement: item.quantity,
+          include: {
+            order_items: {
+              include: {
+                products: true,
+                product_variants: true,
+              },
             },
           },
         });
+
+      console.log('Order created successfully:', newOrder.id);
+
+      // Update product inventory (or variant inventory if variant exists)
+      for (const item of cart.cart_items) {
+        if (item.variantId) {
+          // Update variant stock
+          await tx.product_variants.update({
+            where: { id: item.variantId },
+            data: {
+              stock: {
+                decrement: item.quantity,
+              },
+            },
+          });
+        } else {
+          // Update product stock
+          await tx.products.update({
+            where: { id: item.productId },
+            data: {
+              stock: {
+                decrement: item.quantity,
+              },
+            },
+          });
+        }
       }
 
       // Update ingredient inventory for blend products

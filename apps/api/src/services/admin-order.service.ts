@@ -227,8 +227,16 @@ export class AdminOrderService {
             };
           });
 
+          // Calculate base tea quantity based on blend size
+          // Typical ratio: for 2oz blend (56g total), base tea is usually 40-45g, rest is add-ins
+          const blendSize = (blend as any).size || 2; // Size in ounces
+          const totalGrams = blendSize * 28; // Convert oz to grams (1oz ≈ 28g)
+          const addInsTotal = addIns.reduce((sum, a) => sum + a.quantity, 0);
+          const baseTeaQuantity = Math.max(0, totalGrams - addInsTotal);
+
           // Add enriched data to blend
           (blend as any).baseTea = baseTea;
+          (blend as any).baseTeaQuantity = baseTeaQuantity;
           (blend as any).enrichedAddIns = enrichedAddIns;
         }
       }

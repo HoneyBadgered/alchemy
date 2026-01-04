@@ -16,7 +16,7 @@ interface CreateBlendProductInput {
   description?: string;
   baseTeaId: string;
   addIns: BlendIngredient[];
-  size?: number;
+  sizes?: number[];  // Changed: now accepts array of sizes to create variants
   price: number;
   imageUrl?: string;
   images?: string[];
@@ -73,37 +73,66 @@ export class AdminBlendService {
 
     // Create product and blend in a transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Create the product
+      // Determine if we're creating variants
+      const sizes = data.sizes && data.sizes.length > 0 ? data.sizes : [2]; // Default to 2oz if no sizes specified
+      const hasVariants = sizes.length > 1;
+
+      // Create the product (parent)
       const product = await tx.products.create({
         data: {
           id: cuid(),
           name: data.name,
           description: data.description || `Custom blend with ${baseTea.name}`,
-          price: data.price,
+          price: data.price, // Base price (will be overridden by variants if applicable)
           imageUrl: data.imageUrl || null,
           images: data.images || [],
           category: data.category || 'Custom Blends',
           zones: data.zones || [],
           tags: data.tags || ['custom', 'blend'],
-          stock: data.stock ?? 0,
+          stock: hasVariants ? 0 : (data.stock ?? 0), // If variants, stock is per-variant
           isActive: data.isActive ?? true,
+          hasVariants,
           updatedAt: new Date(),
         },
       });
 
-      // Create the blend record linked to the product
-      const blend = await tx.blends.create({
-        data: {
-          id: cuid(),
-          name: data.name,
-          baseTeaId: data.baseTeaId,
-          addIns: data.addIns,
-          size: data.size || 2,
-          productId: product.id,
-        },
-      });
+      // Create variants for each size
+      const variants = [];
+      for (let i = 0; i < sizes.length; i++) {
+        const size = sizes[i];
+        const variant = await tx.product_variants.create({
+          data: {
+            id: cuid(),
+            productId: product.id,
+            name: `${size}oz`,
+            size,
+            price: data.price, // Same price for all sizes (can be customized later)
+            stock: data.stock ?? 0,
+            isActive: true,
+            isDefault: i === 0, // First size is default
+            sortOrder: i,
+          },
+        });
+        variants.push(variant);
+      }
 
-      return { product, blend };
+      // Create blend records for each variant/size
+      const blends = [];
+      for (const variant of variants) {
+        const blend = await tx.blends.create({
+          data: {
+            id: cuid(),
+            name: data.name,
+            baseTeaId: data.baseTeaId,
+            addIns: data.addIns,
+            size: variant.size || 2,
+            productId: product.id,
+          },
+        });
+        blends.push(blend);
+      }
+
+      return { product, variants, blends };
     });
 
     return result;

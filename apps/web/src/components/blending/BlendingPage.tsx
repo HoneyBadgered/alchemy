@@ -9,8 +9,10 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import type { ExtendedBlendState, BlendSize } from './types';
 import { useIngredients, getIngredientById } from '@/hooks/useIngredients';
+import { BRANDING } from '@/config/branding';
+import { BLEND_SIZES, DEFAULT_BLEND_SIZE } from '@alchemy/core';
+import type { ExtendedBlendState } from './types';
 import { useBlendPricing } from './useBlendPricing';
 import { useFlavorProfile, DEFAULT_STATUS } from './useFlavorProfile';
 import { ImmersiveHeader } from './ImmersiveHeader';
@@ -18,7 +20,6 @@ import { BottomActionBar } from './BottomActionBar';
 import { DesktopBlendingView } from './DesktopBlendingView';
 import { MobileBlendingView } from './MobileBlendingView';
 import { useCart } from '@/contexts/CartContext';
-import { BRANDING } from '@/config/branding';
 
 interface BlendingPageProps {
   /** Callback for navigation back */

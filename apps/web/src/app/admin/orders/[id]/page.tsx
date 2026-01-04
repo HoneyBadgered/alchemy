@@ -18,6 +18,7 @@ interface CustomBlend {
     name: string;
     description: string | null;
   };
+  baseTeaQuantity?: number;
   enrichedAddIns?: Array<{
     ingredientId: string;
     quantity: number;
@@ -33,6 +34,7 @@ interface CustomBlend {
 interface OrderItem {
   id: string;
   productId: string;
+  variantId: string | null;
   quantity: number;
   price: string;
   products: {
@@ -42,6 +44,12 @@ interface OrderItem {
     category: string | null;
     blends: CustomBlend[];
   };
+  product_variants: {
+    id: string;
+    name: string;
+    size: number | null;
+    price: string;
+  } | null;
 }
 
 interface StatusLog {
@@ -332,7 +340,14 @@ export default function OrderDetailsPage() {
               <div key={item.id} className="border-b pb-4 last:border-b-0">
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex-1">
-                    <h3 className="font-medium text-lg">{item.products.name}</h3>
+                    <h3 className="font-medium text-lg">
+                      {item.products.name}
+                      {item.product_variants && (
+                        <span className="ml-2 text-sm text-purple-600 font-semibold">
+                          ({item.product_variants.name})
+                        </span>
+                      )}
+                    </h3>
                     {item.products.description && (
                       <p className="text-sm text-gray-600">{item.products.description}</p>
                     )}
@@ -351,38 +366,42 @@ export default function OrderDetailsPage() {
                 {item.products.blends && item.products.blends.length > 0 && (
                   <div className="mt-3 p-4 bg-purple-50 rounded-lg">
                     <h4 className="font-semibold text-purple-900 mb-2">
-                      🧪 Custom Blend: {item.products.blends[0].name || 'Unnamed Blend'}
+                      🧪 Custom Blend Recipe: {item.products.blends[0].name || 'Unnamed Blend'}
                     </h4>
-                    <p className="text-sm text-purple-800 mb-2">
-                      <span className="font-medium">Size:</span> {item.products.blends[0].size || 2}oz
+                    <p className="text-sm text-purple-800 mb-3">
+                      <span className="font-medium">Total Size:</span> {item.products.blends[0].size || 2}oz ({(item.products.blends[0].size || 2) * 28}g)
                     </p>
-                    <p className="text-sm text-purple-800 mb-2">
-                      <span className="font-medium">Base Tea:</span>{' '}
-                      {item.products.blends[0].baseTea?.name || item.products.blends[0].baseTeaId}
-                    </p>
-                    <p className="text-sm text-purple-800 mb-2">
-                      <span className="font-medium">Total Weight:</span>{' '}
-                      {(item.products.blends[0].enrichedAddIns || item.products.blends[0].addIns).reduce(
-                        (sum: number, ing: any) => sum + Number(ing.quantity),
-                        0
-                      )}g of added ingredients
-                    </p>
-                    <div className="mt-2">
-                      <p className="text-sm font-medium text-purple-900 mb-1">
-                        Added Ingredients:
-                      </p>
-                      <ul className="space-y-1">
+                    <div className="bg-white rounded p-3 mb-2">
+                      <p className="text-sm font-medium text-purple-900 mb-2">Recipe:</p>
+                      <div className="space-y-1">
+                        {/* Base Tea */}
+                        <div className="text-sm text-purple-800 ml-2">
+                          <span className="font-medium">
+                            {item.products.blends[0].baseTea?.name || item.products.blends[0].baseTeaId}
+                          </span>
+                          {item.products.blends[0].baseTeaQuantity !== undefined && (
+                            <span className="text-purple-600 ml-2">
+                              - {Math.round(item.products.blends[0].baseTeaQuantity)}g (base tea)
+                            </span>
+                          )}
+                        </div>
+                        {/* Add-ins */}
                         {(item.products.blends[0].enrichedAddIns || item.products.blends[0].addIns).map((ing: any, idx: number) => (
-                          <li key={idx} className="text-sm text-purple-800 ml-4">
-                            • {ing.ingredient?.name || `Ingredient ${ing.ingredientId}`}: {ing.quantity}g
-                            {ing.ingredient?.category && (
-                              <span className="text-purple-600 ml-2">
-                                ({ing.ingredient.category})
-                              </span>
-                            )}
-                          </li>
+                          <div key={idx} className="text-sm text-purple-800 ml-2">
+                            <span className="font-medium">
+                              {ing.ingredient?.name || `Ingredient ${ing.ingredientId}`}
+                            </span>
+                            <span className="text-purple-600 ml-2">
+                              - {ing.quantity}g
+                              {ing.ingredient?.category && (
+                                <span className="text-purple-500 ml-1">
+                                  ({ing.ingredient.category})
+                                </span>
+                              )}
+                            </span>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     </div>
                   </div>
                 )}

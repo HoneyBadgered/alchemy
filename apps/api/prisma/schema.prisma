@@ -58,16 +58,18 @@ model bundle_items {
 }
 
 model cart_items {
-  id        String   @id
+  id        String            @id
   cartId    String
   productId String
-  quantity  Int      @default(1)
-  createdAt DateTime @default(now())
+  variantId String?           // Optional variant selection
+  quantity  Int               @default(1)
+  createdAt DateTime          @default(now())
   updatedAt DateTime
-  carts     carts    @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  products  products @relation(fields: [productId], references: [id])
+  carts     carts             @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  products  products          @relation(fields: [productId], references: [id])
+  product_variants product_variants? @relation(fields: [variantId], references: [id])
 
-  @@unique([cartId, productId])
+  @@index([cartId, productId, variantId])
 }
 
 model carts {
@@ -206,14 +208,16 @@ model notification_preferences {
 }
 
 model order_items {
-  id        String   @id
+  id        String            @id
   orderId   String
   productId String
-  quantity  Int      @default(1)
-  price     Decimal  @db.Decimal(10, 2)
-  createdAt DateTime @default(now())
-  orders    orders   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  products  products @relation(fields: [productId], references: [id])
+  variantId String?           // Which variant was purchased
+  quantity  Int               @default(1)
+  price     Decimal           @db.Decimal(10, 2)
+  createdAt DateTime          @default(now())
+  orders    orders            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  products  products          @relation(fields: [productId], references: [id])
+  product_variants product_variants? @relation(fields: [variantId], references: [id])
 }
 
 model order_status_logs {
@@ -395,14 +399,38 @@ model products {
   trackInventory                                                 Boolean             @default(true)
   averageRating                                                  Decimal?            @db.Decimal(2, 1)
   reviewCount                                                    Int                 @default(0)
+  hasVariants                                                    Boolean             @default(false)
   blends                                                         blends[]
   bundle_items                                                   bundle_items[]
   cart_items                                                     cart_items[]
   order_items                                                    order_items[]
   product_relations_product_relations_relatedProductIdToproducts product_relations[] @relation("product_relations_relatedProductIdToproducts")
   product_relations_product_relations_sourceProductIdToproducts  product_relations[] @relation("product_relations_sourceProductIdToproducts")
+  product_variants                                               product_variants[]
   reviews                                                        reviews[]
   wishlist_items                                                 wishlist_items[]
+}
+
+model product_variants {
+  id          String      @id @default(uuid())
+  productId   String
+  name        String      // e.g., "2oz", "4oz", "Small", "Large"
+  sku         String?     @unique
+  size        Int?        // Size in ounces for blends, null for non-blend products
+  price       Decimal     @db.Decimal(10, 2)
+  compareAtPrice Decimal? @db.Decimal(10, 2)
+  stock       Int         @default(0)
+  isActive    Boolean     @default(true)
+  isDefault   Boolean     @default(false) // One variant should be marked as default
+  sortOrder   Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  products    products    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cart_items  cart_items[]
+  order_items order_items[]
+
+  @@index([productId])
+  @@index([productId, isDefault])
 }
 
 model quests {

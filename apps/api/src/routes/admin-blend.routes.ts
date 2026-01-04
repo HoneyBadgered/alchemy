@@ -16,7 +16,7 @@ const createBlendProductSchema = z.object({
     ingredientId: z.string(),
     quantity: z.number().min(0),
   })),
-  size: z.number().int().min(1).max(8).optional(),
+  sizes: z.array(z.number().int().min(1).max(16)).optional(), // Array of sizes to create variants
   price: z.number().positive(),
   imageUrl: z.string().url().optional(),
   images: z.array(z.string().url()).optional(),

@@ -28,6 +28,7 @@ interface AddToCartParams {
   quantity: number;
   userId?: string;
   sessionId?: string;
+  variantId?: string;
 }
 
 interface UpdateCartItemParams {
@@ -35,6 +36,7 @@ interface UpdateCartItemParams {
   quantity: number;
   userId?: string;
   sessionId?: string;
+  variantId?: string;
 }
 
 interface RemoveFromCartParams {
@@ -64,6 +66,7 @@ export class CartService {
         cart_items: {
           include: {
             products: true,
+            product_variants: true,
           },
         },
       },
@@ -83,6 +86,7 @@ export class CartService {
             cart_items: {
               include: {
                 products: true,
+                product_variants: true,
               },
             },
           },
@@ -97,6 +101,7 @@ export class CartService {
               cart_items: {
                 include: {
                   products: true,
+                  product_variants: true,
                 },
               },
             },
@@ -121,9 +126,10 @@ export class CartService {
   async getCart({ userId, sessionId }: GetCartParams) {
     const cart = await this.getOrCreateCart(userId, sessionId);
 
-    // Calculate cart totals
+    // Calculate cart totals (use variant price if available, otherwise product price)
     const subtotal = cart.cart_items.reduce((sum: number, item) => {
-      return sum + Number(item.products.price) * item.quantity;
+      const price = item.product_variants?.price || item.products.price;
+      return sum + Number(price) * item.quantity;
     }, 0);
 
     const itemCount = cart.cart_items.reduce((sum: number, item) => sum + item.quantity, 0);
@@ -136,9 +142,28 @@ export class CartService {
   }
 
   /**
-   * Add item to cart
+   * Add item to cart with optional variant
    */
-  async addToCart({ productId, quantity, userId, sessionId }: AddToCartParams) {
+  async addToCart({ productId, quantity, userId, sessionId, variantId }: AddToCartParams) {
+    return this.addToCartWithVariant({ productId, variantId, quantity, userId, sessionId });
+  }
+
+  /**
+   * Add item to cart with variant support
+   */
+  private async addToCartWithVariant({ 
+    productId, 
+    variantId, 
+    quantity, 
+    userId, 
+    sessionId 
+  }: {
+    productId: string;
+    variantId?: string;
+    quantity: number;
+    userId?: string;
+    sessionId?: string;
+  }) {
     // Validate quantity
     if (quantity < 1) {
       throw new BadRequestError('Quantity must be at least 1');
@@ -147,6 +172,11 @@ export class CartService {
     // Validate product exists and is active
     const product = await prisma.products.findUnique({
       where: { id: productId },
+      include: {
+        product_variants: variantId ? {
+          where: { id: variantId },
+        } : true,
+      },
     });
 
     if (!product) {
@@ -157,22 +187,52 @@ export class CartService {
       throw new CartError('Product is not available for purchase');
     }
 
-    if (product.stock < quantity) {
+    // If product has variants, validate variant
+    let variant = null;
+    let stockToCheck = product.stock;
+    let priceToUse = product.price;
+
+    if (product.hasVariants) {
+      if (!variantId) {
+        // If no variant specified, use default
+        variant = await prisma.product_variants.findFirst({
+          where: {
+            productId,
+            isDefault: true,
+            isActive: true,
+          },
+        });
+        if (!variant) {
+          throw new CartError('Please select a size for this product');
+        }
+      } else {
+        variant = product.product_variants.find(v => v.id === variantId);
+        if (!variant) {
+          throw new NotFoundError('Variant not found');
+        }
+        if (!variant.isActive) {
+          throw new CartError('This size is not available');
+        }
+      }
+      stockToCheck = variant.stock;
+      priceToUse = variant.price;
+    }
+
+    if (stockToCheck < quantity) {
       throw new InsufficientStockError(
         `Insufficient stock for ${product.name}`,
-        { available: product.stock, requested: quantity }
+        { available: stockToCheck, requested: quantity }
       );
     }
 
     const cart = await this.getOrCreateCart(userId, sessionId);
 
-    // Check if item already exists in cart
-    const existingItem = await prisma.cart_items.findUnique({
+    // Check if item already exists in cart (same product + variant combo)
+    const existingItem = await prisma.cart_items.findFirst({
       where: {
-        cartId_productId: {
-          cartId: cart.id,
-          productId,
-        },
+        cartId: cart.id,
+        productId,
+        variantId: variantId || null,
       },
     });
 
@@ -181,16 +241,19 @@ export class CartService {
         // Update quantity
         const newQuantity = existingItem.quantity + quantity;
         
-        if (product.stock < newQuantity) {
+        if (stockToCheck < newQuantity) {
           throw new InsufficientStockError(
             `Insufficient stock for ${product.name}`,
-            { available: product.stock, requested: newQuantity }
+            { available: stockToCheck, requested: newQuantity }
           );
         }
 
         await prisma.cart_items.update({
           where: { id: existingItem.id },
-          data: { quantity: newQuantity },
+          data: { 
+            quantity: newQuantity,
+            updatedAt: new Date(),
+          },
         });
       } else {
         // Create new cart item
@@ -199,6 +262,7 @@ export class CartService {
             id: crypto.randomUUID(),
             cartId: cart.id,
             productId,
+            variantId: variantId || null,
             quantity,
             updatedAt: new Date(),
           },
@@ -448,9 +512,12 @@ export class CartService {
         category: 'custom-blend',
         tags: { has: blendKey },
       },
+      include: {
+        product_variants: true,
+      },
     });
 
-    // If product doesn't exist, create it
+    // If product doesn't exist, create it with variants
     if (!product) {
       // Calculate price based on base tea and add-ins with increment pricing
       const totalPrice = this.calculateBlendPrice(addIns);
@@ -458,6 +525,7 @@ export class CartService {
       // Generate blend name
       const productName = blendName || this.generateBlendName(baseTea.name, addIns);
 
+      // Create product with hasVariants flag
       product = await prisma.products.create({
         data: {
           id: crypto.randomUUID(),
@@ -467,13 +535,36 @@ export class CartService {
           category: 'custom-blend',
           tags: [blendKey, 'custom', 'blend'],
           isActive: true,
-          stock: CUSTOM_BLEND_STOCK,
+          stock: 0, // Stock is tracked per variant
+          hasVariants: true,
           updatedAt: new Date(),
+        },
+        include: {
+          product_variants: true,
         },
       });
     }
 
-    // Save the blend record for persistence
+    // Find or create variant for the selected size
+    let variant = product.product_variants.find(v => v.size === size);
+    
+    if (!variant) {
+      variant = await prisma.product_variants.create({
+        data: {
+          id: crypto.randomUUID(),
+          productId: product.id,
+          name: `${size}oz`,
+          size,
+          price: product.price,
+          stock: CUSTOM_BLEND_STOCK,
+          isActive: true,
+          isDefault: product.product_variants.length === 0,
+          sortOrder: size,
+        },
+      });
+    }
+
+    // Save the blend record for persistence (linked to product, not variant)
     await prisma.blends.create({
       data: {
         id: crypto.randomUUID(),
@@ -487,9 +578,10 @@ export class CartService {
       },
     });
 
-    // Add the blend product to cart
-    return this.addToCart({
+    // Add the blend variant to cart
+    return this.addToCartWithVariant({
       productId: product.id,
+      variantId: variant.id,
       quantity: 1,
       userId,
       sessionId,
