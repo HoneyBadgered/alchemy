@@ -139,7 +139,19 @@ export class AdminOrderService {
         },
         order_items: {
           include: {
-            products: true,
+            products: {
+              include: {
+                blends: {
+                  select: {
+                    id: true,
+                    name: true,
+                    baseTeaId: true,
+                    addIns: true,
+                    createdAt: true,
+                  },
+                },
+              },
+            },
           },
         },
         order_status_logs: {
@@ -158,6 +170,68 @@ export class AdminOrderService {
 
     if (!order) {
       throw new Error('Order not found');
+    }
+
+    // Enrich blend data with ingredient and base tea details
+    for (const item of order.order_items) {
+      if (item.products.blends && item.products.blends.length > 0) {
+        for (const blend of item.products.blends) {
+          // Fetch base tea details - try products table first, then ingredients table
+          let baseTea = await prisma.products.findUnique({
+            where: { id: blend.baseTeaId },
+            select: {
+              id: true,
+              name: true,
+              description: true,
+            },
+          });
+
+          // If not found in products, try ingredients table
+          if (!baseTea) {
+            const baseIngredient = await prisma.ingredients.findUnique({
+              where: { id: blend.baseTeaId },
+              select: {
+                id: true,
+                name: true,
+                descriptionLong: true,
+              },
+            });
+            if (baseIngredient) {
+              baseTea = {
+                id: baseIngredient.id,
+                name: baseIngredient.name,
+                description: baseIngredient.descriptionLong,
+              };
+            }
+          }
+
+          // Fetch ingredient details
+          const addIns = blend.addIns as Array<{ ingredientId: string; quantity: number }>;
+          const ingredientIds = addIns.map((a) => a.ingredientId);
+          const ingredients = await prisma.ingredients.findMany({
+            where: { id: { in: ingredientIds } },
+            select: {
+              id: true,
+              name: true,
+              category: true,
+            },
+          });
+
+          // Map ingredients to their quantities
+          const enrichedAddIns = addIns.map((addIn) => {
+            const ingredient = ingredients.find((i) => i.id === addIn.ingredientId);
+            return {
+              ingredientId: addIn.ingredientId,
+              quantity: addIn.quantity,
+              ingredient: ingredient || null,
+            };
+          });
+
+          // Add enriched data to blend
+          (blend as any).baseTea = baseTea;
+          (blend as any).enrichedAddIns = enrichedAddIns;
+        }
+      }
     }
 
     return order;
@@ -214,6 +288,32 @@ export class AdminOrderService {
 
       return updatedOrder;
     });
+
+    // Send notification emails based on status change
+    if (toStatus === 'shipped') {
+      try {
+        const customerEmail = result.guestEmail || result.users?.email;
+        if (customerEmail) {
+          console.log(`Status changed to 'shipped' for order ${orderId}, but no tracking info provided via updateOrderStatus`);
+          console.warn(`Order ${orderId} marked as shipped without tracking number. Use POST /admin/orders/:id/ship endpoint for full shipping details.`);
+        }
+      } catch (error) {
+        console.error(`Note: Order ${orderId} marked as shipped via status update (no email sent):`, error);
+      }
+    } else if (toStatus === 'delivered') {
+      try {
+        const customerEmail = result.guestEmail || result.users?.email;
+        if (customerEmail) {
+          console.log(`Sending delivery notification to ${customerEmail} for order ${orderId}`);
+          await this.notificationService.sendDeliveryNotification(orderId, customerEmail);
+          console.log(`Successfully sent delivery notification for order ${orderId}`);
+        } else {
+          console.warn(`No customer email found for order ${orderId} - cannot send delivery notification`);
+        }
+      } catch (error) {
+        console.error(`Failed to send delivery notification for order ${orderId}:`, error);
+      }
+    }
 
     return result;
   }
@@ -306,6 +406,7 @@ export class AdminOrderService {
     try {
       const customerEmail = order.guestEmail || order.users?.email;
       if (customerEmail) {
+        console.log(`Sending shipping notification to ${customerEmail} for order ${orderId}`);
         await this.notificationService.sendShippingNotification({
           orderId: order.id,
           customerEmail,
@@ -320,9 +421,12 @@ export class AdminOrderService {
           carrierName: input.carrierName,
           shippedAt,
         });
+        console.log(`Successfully sent shipping notification for order ${orderId}`);
+      } else {
+        console.warn(`No customer email found for order ${orderId} - cannot send shipping notification`);
       }
     } catch (error) {
-      console.error('Failed to send shipping notification:', error);
+      console.error(`Failed to send shipping notification for order ${orderId}:`, error);
       // Don't fail the operation if email fails
     }
 
@@ -398,10 +502,14 @@ export class AdminOrderService {
     try {
       const customerEmail = order.guestEmail || order.users?.email;
       if (customerEmail) {
+        console.log(`Sending delivery notification to ${customerEmail} for order ${orderId}`);
         await this.notificationService.sendDeliveryNotification(orderId, customerEmail);
+        console.log(`Successfully sent delivery notification for order ${orderId}`);
+      } else {
+        console.warn(`No customer email found for order ${orderId} - cannot send delivery notification`);
       }
     } catch (error) {
-      console.error('Failed to send delivery notification:', error);
+      console.error(`Failed to send delivery notification for order ${orderId}:`, error);
     }
 
     return result;
