@@ -371,12 +371,14 @@ export class CartService {
     userId,
     sessionId,
     blendName,
+    size = 2,
   }: {
     baseTeaId: string;
     addIns: Array<{ ingredientId: string; quantity: number }>;
     userId?: string;
     sessionId?: string;
     blendName?: string;
+    size?: number;
   }) {
     // INGREDIENT AVAILABILITY VALIDATION
     // Check that all required ingredients have sufficient inventory
@@ -480,6 +482,7 @@ export class CartService {
         name: blendName || null,
         baseTeaId,
         addIns: addIns as Prisma.InputJsonValue,
+        size,
         productId: product.id,
       },
     });

@@ -101,9 +101,10 @@ export default function BlendReviewPage() {
         baseTeaId: blendState.baseTeaId,
         addIns: blendState.addIns,
         blendName: blendName.trim(),
+        size: blendState.size,
       });
       // baseTeaId is guaranteed to be defined after the guard above
-      await addBlendToCart(blendState.baseTeaId, blendState.addIns, blendName.trim());
+      await addBlendToCart(blendState.baseTeaId, blendState.addIns, blendName.trim(), blendState.size);
       // Clear the pending blend from storage
       sessionStorage.removeItem('pendingBlend');
       // Navigate to cart

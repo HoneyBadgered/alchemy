@@ -41,7 +41,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
     baseTeaId: undefined,
     addIns: [],
     blendName: '',
-    size: 2, // Default 2 oz
+    size: DEFAULT_BLEND_SIZE,
   });
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -189,8 +189,7 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
     }));
     
     // Random size
-    const sizes: BlendSize[] = [1, 2, 4];
-    const randomSize = sizes[getRandomInt(sizes.length)];
+    const randomSize = BLEND_SIZES[getRandomInt(BLEND_SIZES.length)];
     
     setBlendState({
       baseTeaId: randomBase.id,

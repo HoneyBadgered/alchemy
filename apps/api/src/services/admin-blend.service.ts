@@ -16,6 +16,7 @@ interface CreateBlendProductInput {
   description?: string;
   baseTeaId: string;
   addIns: BlendIngredient[];
+  size?: number;
   price: number;
   imageUrl?: string;
   images?: string[];
@@ -97,6 +98,7 @@ export class AdminBlendService {
           name: data.name,
           baseTeaId: data.baseTeaId,
           addIns: data.addIns,
+          size: data.size || 2,
           productId: product.id,
         },
       });

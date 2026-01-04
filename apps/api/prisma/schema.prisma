@@ -721,6 +721,7 @@ model blends {
   name        String?
   baseTeaId   String
   addIns      Json
+  size        Int       @default(2) // Size in ounces: 1, 2, or 4
   productId   String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

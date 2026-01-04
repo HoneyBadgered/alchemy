@@ -55,6 +55,7 @@ const addBlendToCartSchema = z.object({
     quantity: blendQuantitySchema,
   })).min(0, 'At least base tea is required'),
   name: z.string().optional(),
+  size: z.number().int().min(1).max(4).default(2), // Size in ounces: 1, 2, or 4
 });
 
 export async function cartRoutes(fastify: FastifyInstance) {
@@ -297,6 +298,7 @@ export async function cartRoutes(fastify: FastifyInstance) {
         baseTeaId: data.baseTeaId,
         addIns: data.addIns,
         blendName: data.name,
+        size: data.size,
         ...auth,
       });
       return reply.send(result);

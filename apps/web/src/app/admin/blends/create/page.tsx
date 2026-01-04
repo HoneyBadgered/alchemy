@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import ImageUpload from '@/components/admin/ImageUpload';
+import { BLEND_SIZES, DEFAULT_BLEND_SIZE, getBlendSizeLabel } from '@alchemy/core';
 
 interface Ingredient {
   id: string;
@@ -39,6 +40,7 @@ export default function CreateBlendProductPage() {
   const [addIns, setAddIns] = useState<Ingredient[]>([]);
   const [selectedBaseTea, setSelectedBaseTea] = useState('');
   const [selectedAddIns, setSelectedAddIns] = useState<BlendIngredient[]>([]);
+  const [blendSize, setBlendSize] = useState<number>(DEFAULT_BLEND_SIZE);
   const [costBreakdown, setCostBreakdown] = useState<CostBreakdown | null>(null);
   
   // Product details
@@ -173,6 +175,7 @@ export default function CreateBlendProductPage() {
           description,
           baseTeaId: selectedBaseTea,
           addIns: selectedAddIns,
+          size: blendSize,
           price: parseFloat(price),
           stock: parseInt(stock),
           category,
@@ -302,6 +305,34 @@ export default function CreateBlendProductPage() {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Blend Size Selection */}
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Blend Size *
+            </label>
+            <div className="flex gap-2">
+              {BLEND_SIZES.map((size) => (
+                <button
+                  key={size}
+                  type="button"
+                  onClick={() => setBlendSize(size)}
+                  className={`
+                    px-4 py-2 rounded-lg font-medium transition-all
+                    ${blendSize === size
+                      ? 'bg-purple-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }
+                  `}
+                >
+                  {getBlendSizeLabel(size)}
+                </button>
+              ))}
+            </div>
+            <p className="text-sm text-gray-500 mt-1">
+              Select the size for this blend product
+            </p>
           </div>
         </div>
 

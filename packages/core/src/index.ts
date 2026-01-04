@@ -56,3 +56,13 @@ export {
   getIngredientBaseAmount,
   getIngredientIncrementAmount,
 } from './ingredients';
+
+// Export blend configuration
+export {
+  BLEND_SIZES,
+  DEFAULT_BLEND_SIZE,
+  isValidBlendSize,
+  getBlendSizeLabel,
+  getBlendSizeOptions,
+  type BlendSize,
+} from './blend-config';

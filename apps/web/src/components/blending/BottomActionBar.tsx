@@ -7,7 +7,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import type { BlendSize, BlendStatus } from './types';
+import { BLEND_SIZES, type BlendSize } from '@alchemy/core';
+import type { BlendStatus } from './types';
 
 interface BottomActionBarProps {
   /** Selected size */
@@ -107,7 +108,7 @@ export const BottomActionBar: React.FC<BottomActionBarProps> = ({
             <div className="flex items-center gap-2">
               <span className="text-lg">📦</span>
               <div className="flex gap-1">
-                {[1, 2, 4].map((s) => (
+                {BLEND_SIZES.map((s) => (
                   <button
                     key={s}
                     onClick={() => onSizeChange(s as BlendSize)}

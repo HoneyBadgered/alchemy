@@ -8,6 +8,7 @@ interface CustomBlend {
   id: string;
   name: string | null;
   baseTeaId: string;
+  size: number;
   addIns: Array<{
     ingredientId: string;
     quantity: number;
@@ -353,8 +354,18 @@ export default function OrderDetailsPage() {
                       🧪 Custom Blend: {item.products.blends[0].name || 'Unnamed Blend'}
                     </h4>
                     <p className="text-sm text-purple-800 mb-2">
+                      <span className="font-medium">Size:</span> {item.products.blends[0].size || 2}oz
+                    </p>
+                    <p className="text-sm text-purple-800 mb-2">
                       <span className="font-medium">Base Tea:</span>{' '}
                       {item.products.blends[0].baseTea?.name || item.products.blends[0].baseTeaId}
+                    </p>
+                    <p className="text-sm text-purple-800 mb-2">
+                      <span className="font-medium">Total Weight:</span>{' '}
+                      {(item.products.blends[0].enrichedAddIns || item.products.blends[0].addIns).reduce(
+                        (sum: number, ing: any) => sum + Number(ing.quantity),
+                        0
+                      )}g of added ingredients
                     </p>
                     <div className="mt-2">
                       <p className="text-sm font-medium text-purple-900 mb-1">

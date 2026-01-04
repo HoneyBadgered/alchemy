@@ -190,14 +190,15 @@ export const cartApi = {
     addIns: Array<{ ingredientId: string; quantity: number }>,
     token?: string,
     sessionId?: string,
-    name?: string
+    name?: string,
+    size?: number
   ): Promise<CartResponse> {
     const customHeaders: Record<string, string> = {};
     if (sessionId) {
       customHeaders['x-session-id'] = sessionId;
     }
 
-    const requestBody = { baseTeaId, addIns, name };
+    const requestBody = { baseTeaId, addIns, name, size };
     console.log('Sending blend to cart:', requestBody);
 
     return apiClient.post<CartResponse>('/cart/blend', requestBody, token, customHeaders);

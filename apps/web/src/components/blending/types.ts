@@ -2,12 +2,7 @@
  * Types for the blending page components
  */
 
-import type { Ingredient } from '@alchemy/core';
-
-/**
- * Size options for blend (in ounces)
- */
-export type BlendSize = 1 | 2 | 4;
+import type { Ingredient, BlendSize } from '@alchemy/core';
 
 /**
  * Tier of blend based on price
@@ -39,6 +34,9 @@ export interface ExtendedBlendState {
   blendName: string;
   size: BlendSize;
 }
+
+// Re-export BlendSize for convenience
+export type { BlendSize };
 
 /**
  * Add-in category type for the right column tabs
