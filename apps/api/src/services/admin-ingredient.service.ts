@@ -448,7 +448,7 @@ export class AdminIngredientService {
     const existingCategories = categories.map((c) => c.category).filter(Boolean);
     
     // Include default categories even if no ingredients exist for them
-    const defaultCategories = ['base', 'floral', 'fruit', 'herbal', 'herb', 'spice', 'special', 'tea', 'sweetener'];
+    const defaultCategories = ['base', 'flowers', 'herbs', 'fruit', 'spice', 'sweet', 'essence', 'specialty'];
     
     return [...new Set([...existingCategories, ...defaultCategories])].sort();
   }

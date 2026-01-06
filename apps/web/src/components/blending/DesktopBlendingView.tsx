@@ -12,7 +12,7 @@ import type { ExtendedBlendState, FlavorProfile, BlendSize } from './types';
 import type { BlendingIngredient } from './mockData';
 import { CenterScene } from './CenterScene';
 import { CollapsibleBaseColumn } from './CollapsibleBaseColumn';
-import { CollapsibleMagicColumn } from './CollapsibleMagicColumn';
+import { CategoryBottles } from './CategoryBottles';
 
 interface DesktopBlendingViewProps {
   blendState: ExtendedBlendState;
@@ -50,21 +50,19 @@ export const DesktopBlendingView: React.FC<DesktopBlendingViewProps> = ({
   onContinue,
 }) => {
   return (
-    <div className="hidden lg:grid lg:grid-cols-12 gap-6">
-      {/* Left Column: Base Selection (~20-25%) - Collapsible */}
-      <div className="lg:col-span-3">
-        <div className="sticky top-24 z-[55]">
-          <CollapsibleBaseColumn
-            bases={bases}
-            selectedBaseId={blendState.baseTeaId}
-            onSelectBase={onSelectBase}
-            onOpenChange={onBasePanelOpenChange}
-          />
-        </div>
+    <div className="hidden lg:block">
+      {/* Left Column: Base Selection - Absolute positioned */}
+      <div className="fixed left-8 top-24 z-[55] w-80">
+        <CollapsibleBaseColumn
+          bases={bases}
+          selectedBaseId={blendState.baseTeaId}
+          onSelectBase={onSelectBase}
+          onOpenChange={onBasePanelOpenChange}
+        />
       </div>
 
-      {/* Center Column: Table Scene (~50-60%) */}
-      <div className="lg:col-span-6">
+      {/* Center: Table Scene with Category Bottles */}
+      <div className="relative z-40">
         <CenterScene
           blendState={blendState}
           onSizeChange={onSizeChange}
@@ -78,17 +76,15 @@ export const DesktopBlendingView: React.FC<DesktopBlendingViewProps> = ({
         />
       </div>
 
-      {/* Right Column: Add-ins (~20-25%) - Collapsible */}
-      <div className="lg:col-span-3">
-        <div className="sticky top-24 z-[55]">
-          <CollapsibleMagicColumn
-            selectedAddIns={blendState.addIns}
-            onToggleAddIn={onToggleAddIn}
-            onQuantityChange={onQuantityChange}
-            blendSize={blendState.size}
-            addInsData={addIns}
-          />
-        </div>
+      {/* Category Bottles - Positioned on the table surface */}
+      <div className="fixed bottom-1/4 left-1/2 -translate-x-1/2 z-[60] w-[700px]">
+        <CategoryBottles
+          selectedAddIns={blendState.addIns}
+          onToggleAddIn={onToggleAddIn}
+          onQuantityChange={onQuantityChange}
+          blendSize={blendState.size}
+          addInsData={addIns}
+        />
       </div>
     </div>
   );

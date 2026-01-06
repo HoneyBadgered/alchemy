@@ -50,12 +50,18 @@ const LABEL_SETS: Record<string, SliderLabelSet> = {
 
 // Category mapping to label sets
 const CATEGORY_TO_LABEL_SET: Record<string, string> = {
+  flowers: 'botanical',
+  herbs: 'botanical',
+  fruit: 'fruit',
+  spice: 'spice',
+  sweet: 'default',
+  essence: 'essence',
+  specialty: 'essence',
+  // Legacy mappings for backwards compatibility
   floral: 'botanical',
   herb: 'botanical',
   herbal: 'botanical',
-  spice: 'spice',
-  fruit: 'fruit',
-  special: 'essence', // For extracts/essences
+  special: 'essence',
 };
 
 interface IngredientSliderProps {

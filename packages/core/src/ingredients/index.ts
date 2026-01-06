@@ -66,11 +66,11 @@ export const INGREDIENTS: Ingredient[] = [
     
   },
 
-  // Floral Add-ins
+  // Flower Add-ins
   {
     id: 'lavender',
     name: 'Lavender',
-    category: 'floral',
+    category: 'flowers',
     description: 'Calming floral notes',
     tags: ['relaxing', 'aromatic'],
     emoji: '🌸',
@@ -81,7 +81,7 @@ export const INGREDIENTS: Ingredient[] = [
   {
     id: 'chamomile',
     name: 'Chamomile',
-    category: 'floral',
+    category: 'flowers',
     description: 'Soothing and gentle',
     tags: ['calming', 'bedtime'],
     emoji: '🌼',
@@ -92,7 +92,7 @@ export const INGREDIENTS: Ingredient[] = [
   {
     id: 'rose',
     name: 'Rose Petals',
-    category: 'floral',
+    category: 'flowers',
     description: 'Elegant and fragrant',
     tags: ['romantic', 'luxurious'],
     emoji: '🌹',
@@ -103,7 +103,7 @@ export const INGREDIENTS: Ingredient[] = [
   {
     id: 'hibiscus',
     name: 'Hibiscus',
-    category: 'floral',
+    category: 'flowers',
     description: 'Tart and vibrant',
     tags: ['tangy', 'colorful'],
     emoji: '🌺',
@@ -158,11 +158,11 @@ export const INGREDIENTS: Ingredient[] = [
     incrementAmount: 2,
   },
 
-  // Herbal Add-ins
+  // Herb Add-ins
   {
     id: 'mint',
     name: 'Peppermint',
-    category: 'herbal',
+    category: 'herbs',
     description: 'Cool and invigorating',
     tags: ['refreshing', 'digestive'],
     emoji: '🌿',
@@ -173,7 +173,7 @@ export const INGREDIENTS: Ingredient[] = [
   {
     id: 'ginger',
     name: 'Ginger Root',
-    category: 'herbal',
+    category: 'herbs',
     description: 'Warming and spicy',
     tags: ['warming', 'energizing'],
     emoji: '🫚',
@@ -184,7 +184,7 @@ export const INGREDIENTS: Ingredient[] = [
   {
     id: 'lemongrass',
     name: 'Lemongrass',
-    category: 'herbal',
+    category: 'herbs',
     description: 'Fresh and citrusy',
     tags: ['cleansing', 'aromatic'],
     emoji: '🌾',
@@ -195,7 +195,7 @@ export const INGREDIENTS: Ingredient[] = [
   {
     id: 'echinacea',
     name: 'Echinacea',
-    category: 'herbal',
+    category: 'herbs',
     description: 'Immune support',
     tags: ['wellness', 'earthy'],
     emoji: '🌻',
@@ -228,17 +228,6 @@ export const INGREDIENTS: Ingredient[] = [
     incrementAmount: 0.5,
   },
   {
-    id: 'vanilla',
-    name: 'Vanilla Bean',
-    category: 'spice',
-    description: 'Sweet and creamy',
-    tags: ['dessert', 'smooth'],
-    emoji: '🍦',
-    
-    baseAmount: 1,
-    incrementAmount: 0.5,
-  },
-  {
     id: 'clove',
     name: 'Clove',
     category: 'spice',
@@ -250,11 +239,22 @@ export const INGREDIENTS: Ingredient[] = [
     incrementAmount: 0.25,
   },
 
-  // Special Add-ins
+  // Sweet & Aromatic Add-ins
+  {
+    id: 'vanilla',
+    name: 'Vanilla Bean',
+    category: 'sweet',
+    description: 'Sweet and creamy',
+    tags: ['dessert', 'smooth'],
+    emoji: '🍦',
+    
+    baseAmount: 1,
+    incrementAmount: 0.5,
+  },
   {
     id: 'honey-dust',
     name: 'Honey Dust',
-    category: 'special',
+    category: 'sweet',
     description: 'Natural sweetener',
     tags: ['sweet', 'soothing'],
     badges: ['Rare'],
@@ -263,10 +263,12 @@ export const INGREDIENTS: Ingredient[] = [
     baseAmount: 2,
     incrementAmount: 1,
   },
+
+  // Specialty Add-ins
   {
     id: 'butterfly-pea',
     name: 'Butterfly Pea Flower',
-    category: 'special',
+    category: 'specialty',
     description: 'Color-changing magic',
     tags: ['magical', 'visual'],
     badges: ['Epic'],
@@ -278,7 +280,7 @@ export const INGREDIENTS: Ingredient[] = [
   {
     id: 'matcha',
     name: 'Matcha Powder',
-    category: 'special',
+    category: 'specialty',
     description: 'Concentrated energy',
     tags: ['energizing', 'premium'],
     badges: ['Premium'],
@@ -290,7 +292,7 @@ export const INGREDIENTS: Ingredient[] = [
   {
     id: 'edible-flowers',
     name: 'Edible Flowers',
-    category: 'special',
+    category: 'specialty',
     description: 'Beautiful and delicate',
     tags: ['aesthetic', 'elegant'],
     badges: ['Rare'],
@@ -344,52 +346,46 @@ export const CATEGORY_INFO: Record<IngredientCategory, {
     emoji: '🍵',
     color: 'emerald',
   },
-  floral: {
-    title: 'Floral',
-    description: 'Delicate petals and blooms',
+  flowers: {
+    title: 'Flowers',
+    description: 'Petals, blossoms, gentle aromatics',
     emoji: '🌸',
     color: 'pink',
   },
+  herbs: {
+    title: 'Herbs',
+    description: 'Leafy, green, restorative ingredients',
+    emoji: '🌿',
+    color: 'green',
+  },
   fruit: {
-    title: 'Fruit',
-    description: 'Sweet and tangy additions',
+    title: 'Fruits & Citrus',
+    description: 'Dried fruit and peel for brightness',
     emoji: '🍊',
     color: 'orange',
   },
-  herbal: {
-    title: 'Herbal',
-    description: 'Natural herbs and roots',
-    emoji: '🌿',
-    color: 'green',
-  },
-  herb: {
-    title: 'Herb',
-    description: 'Culinary and medicinal herbs',
-    emoji: '🌿',
-    color: 'green',
-  },
   spice: {
-    title: 'Spice',
-    description: 'Warm and aromatic spices',
-    emoji: '🪵',
+    title: 'Spices',
+    description: 'Warm, bold, or smoky accents',
+    emoji: '🔥',
     color: 'amber',
   },
-  special: {
-    title: 'Special',
-    description: 'Rare and magical ingredients',
-    emoji: '✨',
-    color: 'purple',
-  },
-  tea: {
-    title: 'Tea',
-    description: 'Traditional tea varieties',
-    emoji: '🍵',
-    color: 'emerald',
-  },
-  sweetener: {
-    title: 'Sweetener',
-    description: 'Natural and artificial sweeteners',
+  sweet: {
+    title: 'Sweet & Aromatic',
+    description: 'Rounding and smoothing elements',
     emoji: '🍯',
     color: 'yellow',
+  },
+  essence: {
+    title: 'Essences',
+    description: 'Concentrated flavor adjustments',
+    emoji: '💧',
+    color: 'blue',
+  },
+  specialty: {
+    title: 'Specialty',
+    description: 'Seasonal, rare, or functional ingredients',
+    emoji: '⭐',
+    color: 'purple',
   },
 };

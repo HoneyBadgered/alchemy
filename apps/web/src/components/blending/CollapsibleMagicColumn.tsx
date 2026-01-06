@@ -4,17 +4,17 @@
  * Collapsible wrapper for the "Add Your Magic" ingredient selection panel
  * Hidden by default, expands when trigger is clicked
  * Remains open until user explicitly closes it
- * Contains independent collapsible sections for Add-ins, Botanicals, and Premium
+ * Contains 7 ingredient category buttons with accordion-style expansion
  */
 
 'use client';
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { BRANDING } from '@/config/branding';
-import type { AddInCategoryTab } from './types';
+import type { IngredientCategory } from '@alchemy/core';
 import type { BlendingIngredient } from './mockData';
 import { useDeviceType } from '@/hooks/useDeviceType';
 import { IngredientDetailsSheet } from './IngredientDetailsSheet';
@@ -36,6 +36,67 @@ interface CollapsibleMagicColumnProps {
     botanicals: BlendingIngredient[];
     premium: BlendingIngredient[];
   };
+}
+
+// Map legacy data structure to new category system
+function getCategoryId(ingredient: BlendingIngredient): IngredientCategory {
+  const cat = ingredient.category?.toLowerCase();
+  const name = ingredient.name?.toLowerCase() || '';
+  
+  // Direct mappings for new categories
+  if (cat === 'flowers') return 'flowers';
+  if (cat === 'herbs') return 'herbs';
+  if (cat === 'fruit') return 'fruit';
+  if (cat === 'spice') return 'spice';
+  if (cat === 'sweet') return 'sweet';
+  if (cat === 'essence') return 'essence';
+  if (cat === 'specialty') return 'specialty';
+  
+  // Legacy mappings
+  if (cat === 'floral' || cat === 'botanical') return 'flowers';
+  if (cat === 'herbal' || cat === 'herb') return 'herbs';
+  
+  // Premium category - needs smart classification
+  if (cat === 'premium') {
+    // Flowers
+    if (name.includes('jasmine') || name.includes('rose') || name.includes('lavender') || 
+        name.includes('chamomile') || name.includes('hibiscus') || name.includes('flower')) {
+      return 'flowers';
+    }
+    // Spices
+    if (name.includes('saffron') || name.includes('cardamom') || name.includes('vanilla bean')) {
+      return 'spice';
+    }
+    // Essences/Extracts
+    if (name.includes('extract') || name.includes('essence') || name.includes('oil') || name.includes('bergamot')) {
+      return 'essence';
+    }
+    // Default premium items to specialty
+    return 'specialty';
+  }
+  
+  // Special category - needs smart classification
+  if (cat === 'special') {
+    // Sweeteners
+    if (name.includes('honey') || name.includes('vanilla') || name.includes('licorice') || 
+        name.includes('stevia') || name.includes('agave') || name.includes('sugar')) {
+      return 'sweet';
+    }
+    // Essences/Extracts
+    if (name.includes('extract') || name.includes('essence') || name.includes('oil')) {
+      return 'essence';
+    }
+    return 'specialty';
+  }
+  
+  // Ingredient-specific overrides for common misclassifications
+  if (name.includes('ginger') || name.includes('mint') || name.includes('lemongrass') || 
+      name.includes('tulsi') || name.includes('basil') || name.includes('thyme')) {
+    return 'herbs';
+  }
+  
+  // Default fallback
+  return 'specialty';
 }
 
 interface IngredientItemProps {
@@ -187,111 +248,19 @@ const IngredientItem: React.FC<IngredientItemProps> = ({
   );
 };
 
-interface CategorySectionProps {
-  id: AddInCategoryTab;
+const INGREDIENT_CATEGORIES: Array<{
+  id: IngredientCategory;
   label: string;
+  description: string;
   emoji: string;
-  isExpanded: boolean;
-  onToggle: () => void;
-  ingredients: BlendingIngredient[];
-  selectedAddIns: Array<{ ingredientId: string; quantity: number }>;
-  onToggleAddIn: (ingredientId: string) => void;
-  onQuantityChange: (ingredientId: string, quantity: number) => void;
-  useMobileBehavior: boolean;
-  onOpenDetails: (ingredient: BlendingIngredient) => void;
-}
-
-const CategorySection: React.FC<CategorySectionProps> = ({
-  id,
-  label,
-  emoji,
-  isExpanded,
-  onToggle,
-  ingredients,
-  selectedAddIns,
-  onToggleAddIn,
-  onQuantityChange,
-  useMobileBehavior,
-  onOpenDetails,
-}) => {
-  const getSelectedQuantity = (ingredientId: string): number => {
-    const addIn = selectedAddIns.find(a => a.ingredientId === ingredientId);
-    return addIn?.quantity || 0.25;
-  };
-
-  const selectedCount = ingredients.filter(ing => 
-    selectedAddIns.some(a => a.ingredientId === ing.id)
-  ).length;
-
-  return (
-    <div 
-      className="border border-white/30 rounded-xl overflow-hidden bg-white/10"
-      data-testid={`category-section-${id}`}
-    >
-      {/* Category Header - Always visible, clickable to expand/collapse */}
-      <button
-        onClick={onToggle}
-        className="w-full p-3 flex items-center justify-between hover:bg-white/10 transition-colors"
-        aria-expanded={isExpanded}
-      >
-        <div className="flex items-center gap-2">
-          <span className="text-xl">{emoji}</span>
-          <span className="font-semibold text-white">{label}</span>
-          {selectedCount > 0 && (
-            <span className="bg-purple-500 text-white text-xs px-2 py-0.5 rounded-full">
-              {selectedCount}
-            </span>
-          )}
-        </div>
-        <motion.div
-          animate={{ rotate: isExpanded ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <svg className="w-5 h-5 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </motion.div>
-      </button>
-
-      {/* Expandable ingredient list */}
-      <AnimatePresence initial={false}>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="overflow-hidden"
-          >
-            <div className="p-3 pt-0 space-y-2 max-h-60 overflow-y-auto">
-              {ingredients.map((ingredient) => {
-                const isSelected = selectedAddIns.some(a => a.ingredientId === ingredient.id);
-                return (
-                  <IngredientItem
-                    key={ingredient.id}
-                    ingredient={ingredient}
-                    quantity={getSelectedQuantity(ingredient.id)}
-                    isSelected={isSelected}
-                    blendSize={blendSize}
-                    onToggle={() => onToggleAddIn(ingredient.id)}
-                    onQuantityChange={(q) => onQuantityChange(ingredient.id, q)}
-                    useMobileBehavior={useMobileBehavior}
-                    onOpenDetails={() => onOpenDetails(ingredient)}
-                  />
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
-const CATEGORIES: Array<{ id: AddInCategoryTab; label: string; emoji: string }> = [
-  { id: 'addIns', label: 'Add-ins', emoji: '🌿' },
-  { id: 'botanicals', label: 'Botanicals', emoji: '🌸' },
-  { id: 'premium', label: 'Premium', emoji: '✨' },
+}> = [
+  { id: 'flowers', label: 'Flowers', description: 'Petals, blossoms, gentle aromatics', emoji: '🌸' },
+  { id: 'herbs', label: 'Herbs', description: 'Leafy, green, restorative', emoji: '🌿' },
+  { id: 'fruit', label: 'Fruits & Citrus', description: 'Dried fruit and peel', emoji: '🍊' },
+  { id: 'spice', label: 'Spices', description: 'Warm, bold, smoky', emoji: '🔥' },
+  { id: 'sweet', label: 'Sweet & Aromatic', description: 'Rounding elements', emoji: '🍯' },
+  { id: 'essence', label: 'Essences', description: 'Concentrated flavors', emoji: '💧' },
+  { id: 'specialty', label: 'Specialty', description: 'Seasonal, rare, functional', emoji: '⭐' },
 ];
 
 export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
@@ -305,22 +274,36 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
   const [detailsIngredient, setDetailsIngredient] = useState<BlendingIngredient | null>(null);
   const { useMobileBehavior } = useDeviceType();
   
-  // Independent expanded state for each category section
-  const [expandedCategories, setExpandedCategories] = useState<Record<AddInCategoryTab, boolean>>({
-    addIns: false,
-    botanicals: false,
-    premium: false,
-  });
+  // Single expanded category (accordion behavior)
+  const [expandedCategory, setExpandedCategory] = useState<IngredientCategory | null>(null);
+
+  // Group all ingredients by category
+  const ingredientsByCategory = useMemo(() => {
+    const allIngredients = [
+      ...addInsData.addIns,
+      ...addInsData.botanicals,
+      ...addInsData.premium,
+    ];
+    
+    const grouped: Partial<Record<IngredientCategory, BlendingIngredient[]>> = {};
+    
+    allIngredients.forEach(ingredient => {
+      const categoryId = getCategoryId(ingredient);
+      if (!grouped[categoryId]) {
+        grouped[categoryId] = [];
+      }
+      grouped[categoryId]!.push(ingredient);
+    });
+    
+    return grouped;
+  }, [addInsData]);
 
   const handleTogglePanel = useCallback(() => {
     setIsPanelOpen(prev => !prev);
   }, []);
 
-  const handleToggleCategory = useCallback((categoryId: AddInCategoryTab) => {
-    setExpandedCategories(prev => ({
-      ...prev,
-      [categoryId]: !prev[categoryId],
-    }));
+  const handleToggleCategory = useCallback((categoryId: IngredientCategory) => {
+    setExpandedCategory(prev => prev === categoryId ? null : categoryId);
   }, []);
 
   const handleOpenDetails = useCallback((ingredient: BlendingIngredient) => {
@@ -392,7 +375,7 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
                     Add your magic
                   </h2>
                   <p className="text-xs text-white/70 mt-1">
-                    Select ingredients to customize your blend
+                    Choose a category to explore ingredients
                   </p>
                 </div>
                 <button
@@ -406,30 +389,82 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
                 </button>
               </div>
 
-              {/* All Ingredients in Grid - Wrapper allows tooltips to escape */}
-              <div className="overflow-visible">
-                <div className="grid grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto pr-1 pt-2">
-                  {['addIns', 'botanicals', 'premium'].flatMap((categoryId) => {
-                  const categoryKey = categoryId as keyof typeof addInsData;
-                  return addInsData[categoryKey].map((ingredient) => {
-                    const isSelected = selectedAddIns.some(a => a.ingredientId === ingredient.id);
-                    const quantity = selectedAddIns.find(a => a.ingredientId === ingredient.id)?.quantity || ingredient.baseAmount || 0.25;
+              {/* Category Buttons (2x4 grid - will be 2x3 + 1) */}
+              <div className="mb-4">
+                <div className="grid grid-cols-2 gap-3">
+                  {INGREDIENT_CATEGORIES.map((category) => {
+                    const ingredientsInCategory = ingredientsByCategory[category.id] || [];
+                    const isExpanded = expandedCategory === category.id;
+                    const hasIngredients = ingredientsInCategory.length > 0;
+                    
                     return (
-                      <IngredientItem
-                        key={`${categoryId}-${ingredient.id}`}
-                        ingredient={ingredient}
-                        quantity={quantity}
-                        isSelected={isSelected}
-                        onToggle={() => onToggleAddIn(ingredient.id)}
-                        onQuantityChange={(q) => onQuantityChange(ingredient.id, q)}
-                        useMobileBehavior={useMobileBehavior}
-                        onOpenDetails={() => handleOpenDetails(ingredient)}
-                      />
+                      <button
+                        key={category.id}
+                        onClick={() => hasIngredients && handleToggleCategory(category.id)}
+                        disabled={!hasIngredients}
+                        className={`
+                          relative p-4 rounded-xl transition-all
+                          ${isExpanded 
+                            ? 'bg-white/30 ring-2 ring-white/50 shadow-lg' 
+                            : hasIngredients 
+                              ? 'bg-white/10 hover:bg-white/20' 
+                              : 'bg-white/5 opacity-50 cursor-not-allowed'
+                          }
+                        `}
+                      >
+                        <div className="text-3xl mb-1">{category.emoji}</div>
+                        <div className="text-sm font-semibold text-white">{category.label}</div>
+                        <div className="text-xs text-white/60 mt-0.5">{category.description}</div>
+                        {hasIngredients && (
+                          <div className="absolute top-2 right-2 text-xs bg-white/20 px-1.5 py-0.5 rounded-full text-white">
+                            {ingredientsInCategory.length}
+                          </div>
+                        )}
+                      </button>
                     );
-                  });
                   })}
                 </div>
               </div>
+
+              {/* Expanded Category Ingredient List */}
+              <AnimatePresence mode="wait">
+                {expandedCategory && ingredientsByCategory[expandedCategory] && (
+                  <motion.div
+                    key={expandedCategory}
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="bg-white/10 rounded-xl p-4">
+                      <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                        <span>{INGREDIENT_CATEGORIES.find(c => c.id === expandedCategory)?.emoji}</span>
+                        {INGREDIENT_CATEGORIES.find(c => c.id === expandedCategory)?.label}
+                      </h3>
+                      <div className="grid grid-cols-2 gap-3 max-h-[40vh] overflow-y-auto pr-1">
+                        {ingredientsByCategory[expandedCategory]!.map((ingredient) => {
+                          const isSelected = selectedAddIns.some(a => a.ingredientId === ingredient.id);
+                          const quantity = selectedAddIns.find(a => a.ingredientId === ingredient.id)?.quantity || ingredient.baseAmount || 0.25;
+                          return (
+                            <IngredientItem
+                              key={ingredient.id}
+                              ingredient={ingredient}
+                              quantity={quantity}
+                              isSelected={isSelected}
+                              blendSize={blendSize}
+                              onToggle={() => onToggleAddIn(ingredient.id)}
+                              onQuantityChange={(q) => onQuantityChange(ingredient.id, q)}
+                              useMobileBehavior={useMobileBehavior}
+                              onOpenDetails={() => handleOpenDetails(ingredient)}
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         )}

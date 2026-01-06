@@ -94,9 +94,10 @@ export interface PlayerCosmetics {
 }
 
 /**
- * Ingredient category types (legacy + new)
+ * Ingredient category types
+ * Standardized to 7 display categories + base
  */
-export type IngredientCategory = 'base' | 'floral' | 'fruit' | 'herbal' | 'spice' | 'special' | 'herb' | 'tea' | 'sweetener';
+export type IngredientCategory = 'base' | 'flowers' | 'herbs' | 'fruit' | 'spice' | 'sweet' | 'essence' | 'specialty';
 
 /**
  * Ingredient role types

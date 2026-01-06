@@ -407,7 +407,7 @@ async function main() {
     {
       name: 'Rooibos',
       role: 'base',
-      category: 'herbal',
+      category: 'herbs',
       descriptionShort: 'Naturally sweet, caffeine-free red bush tea',
       descriptionLong: 'South African red bush tea with a naturally sweet, nutty flavor. Completely caffeine-free and rich in antioxidants. Perfect for evening blends.',
       flavorNotes: ['sweet', 'nutty', 'vanilla', 'smooth'],
@@ -425,11 +425,11 @@ async function main() {
       tags: ['rooibos', 'caffeine-free', 'herbal', 'base'],
     },
 
-    // Add-ins - Botanicals
+    // Add-ins - Flowers
     {
       name: 'Lavender Buds',
       role: 'addIn',
-      category: 'botanical',
+      category: 'flowers',
       descriptionShort: 'Calming floral notes with aromatic sweetness',
       descriptionLong: 'Premium dried lavender buds that add a soothing floral aroma and gentle sweetness. Perfect for relaxation blends.',
       flavorNotes: ['floral', 'sweet', 'calming', 'aromatic'],
@@ -446,7 +446,7 @@ async function main() {
     {
       name: 'Rose Petals',
       role: 'addIn',
-      category: 'botanical',
+      category: 'flowers',
       descriptionShort: 'Delicate rose fragrance with subtle sweetness',
       descriptionLong: 'Hand-picked rose petals that infuse blends with a romantic floral essence and visual beauty. Adds elegance to any tea.',
       flavorNotes: ['floral', 'sweet', 'delicate', 'romantic'],
@@ -463,7 +463,7 @@ async function main() {
     {
       name: 'Chamomile Flowers',
       role: 'addIn',
-      category: 'botanical',
+      category: 'flowers',
       descriptionShort: 'Soothing apple-like flavor for relaxation',
       descriptionLong: 'Whole chamomile flowers with a gentle apple-like sweetness. Known for calming properties and perfect for bedtime blends.',
       flavorNotes: ['apple', 'sweet', 'soothing', 'honey'],
@@ -480,7 +480,7 @@ async function main() {
     {
       name: 'Hibiscus Petals',
       role: 'addIn',
-      category: 'botanical',
+      category: 'flowers',
       descriptionShort: 'Tart, cranberry-like flavor with vibrant color',
       descriptionLong: 'Brilliant red hibiscus petals that add a tart, fruity flavor and stunning crimson color to any blend. Rich in vitamin C.',
       flavorNotes: ['tart', 'cranberry', 'fruity', 'tangy'],
