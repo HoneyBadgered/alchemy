@@ -7,7 +7,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Ingredient, getIngredientBaseAmount, getIngredientIncrementAmount } from '@alchemy/core';
+import { Ingredient } from '@alchemy/core';
 import { formatQuantity } from '../../lib/format';
 
 interface IngredientListItemProps {
@@ -27,12 +27,12 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({
   onQuantityChange,
   mode,
 }) => {
-  // Get ingredient-specific amounts with fallbacks
-  const baseAmount = getIngredientBaseAmount(ingredient);
-  const incrementAmount = getIngredientIncrementAmount(ingredient);
+  // Default quantity for add-ins (in grams)
+  const DEFAULT_QUANTITY = 5;
+  const INCREMENT = 1;
   
-  // Use provided quantity or fall back to the ingredient's base amount
-  const initialQuantity = quantity ?? baseAmount;
+  // Use provided quantity or fall back to default
+  const initialQuantity = quantity ?? DEFAULT_QUANTITY;
   const [localQuantity, setLocalQuantity] = useState(initialQuantity);
 
   // Sync local quantity when the prop changes
@@ -50,10 +50,9 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({
     }
   };
 
-  // Calculate slider constraints based on ingredient configuration
-  // Use the smaller of incrementAmount or baseAmount as minimum to allow selecting base amount
-  const minValue = Math.min(incrementAmount, baseAmount);
-  const maxValue = Math.max(baseAmount * 10, 50); // At least 10x base amount or 50g
+  // Calculate slider constraints
+  const minValue = INCREMENT;
+  const maxValue = 50; // Maximum 50g
 
   return (
     <div

@@ -162,8 +162,6 @@ model ingredients {
   emoji                                                                   String?
   tags                                                                    String[]              @default([])
   badges                                                                  String[]              @default([])
-  baseAmount                                                              Decimal?              @db.Decimal(10, 2)
-  incrementAmount                                                         Decimal?              @db.Decimal(10, 2)
   
   // Admin Tag Fields (JSON)
   adminTags                                                               Json?                 // Structured ingredient tags for admin

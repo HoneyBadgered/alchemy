@@ -14,7 +14,6 @@ import {
   INGREDIENT_FLAVOR_PRIMARY_OPTIONS,
   INGREDIENT_FLAVOR_SECONDARY_OPTIONS,
   INGREDIENT_FUNCTION_OPTIONS,
-  INGREDIENT_CAFFEINE_BEHAVIOR_OPTIONS,
   INGREDIENT_SAFETY_FLAG_OPTIONS,
   INGREDIENT_VISUAL_EFFECT_OPTIONS,
 } from '@alchemy/types';
@@ -84,19 +83,6 @@ export default function IngredientTagsSection({
         multiSelect={INGREDIENT_TAG_META.ingredientFunction.multiSelect}
         required={INGREDIENT_TAG_META.ingredientFunction.required}
         placeholder="Select ingredient function"
-        disabled={disabled}
-      />
-
-      {/* Caffeine Behavior */}
-      <TagDropdown
-        label={INGREDIENT_TAG_META.caffeineBehavior.label}
-        description={INGREDIENT_TAG_META.caffeineBehavior.description}
-        value={value.caffeineBehavior || ''}
-        options={INGREDIENT_CAFFEINE_BEHAVIOR_OPTIONS}
-        onChange={(v) => handleChange('caffeineBehavior', v)}
-        multiSelect={INGREDIENT_TAG_META.caffeineBehavior.multiSelect}
-        required={INGREDIENT_TAG_META.caffeineBehavior.required}
-        placeholder="Select caffeine behavior"
         disabled={disabled}
       />
 

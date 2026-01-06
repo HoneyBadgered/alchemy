@@ -66,8 +66,6 @@ const createIngredientSchema = z.object({
   emoji: z.string().optional(),
   tags: z.array(z.string()).optional().default([]),
   badges: z.array(z.string()).optional().default([]),
-  baseAmount: z.number().positive().optional(),
-  incrementAmount: z.number().positive().optional(),
 });
 
 const updateIngredientSchema = createIngredientSchema.partial();

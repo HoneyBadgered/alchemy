@@ -52,7 +52,7 @@ describe('useBlendState', () => {
     expect(result.current.blendState.baseTeaId).toBe('black-tea');
   });
 
-  it('should toggle add-in on with its configured base amount', () => {
+  it('should toggle add-in on with default quantity', () => {
     const { result } = renderHook(() => useBlendState());
 
     act(() => {
@@ -60,10 +60,10 @@ describe('useBlendState', () => {
     });
 
     expect(result.current.blendState.addIns).toHaveLength(1);
-    // Lavender has baseAmount of 2 defined in INGREDIENTS
+    // Default quantity is 0.25g when adding an ingredient
     expect(result.current.blendState.addIns[0]).toEqual({
       ingredientId: 'lavender',
-      quantity: 2,
+      quantity: 0.25,
     });
   });
 
@@ -138,20 +138,20 @@ describe('useBlendState', () => {
     expect(result.current.getAddInQuantity('lavender')).toBe(20);
   });
 
-  it('should return ingredient base amount for non-selected add-in', () => {
+  it('should return default quantity for non-selected add-in', () => {
     const { result } = renderHook(() => useBlendState());
 
-    // Lavender has baseAmount of 2 defined in INGREDIENTS
-    expect(result.current.getAddInQuantity('lavender')).toBe(2);
+    // Non-selected add-ins return default quantity of 0.25g
+    expect(result.current.getAddInQuantity('lavender')).toBe(0.25);
   });
 
-  it('should handle multiple add-ins with their respective base amounts', () => {
+  it('should handle multiple add-ins with default quantity', () => {
     const { result } = renderHook(() => useBlendState());
 
     act(() => {
-      result.current.toggleAddIn('lavender');    // baseAmount: 2
-      result.current.toggleAddIn('chamomile');   // baseAmount: 3
-      result.current.toggleAddIn('mint');        // baseAmount: 2
+      result.current.toggleAddIn('lavender');
+      result.current.toggleAddIn('chamomile');
+      result.current.toggleAddIn('mint');
     });
 
     expect(result.current.blendState.addIns).toHaveLength(3);
@@ -161,9 +161,9 @@ describe('useBlendState', () => {
       'mint',
     ]);
     
-    // Each add-in should have its configured base amount
-    expect(result.current.blendState.addIns[0].quantity).toBe(2); // lavender
-    expect(result.current.blendState.addIns[1].quantity).toBe(3); // chamomile
-    expect(result.current.blendState.addIns[2].quantity).toBe(2); // mint
+    // Each add-in should have the default quantity
+    expect(result.current.blendState.addIns[0].quantity).toBe(0.25); // lavender
+    expect(result.current.blendState.addIns[1].quantity).toBe(0.25); // chamomile
+    expect(result.current.blendState.addIns[2].quantity).toBe(0.25); // mint
   });
 });

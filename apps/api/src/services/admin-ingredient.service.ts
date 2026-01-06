@@ -95,6 +95,29 @@ function calculateInventoryStatus(amount: number, minimumLevel: number): string 
   return 'active';
 }
 
+/**
+ * Generate flavorNotes from adminTags
+ * Combines flavorProfilePrimary and flavorProfileSecondary into a single array
+ */
+function generateFlavorNotesFromTags(adminTags?: Record<string, any>): string[] {
+  if (!adminTags) return [];
+  
+  const flavorNotes: string[] = [];
+  
+  // Add primary flavor profiles (required)
+  if (Array.isArray(adminTags.flavorProfilePrimary)) {
+    flavorNotes.push(...adminTags.flavorProfilePrimary);
+  }
+  
+  // Add secondary flavor profiles (optional nuances)
+  if (Array.isArray(adminTags.flavorProfileSecondary)) {
+    flavorNotes.push(...adminTags.flavorProfileSecondary);
+  }
+  
+  // Remove duplicates and return
+  return [...new Set(flavorNotes)];
+}
+
 export class AdminIngredientService {
   /**
    * Get all ingredients with optional filtering, search, and pagination
@@ -266,6 +289,9 @@ export class AdminIngredientService {
     const calculatedStatus = data.status || calculateInventoryStatus(inventoryAmount, minimumStockLevel);
 
     const role = data.role || 'addIn';
+    
+    // Auto-generate flavorNotes from adminTags
+    const flavorNotes = generateFlavorNotesFromTags(data.adminTags);
 
     const ingredient = await prisma.ingredients.create({
       data: {
@@ -278,7 +304,7 @@ export class AdminIngredientService {
         image: data.image,
         latinName: data.latinName,
         
-        flavorNotes: data.flavorNotes || [],
+        flavorNotes,
         cutOrGrade: data.cutOrGrade,
         recommendedUsageMin: data.recommendedUsageMin,
         recommendedUsageMax: data.recommendedUsageMax,
@@ -353,6 +379,11 @@ export class AdminIngredientService {
     } else if (data.status) {
       calculatedStatus = data.status;
     }
+    
+    // Auto-generate flavorNotes from adminTags if adminTags are being updated
+    const flavorNotes = data.adminTags !== undefined 
+      ? generateFlavorNotesFromTags(data.adminTags)
+      : undefined;
 
     // Build update data, excluding pairings (handled separately)
     const { pairings, ...updateData } = data;
@@ -363,6 +394,7 @@ export class AdminIngredientService {
         ...updateData,
         ...(costPerGram !== undefined && { costPerGram }),
         ...(calculatedStatus && { status: calculatedStatus }),
+        ...(flavorNotes !== undefined && { flavorNotes }),
       },
       include: {
         suppliers: true,

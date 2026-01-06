@@ -5,26 +5,6 @@
 import type { Ingredient, IngredientCategory } from '../types';
 
 /**
- * Default values for ingredient amounts
- */
-export const DEFAULT_BASE_AMOUNT = 5;
-export const DEFAULT_INCREMENT_AMOUNT = 1;
-
-/**
- * Get the base amount for an ingredient, with fallback to default
- */
-export function getIngredientBaseAmount(ingredient: Ingredient): number {
-  return ingredient.baseAmount ?? DEFAULT_BASE_AMOUNT;
-}
-
-/**
- * Get the increment amount for an ingredient, with fallback to baseAmount or default
- */
-export function getIngredientIncrementAmount(ingredient: Ingredient): number {
-  return ingredient.incrementAmount ?? ingredient.baseAmount ?? DEFAULT_INCREMENT_AMOUNT;
-}
-
-/**
  * Sample ingredients for The Alchemy Table
  */
 export const INGREDIENTS: Ingredient[] = [
@@ -36,7 +16,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Light and refreshing base',
     tags: ['antioxidant', 'energizing'],
     emoji: '🍵',
-    
   },
   {
     id: 'black-tea',
@@ -45,7 +24,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Bold and robust base',
     tags: ['strong', 'classic'],
     emoji: '☕',
-    
   },
   {
     id: 'white-tea',
@@ -54,7 +32,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Delicate and subtle base',
     tags: ['mild', 'premium'],
     emoji: '🫖',
-    
   },
   {
     id: 'oolong-tea',
@@ -63,7 +40,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Balanced and complex base',
     tags: ['traditional', 'aromatic'],
     emoji: '🍃',
-    
   },
 
   // Flower Add-ins
@@ -74,9 +50,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Calming floral notes',
     tags: ['relaxing', 'aromatic'],
     emoji: '🌸',
-    
-    baseAmount: 2,
-    incrementAmount: 1,
   },
   {
     id: 'chamomile',
@@ -85,9 +58,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Soothing and gentle',
     tags: ['calming', 'bedtime'],
     emoji: '🌼',
-    
-    baseAmount: 3,
-    incrementAmount: 1,
   },
   {
     id: 'rose',
@@ -96,9 +66,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Elegant and fragrant',
     tags: ['romantic', 'luxurious'],
     emoji: '🌹',
-    
-    baseAmount: 2,
-    incrementAmount: 0.5,
   },
   {
     id: 'hibiscus',
@@ -107,9 +74,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Tart and vibrant',
     tags: ['tangy', 'colorful'],
     emoji: '🌺',
-    
-    baseAmount: 3,
-    incrementAmount: 1,
   },
 
   // Fruit Add-ins
@@ -120,9 +84,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Bright and citrusy',
     tags: ['refreshing', 'zesty'],
     emoji: '🍋',
-    
-    baseAmount: 2,
-    incrementAmount: 1,
   },
   {
     id: 'orange',
@@ -131,9 +92,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Sweet citrus notes',
     tags: ['uplifting', 'sweet'],
     emoji: '🍊',
-    
-    baseAmount: 3,
-    incrementAmount: 1,
   },
   {
     id: 'berry-mix',
@@ -142,9 +100,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Mixed berries blend',
     tags: ['fruity', 'antioxidant'],
     emoji: '🫐',
-    
-    baseAmount: 5,
-    incrementAmount: 2,
   },
   {
     id: 'apple',
@@ -153,9 +108,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Sweet and crisp',
     tags: ['comforting', 'mild'],
     emoji: '🍎',
-    
-    baseAmount: 4,
-    incrementAmount: 2,
   },
 
   // Herb Add-ins
@@ -166,9 +118,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Cool and invigorating',
     tags: ['refreshing', 'digestive'],
     emoji: '🌿',
-    
-    baseAmount: 2,
-    incrementAmount: 1,
   },
   {
     id: 'ginger',
@@ -177,9 +126,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Warming and spicy',
     tags: ['warming', 'energizing'],
     emoji: '🫚',
-    
-    baseAmount: 2,
-    incrementAmount: 0.5,
   },
   {
     id: 'lemongrass',
@@ -188,9 +134,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Fresh and citrusy',
     tags: ['cleansing', 'aromatic'],
     emoji: '🌾',
-    
-    baseAmount: 3,
-    incrementAmount: 1,
   },
   {
     id: 'echinacea',
@@ -199,9 +142,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Immune support',
     tags: ['wellness', 'earthy'],
     emoji: '🌻',
-    
-    baseAmount: 2,
-    incrementAmount: 1,
   },
 
   // Spice Add-ins
@@ -212,9 +152,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Warm and sweet',
     tags: ['cozy', 'sweet'],
     emoji: '🪵',
-    
-    baseAmount: 1,
-    incrementAmount: 0.5,
   },
   {
     id: 'cardamom',
@@ -223,9 +160,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Aromatic and complex',
     tags: ['exotic', 'warming'],
     emoji: '🫘',
-    
-    baseAmount: 1,
-    incrementAmount: 0.5,
   },
   {
     id: 'clove',
@@ -234,9 +168,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Bold and aromatic',
     tags: ['intense', 'warming'],
     emoji: '🌰',
-    
-    baseAmount: 0.5,
-    incrementAmount: 0.25,
   },
 
   // Sweet & Aromatic Add-ins
@@ -247,9 +178,6 @@ export const INGREDIENTS: Ingredient[] = [
     description: 'Sweet and creamy',
     tags: ['dessert', 'smooth'],
     emoji: '🍦',
-    
-    baseAmount: 1,
-    incrementAmount: 0.5,
   },
   {
     id: 'honey-dust',
@@ -259,9 +187,6 @@ export const INGREDIENTS: Ingredient[] = [
     tags: ['sweet', 'soothing'],
     badges: ['Rare'],
     emoji: '🍯',
-    
-    baseAmount: 2,
-    incrementAmount: 1,
   },
 
   // Specialty Add-ins
@@ -273,9 +198,6 @@ export const INGREDIENTS: Ingredient[] = [
     tags: ['magical', 'visual'],
     badges: ['Epic'],
     emoji: '🦋',
-    
-    baseAmount: 1,
-    incrementAmount: 0.5,
   },
   {
     id: 'matcha',
@@ -285,9 +207,6 @@ export const INGREDIENTS: Ingredient[] = [
     tags: ['energizing', 'premium'],
     badges: ['Premium'],
     emoji: '🍃✨',
-    
-    baseAmount: 1,
-    incrementAmount: 0.5,
   },
   {
     id: 'edible-flowers',
@@ -297,9 +216,6 @@ export const INGREDIENTS: Ingredient[] = [
     tags: ['aesthetic', 'elegant'],
     badges: ['Rare'],
     emoji: '🌸✨',
-    
-    baseAmount: 1,
-    incrementAmount: 0.5,
   },
 ];
 

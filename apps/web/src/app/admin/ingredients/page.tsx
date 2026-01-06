@@ -46,8 +46,6 @@ interface Ingredient {
   emoji?: string;
   tags?: string[];
   badges?: string[];
-  baseAmount?: number;
-  incrementAmount?: number;
   pairings?: { id: string; name: string; category: string; emoji?: string }[];
   createdAt?: string;
   updatedAt?: string;
@@ -57,11 +55,6 @@ interface Ingredient {
 interface Supplier {
   id: string;
   name: string;
-}
-
-interface Defaults {
-  baseAmount: number;
-  incrementAmount: number;
 }
 
 interface Pagination {
@@ -77,7 +70,6 @@ export default function AdminIngredientsPage() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
-  const [defaults, setDefaults] = useState<Defaults>({ baseAmount: 5, incrementAmount: 1 });
   const [pagination, setPagination] = useState<Pagination>({ page: 1, perPage: 20, total: 0, totalPages: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -137,7 +129,6 @@ export default function AdminIngredientsPage() {
 
       const data = await response.json();
       setIngredients(data.ingredients || []);
-      setDefaults(data.defaults || { baseAmount: 5, incrementAmount: 1 });
       if (data.pagination) {
         setPagination(data.pagination);
       }
@@ -288,16 +279,6 @@ export default function AdminIngredientsPage() {
           ? parseFloat(formData.recommendedUsageMax)
           : formData.recommendedUsageMax;
       }
-      if (formData.baseAmount !== undefined && formData.baseAmount !== null) {
-        payload.baseAmount = typeof formData.baseAmount === 'string'
-          ? parseFloat(formData.baseAmount)
-          : formData.baseAmount;
-      }
-      if (formData.incrementAmount !== undefined && formData.incrementAmount !== null) {
-        payload.incrementAmount = typeof formData.incrementAmount === 'string'
-          ? parseFloat(formData.incrementAmount)
-          : formData.incrementAmount;
-      }
       
       // Handle arrays
       if (formData.flavorNotes) payload.flavorNotes = formData.flavorNotes;
@@ -400,8 +381,6 @@ export default function AdminIngredientsPage() {
       emoji: ingredient.emoji,
       tags: ingredient.tags,
       badges: ingredient.badges,
-      baseAmount: ingredient.baseAmount,
-      incrementAmount: ingredient.incrementAmount,
     });
     setShowEditModal(true);
   };
@@ -1036,30 +1015,6 @@ function IngredientModal({
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
                     min="0"
                     max="100"
-                    step="0.1"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Base Amount (g)</label>
-                  <input
-                    type="number"
-                    value={formData.baseAmount ?? ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, baseAmount: e.target.value ? parseFloat(e.target.value) : undefined }))}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
-                    min="0.1"
-                    step="0.1"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Increment Amount (g)</label>
-                  <input
-                    type="number"
-                    value={formData.incrementAmount ?? ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, incrementAmount: e.target.value ? parseFloat(e.target.value) : undefined }))}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
-                    min="0.1"
                     step="0.1"
                   />
                 </div>

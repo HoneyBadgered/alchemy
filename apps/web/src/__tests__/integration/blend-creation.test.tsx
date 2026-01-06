@@ -26,9 +26,6 @@ const mockBases = [
     id: 'green-tea',
     name: 'Green Tea',
     category: 'base',
-    
-    baseAmount: 10,
-    incrementAmount: 5,
     flavorProfile: { earthy: 7, floral: 3, spicy: 0, sweet: 2, citrus: 1 },
   },
 ];
@@ -38,18 +35,12 @@ const mockAddIns = [
     id: 'lavender',
     name: 'Lavender',
     category: 'botanical',
-    
-    baseAmount: 2,
-    incrementAmount: 1,
     flavorProfile: { earthy: 2, floral: 9, spicy: 0, sweet: 1, citrus: 0 },
   },
   {
     id: 'ginger',
     name: 'Ginger',
     category: 'addIn',
-    
-    baseAmount: 2,
-    incrementAmount: 1,
     flavorProfile: { earthy: 1, floral: 0, spicy: 10, sweet: 1, citrus: 2 },
   },
 ];

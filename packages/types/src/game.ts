@@ -132,8 +132,6 @@ export interface Ingredient {
   tags?: string[];
   badges?: string[];
   emoji?: string;
-  baseAmount?: number; // Default starting amount for add-ins (in grams)
-  incrementAmount?: number; // Amount to increase/decrease per step (falls back to baseAmount if not specified)
   
   // Extended fields for admin management
   role?: IngredientRole;

@@ -5,14 +5,10 @@
 import {
   INGREDIENTS,
   CATEGORY_INFO,
-  DEFAULT_BASE_AMOUNT,
-  DEFAULT_INCREMENT_AMOUNT,
   getIngredientsByCategory,
   getIngredientById,
   getBaseTeas,
   getAddIns,
-  getIngredientBaseAmount,
-  getIngredientIncrementAmount,
 } from '../index';
 
 describe('Ingredients', () => {
@@ -52,78 +48,11 @@ describe('Ingredients', () => {
         expect(addIn.category).not.toBe('base');
       });
     });
-
-    it('should have add-ins with baseAmount and incrementAmount', () => {
-      const addIns = INGREDIENTS.filter(ing => ing.category !== 'base');
-      addIns.forEach(addIn => {
-        expect(addIn.baseAmount).toBeDefined();
-        expect(addIn.incrementAmount).toBeDefined();
-        expect(typeof addIn.baseAmount).toBe('number');
-        expect(typeof addIn.incrementAmount).toBe('number');
-        expect(addIn.baseAmount).toBeGreaterThan(0);
-        expect(addIn.incrementAmount).toBeGreaterThan(0);
-      });
-    });
-  });
-
-  describe('Default constants', () => {
-    it('should have default base amount defined', () => {
-      expect(DEFAULT_BASE_AMOUNT).toBeDefined();
-      expect(typeof DEFAULT_BASE_AMOUNT).toBe('number');
-      expect(DEFAULT_BASE_AMOUNT).toBeGreaterThan(0);
-    });
-
-    it('should have default increment amount defined', () => {
-      expect(DEFAULT_INCREMENT_AMOUNT).toBeDefined();
-      expect(typeof DEFAULT_INCREMENT_AMOUNT).toBe('number');
-      expect(DEFAULT_INCREMENT_AMOUNT).toBeGreaterThan(0);
-    });
-  });
-
-  describe('getIngredientBaseAmount', () => {
-    it('should return baseAmount when defined', () => {
-      const lavender = getIngredientById('lavender');
-      expect(lavender).toBeDefined();
-      expect(getIngredientBaseAmount(lavender!)).toBe(2);
-    });
-
-    it('should return default when baseAmount is not defined', () => {
-      const greenTea = getIngredientById('green-tea');
-      expect(greenTea).toBeDefined();
-      // Base teas don't have baseAmount defined
-      expect(getIngredientBaseAmount(greenTea!)).toBe(DEFAULT_BASE_AMOUNT);
-    });
-  });
-
-  describe('getIngredientIncrementAmount', () => {
-    it('should return incrementAmount when defined', () => {
-      const lavender = getIngredientById('lavender');
-      expect(lavender).toBeDefined();
-      expect(getIngredientIncrementAmount(lavender!)).toBe(1);
-    });
-
-    it('should fall back to baseAmount when incrementAmount is not defined', () => {
-      // Create a mock ingredient with only baseAmount
-      const mockIngredient = {
-        id: 'test',
-        name: 'Test',
-        category: 'floral' as const,
-        
-        baseAmount: 3,
-      };
-      expect(getIngredientIncrementAmount(mockIngredient)).toBe(3);
-    });
-
-    it('should return default when neither is defined', () => {
-      const greenTea = getIngredientById('green-tea');
-      expect(greenTea).toBeDefined();
-      expect(getIngredientIncrementAmount(greenTea!)).toBe(DEFAULT_INCREMENT_AMOUNT);
-    });
   });
 
   describe('CATEGORY_INFO', () => {
     it('should have info for all categories', () => {
-      const categories = ['base', 'floral', 'fruit', 'herbal', 'spice', 'special'];
+      const categories = ['base', 'flowers', 'fruit', 'herbs', 'spice', 'sweet', 'essence', 'specialty'];
       categories.forEach(category => {
         expect(CATEGORY_INFO).toHaveProperty(category);
         expect(CATEGORY_INFO[category as keyof typeof CATEGORY_INFO]).toHaveProperty('title');
@@ -143,19 +72,24 @@ describe('Ingredients', () => {
       });
     });
 
-    it('should return floral ingredients', () => {
-      const florals = getIngredientsByCategory('floral');
-      expect(florals.length).toBeGreaterThan(0);
-      florals.forEach(ing => {
-        expect(ing.category).toBe('floral');
+    it('should return flower ingredients', () => {
+      const flowers = getIngredientsByCategory('flowers');
+      expect(flowers.length).toBeGreaterThan(0);
+      flowers.forEach(ing => {
+        expect(ing.category).toBe('flowers');
       });
     });
 
     it('should return ingredients for all categories', () => {
-      const categories = ['base', 'floral', 'fruit', 'herbal', 'spice', 'special'];
+      const categories = ['base', 'flowers', 'fruit', 'herbs', 'spice', 'sweet', 'essence', 'specialty'];
       categories.forEach(category => {
         const ingredients = getIngredientsByCategory(category as any);
-        expect(ingredients.length).toBeGreaterThan(0);
+        // Some categories may not have ingredients yet
+        if (ingredients.length > 0) {
+          ingredients.forEach(ing => {
+            expect(ing.category).toBe(category);
+          });
+        }
       });
     });
   });

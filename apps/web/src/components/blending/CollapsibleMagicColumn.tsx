@@ -445,7 +445,7 @@ export const CollapsibleMagicColumn: React.FC<CollapsibleMagicColumnProps> = ({
                       <div className="grid grid-cols-2 gap-3 max-h-[40vh] overflow-y-auto pr-1">
                         {ingredientsByCategory[expandedCategory]!.map((ingredient) => {
                           const isSelected = selectedAddIns.some(a => a.ingredientId === ingredient.id);
-                          const quantity = selectedAddIns.find(a => a.ingredientId === ingredient.id)?.quantity || ingredient.baseAmount || 0.25;
+                          const quantity = selectedAddIns.find(a => a.ingredientId === ingredient.id)?.quantity || 0.25;
                           return (
                             <IngredientItem
                               key={ingredient.id}

@@ -4,11 +4,7 @@
  */
 
 import { prisma } from '../utils/prisma';
-import {
-  getIngredientById,
-  getIngredientBaseAmount,
-  getIngredientIncrementAmount,
-} from '@alchemy/core';
+import { getIngredientById } from '@alchemy/core';
 import {
   BadRequestError,
   NotFoundError,
@@ -19,8 +15,7 @@ import type { Prisma } from '@prisma/client';
 
 // Constants for custom blend products
 const CUSTOM_BLEND_BASE_PRICE = 12.99;
-const CUSTOM_BLEND_ADDIN_BASE_PRICE = 1.00; // Base price for including an add-in
-const CUSTOM_BLEND_ADDIN_INCREMENT_PRICE = 0.25; // Price per increment above base amount
+const CUSTOM_BLEND_PRICE_PER_GRAM = 0.15; // Price per gram of add-in ingredients
 const CUSTOM_BLEND_STOCK = 999; // Custom blends are always "in stock"
 
 interface AddToCartParams {
@@ -612,30 +607,16 @@ export class CartService {
 
   /**
    * Calculate the price for a custom blend based on add-in quantities
-   * Price = Base price + sum of (base price per add-in + increments above base * increment price)
+   * Price = Base price + (total grams of add-ins × price per gram)
    */
   private calculateBlendPrice(addIns: Array<{ ingredientId: string; quantity: number }>): number {
     let totalPrice = CUSTOM_BLEND_BASE_PRICE;
 
-    for (const addIn of addIns) {
-      // Add base price for including this add-in
-      totalPrice += CUSTOM_BLEND_ADDIN_BASE_PRICE;
-
-      // Calculate extra increments above base amount
-      const ingredient = getIngredientById(addIn.ingredientId);
-      if (ingredient) {
-        const baseAmount = getIngredientBaseAmount(ingredient);
-        const incrementAmount = getIngredientIncrementAmount(ingredient);
-        
-        // Calculate how many increments above base the user selected
-        // Use floor to avoid overcharging - charge only for complete increments
-        const extraQuantity = Math.max(0, addIn.quantity - baseAmount);
-        const numberOfIncrements = incrementAmount > 0 ? Math.floor(extraQuantity / incrementAmount) : 0;
-        
-        // Add increment pricing
-        totalPrice += numberOfIncrements * CUSTOM_BLEND_ADDIN_INCREMENT_PRICE;
-      }
-    }
+    // Calculate total grams of add-ins
+    const totalAddInGrams = addIns.reduce((sum, addIn) => sum + addIn.quantity, 0);
+    
+    // Add pricing based on total grams
+    totalPrice += totalAddInGrams * CUSTOM_BLEND_PRICE_PER_GRAM;
 
     // Round to 2 decimal places
     return Math.round(totalPrice * 100) / 100;

@@ -57,16 +57,6 @@ export type IngredientFunction =
   | 'sweetening-effect';
 
 /**
- * Caffeine Behavior - Required, Single-select
- * Complements caffeineLevel, provides human context
- */
-export type IngredientCaffeineBehavior =
-  | 'caffeine-free'
-  | 'gently-energizing'
-  | 'energizing'
-  | 'grounding';
-
-/**
  * Safety & Disclosure Flags - Optional, Multi-select
  * Triggers warnings and contextual copy in UI
  */
@@ -182,7 +172,6 @@ export interface IngredientTags {
   flavorProfilePrimary: IngredientFlavorPrimary[];      // Required, max 3
   flavorProfileSecondary: IngredientFlavorSecondary[];  // Optional, max 3
   ingredientFunction: IngredientFunction | null;        // Required
-  caffeineBehavior: IngredientCaffeineBehavior | null;  // Required
   safetyFlags: IngredientSafetyFlag[];                  // Optional, multi
   visualEffect: IngredientVisualEffect[];               // Optional, max 2
 }
@@ -235,12 +224,6 @@ export const INGREDIENT_TAG_META: Record<keyof IngredientTags, TagCategoryMeta> 
   ingredientFunction: {
     label: 'Ingredient Function',
     description: 'Informs usage caps and UI warnings',
-    required: true,
-    multiSelect: false,
-  },
-  caffeineBehavior: {
-    label: 'Caffeine Behavior',
-    description: 'Complements caffeineLevel with human context',
     required: true,
     multiSelect: false,
   },
@@ -353,13 +336,6 @@ export const INGREDIENT_FUNCTION_OPTIONS: TagOption[] = [
   { value: 'aroma-only', label: 'Aroma Only', description: 'Primarily for scent' },
   { value: 'color-effect', label: 'Color Effect', description: 'Changes liquor color' },
   { value: 'sweetening-effect', label: 'Sweetening Effect', description: 'Adds sweetness' },
-];
-
-export const INGREDIENT_CAFFEINE_BEHAVIOR_OPTIONS: TagOption[] = [
-  { value: 'caffeine-free', label: 'Caffeine-Free' },
-  { value: 'gently-energizing', label: 'Gently Energizing' },
-  { value: 'energizing', label: 'Energizing' },
-  { value: 'grounding', label: 'Grounding' },
 ];
 
 export const INGREDIENT_SAFETY_FLAG_OPTIONS: TagOption[] = [

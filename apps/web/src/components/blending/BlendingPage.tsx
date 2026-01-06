@@ -156,9 +156,9 @@ export const BlendingPage: React.FC<BlendingPageProps> = ({
           addIns: prev.addIns.filter((_, i) => i !== existingIndex),
         };
       } else {
-        // Add add-in with default quantity
+        // Add add-in with minimum recommended quantity (or 0.25g fallback)
         const ingredient = getIngredientById(ingredientId, bases, addIns);
-        const defaultQuantity = ingredient?.baseAmount || 0.25;
+        const defaultQuantity = 0.25; // Small default quantity when adding
         return {
           ...prev,
           addIns: [...prev.addIns, { ingredientId, quantity: defaultQuantity }],

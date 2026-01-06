@@ -7,7 +7,9 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { BlendState, getIngredientById, getIngredientBaseAmount, DEFAULT_BASE_AMOUNT } from '@alchemy/core';
+import { BlendState, getIngredientById } from '@alchemy/core';
+
+const DEFAULT_ADD_IN_QUANTITY = 0.25; // Default quantity in grams when adding an ingredient
 
 interface UseBlendStateReturn {
   blendState: BlendState;
@@ -46,14 +48,12 @@ export function useBlendState(initialState?: BlendState): UseBlendStateReturn {
           addIns: prev.addIns.filter((_, i) => i !== existingIndex),
         };
       } else {
-        // Add the add-in with its configured base amount (or default)
-        const ingredient = getIngredientById(ingredientId);
-        const baseAmount = ingredient ? getIngredientBaseAmount(ingredient) : DEFAULT_BASE_AMOUNT;
+        // Add the add-in with default quantity
         return {
           ...prev,
           addIns: [
             ...prev.addIns,
-            { ingredientId, quantity: baseAmount },
+            { ingredientId, quantity: DEFAULT_ADD_IN_QUANTITY },
           ],
         };
       }
@@ -91,9 +91,8 @@ export function useBlendState(initialState?: BlendState): UseBlendStateReturn {
     if (addIn) {
       return addIn.quantity;
     }
-    // Return the ingredient's base amount or default
-    const ingredient = getIngredientById(ingredientId);
-    return ingredient ? getIngredientBaseAmount(ingredient) : DEFAULT_BASE_AMOUNT;
+    // Return default quantity for ingredients not yet added
+    return DEFAULT_ADD_IN_QUANTITY;
   }, [blendState.addIns]);
 
   return {
