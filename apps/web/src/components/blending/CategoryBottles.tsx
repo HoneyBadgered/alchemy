@@ -223,7 +223,7 @@ export const CategoryBottles: React.FC<CategoryBottlesProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[50vh] overflow-y-auto pr-2">
                 {ingredientsByCategory[openCategory]!.map((ingredient) => {
                   const isSelected = selectedAddIns.some(a => a.ingredientId === ingredient.id);
-                  const quantity = selectedAddIns.find(a => a.ingredientId === ingredient.id)?.quantity || ingredient.baseAmount || 0.25;
+                  const quantity = selectedAddIns.find(a => a.ingredientId === ingredient.id)?.quantity || 0.25;
                   const sliderValue = gramsToSlider(quantity, ingredient, blendSize);
 
                   return (

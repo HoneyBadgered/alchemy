@@ -14,9 +14,6 @@ const mockBases = [
     id: 'moonlit-black',
     name: 'Moonlit Black',
     category: 'base' as const,
-    
-    baseAmount: 10,
-    incrementAmount: 5,
     costPerOz: 3,
     description: 'Bold black tea',
     shortTags: ['Black', 'Medium Caffeine'],
@@ -29,9 +26,6 @@ const mockBases = [
     id: 'herbal-rooibos',
     name: 'Herbal Rooibos',
     category: 'base' as const,
-    
-    baseAmount: 10,
-    incrementAmount: 5,
     costPerOz: 2,
     description: 'Caffeine-free rooibos',
     shortTags: ['Herbal', 'No Caffeine'],
@@ -47,9 +41,6 @@ const mockAddIns = [
     id: 'rose-petals',
     name: 'Rose Petals',
     category: 'floral' as const,
-    
-    baseAmount: 2,
-    incrementAmount: 1,
     costPerOz: 8,
     description: 'Fragrant rose petals',
     shortTags: ['Floral'],
@@ -62,9 +53,6 @@ const mockAddIns = [
     id: 'vanilla',
     name: 'Vanilla',
     category: 'addIn' as const,
-    
-    baseAmount: 2,
-    incrementAmount: 1,
     costPerOz: 5,
     description: 'Sweet vanilla',
     shortTags: ['Sweet'],

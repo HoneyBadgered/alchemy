@@ -101,8 +101,6 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     shortTags: ['Floral', 'Sweet'],
     emoji: '🌹',
     
-    baseAmount: 0.25,
-    incrementAmount: 0.25,
     costPerOz: 4.00,
     tier: 'standard',
     flavorProfile: { floral: 80, citrus: 5, earthy: 5, sweet: 40, caffeine: 0 },
@@ -116,8 +114,6 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     shortTags: ['Floral', 'Calming'],
     emoji: '💜',
     
-    baseAmount: 0.25,
-    incrementAmount: 0.25,
     costPerOz: 3.50,
     tier: 'standard',
     flavorProfile: { floral: 85, citrus: 0, earthy: 15, sweet: 20, caffeine: 0 },
@@ -131,8 +127,6 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     shortTags: ['Floral', 'Intense'],
     emoji: '🤍',
     
-    baseAmount: 0.25,
-    incrementAmount: 0.25,
     costPerOz: 5.00,
     tier: 'premium',
     flavorProfile: { floral: 90, citrus: 5, earthy: 0, sweet: 35, caffeine: 0 },
@@ -148,8 +142,6 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     shortTags: ['Citrus', 'Zesty'],
     emoji: '🍊',
     
-    baseAmount: 0.25,
-    incrementAmount: 0.25,
     costPerOz: 2.00,
     tier: 'standard',
     flavorProfile: { floral: 5, citrus: 85, earthy: 0, sweet: 30, caffeine: 0 },
@@ -163,8 +155,6 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     shortTags: ['Citrus', 'Tart'],
     emoji: '🍋',
     
-    baseAmount: 0.25,
-    incrementAmount: 0.25,
     costPerOz: 2.00,
     tier: 'standard',
     flavorProfile: { floral: 0, citrus: 90, earthy: 0, sweet: 10, caffeine: 0 },
@@ -178,8 +168,6 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     shortTags: ['Fruity', 'Sweet'],
     emoji: '🫐',
     
-    baseAmount: 0.5,
-    incrementAmount: 0.25,
     costPerOz: 3.00,
     tier: 'standard',
     flavorProfile: { floral: 10, citrus: 20, earthy: 0, sweet: 70, caffeine: 0 },
@@ -195,8 +183,6 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     shortTags: ['Spicy', 'Warm'],
     emoji: '🪵',
     
-    baseAmount: 0.25,
-    incrementAmount: 0.25,
     costPerOz: 2.50,
     tier: 'standard',
     flavorProfile: { floral: 0, citrus: 5, earthy: 40, sweet: 35, caffeine: 0 },
@@ -210,8 +196,6 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     shortTags: ['Spicy', 'Warming'],
     emoji: '🫚',
     
-    baseAmount: 0.25,
-    incrementAmount: 0.25,
     costPerOz: 2.50,
     tier: 'standard',
     flavorProfile: { floral: 0, citrus: 10, earthy: 30, sweet: 15, caffeine: 0 },
@@ -225,8 +209,6 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     shortTags: ['Sweet', 'Creamy'],
     emoji: '🍦',
     
-    baseAmount: 0.25,
-    incrementAmount: 0.25,
     costPerOz: 8.00,
     tier: 'premium',
     flavorProfile: { floral: 10, citrus: 0, earthy: 10, sweet: 80, caffeine: 0 },
@@ -240,8 +222,6 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     shortTags: ['Spicy', 'Exotic'],
     emoji: '🫘',
     
-    baseAmount: 0.25,
-    incrementAmount: 0.25,
     costPerOz: 6.00,
     tier: 'premium',
     flavorProfile: { floral: 20, citrus: 15, earthy: 40, sweet: 25, caffeine: 0 },
@@ -257,8 +237,6 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     shortTags: ['Minty', 'Cool'],
     emoji: '🌿',
     
-    baseAmount: 0.25,
-    incrementAmount: 0.25,
     costPerOz: 2.00,
     tier: 'standard',
     flavorProfile: { floral: 5, citrus: 10, earthy: 20, sweet: 15, caffeine: 0 },
@@ -272,8 +250,6 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     shortTags: ['Calming', 'Gentle'],
     emoji: '🌼',
     
-    baseAmount: 0.5,
-    incrementAmount: 0.25,
     costPerOz: 2.50,
     tier: 'standard',
     flavorProfile: { floral: 50, citrus: 5, earthy: 25, sweet: 30, caffeine: 0 },
@@ -290,8 +266,6 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     badges: ['Premium'],
     emoji: '🦋',
     
-    baseAmount: 0.25,
-    incrementAmount: 0.25,
     costPerOz: 10.00,
     tier: 'premium',
     flavorProfile: { floral: 40, citrus: 5, earthy: 30, sweet: 20, caffeine: 0 },
@@ -306,8 +280,6 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     badges: ['Premium'],
     emoji: '🍵',
     
-    baseAmount: 0.25,
-    incrementAmount: 0.25,
     costPerOz: 12.00,
     tier: 'premium',
     flavorProfile: { floral: 10, citrus: 5, earthy: 60, sweet: 15, caffeine: 80 },
@@ -322,8 +294,6 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
     badges: ['Ultra'],
     emoji: '✨',
     
-    baseAmount: 0.1,
-    incrementAmount: 0.05,
     costPerOz: 50.00,
     tier: 'premium',
     flavorProfile: { floral: 0, citrus: 0, earthy: 0, sweet: 0, caffeine: 0 },

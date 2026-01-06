@@ -135,18 +135,15 @@ export const IngredientDetailsSheet: React.FC<IngredientDetailsSheetProps> = ({
                 </div>
               )}
 
-              {/* Usage Range */}
-              {(ingredient.baseAmount || ingredient.incrementAmount) && (
-                <div className="p-4 bg-gray-800/50 rounded-lg">
-                  <h4 className="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wider">
-                    Recommended Amount
-                  </h4>
-                  <p className="text-white">
-                    {ingredient.baseAmount ? `${ingredient.baseAmount} oz` : 'As desired'}
-                    {ingredient.incrementAmount && ` (adjust by ${ingredient.incrementAmount} oz)`}
-                  </p>
-                </div>
-              )}
+              {/* Pricing Info */}
+              <div className="p-4 bg-gray-800/50 rounded-lg">
+                <h4 className="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wider">
+                  Pricing
+                </h4>
+                <p className="text-white">
+                  ${ingredient.costPerOz.toFixed(2)} per oz
+                </p>
+              </div>
             </div>
           </motion.div>
         </>

@@ -35,8 +35,8 @@ const IngredientItem: React.FC<IngredientItemProps> = ({
   onToggle,
   onQuantityChange,
 }) => {
-  const incrementAmount = ingredient.incrementAmount || 0.25;
-  const minQuantity = ingredient.baseAmount || 0.25;
+  const incrementAmount = 0.25;
+  const minQuantity = 0.25;
   const maxQuantity = 2; // Max 2 oz per add-in
 
   const handleIncrement = (e: React.MouseEvent) => {

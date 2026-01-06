@@ -58,8 +58,6 @@ export interface BlendingIngredient {
     caffeine: number;
   };
   caffeineLevel: 'none' | 'low' | 'medium' | 'high';
-  baseAmount?: number;
-  incrementAmount?: number;
 }
 
 /**

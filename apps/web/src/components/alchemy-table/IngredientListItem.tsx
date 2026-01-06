@@ -159,7 +159,7 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({
               type="range"
               min={minValue}
               max={maxValue}
-              step={incrementAmount}
+              step={INCREMENT}
               value={localQuantity}
               onChange={handleSliderChange}
               onClick={(e) => e.stopPropagation()}
