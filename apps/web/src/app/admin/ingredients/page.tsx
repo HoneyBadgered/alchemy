@@ -11,6 +11,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 import ImageUpload from '@/components/admin/ImageUpload';
+import IngredientTagsSection from '@/components/admin/IngredientTagsSection';
+import type { IngredientTags } from '@alchemy/types';
 
 // Constants
 const GRAMS_PER_OUNCE = 28.3495;
@@ -49,6 +51,7 @@ interface Ingredient {
   pairings?: { id: string; name: string; category: string; emoji?: string }[];
   createdAt?: string;
   updatedAt?: string;
+  adminTags?: IngredientTags;
 }
 
 interface Supplier {
@@ -302,6 +305,9 @@ export default function AdminIngredientsPage() {
       if (formData.allergens) payload.allergens = formData.allergens;
       if (formData.tags) payload.tags = formData.tags;
       if (formData.badges) payload.badges = formData.badges;
+      
+      // Handle admin tags (JSON)
+      if (formData.adminTags) payload.adminTags = formData.adminTags;
       
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       const response = await fetch(`${apiUrl}/admin/ingredients/${selectedIngredient.id}`, {
@@ -872,7 +878,7 @@ function IngredientModal({
   suppliers: Supplier[];
   accessToken: string;
 }) {
-  const [activeTab, setActiveTab] = useState<'general' | 'flavor' | 'brewing' | 'inventory' | 'safety'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'flavor' | 'brewing' | 'inventory' | 'safety' | 'tags'>('general');
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -884,13 +890,13 @@ function IngredientModal({
         
         {/* Tabs */}
         <div className="flex border-b px-6">
-          {(['general', 'flavor', 'brewing', 'inventory', 'safety'] as const).map((tab) => (
+          {(['general', 'flavor', 'brewing', 'inventory', 'safety', 'tags'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`px-4 py-2 font-medium capitalize ${activeTab === tab ? 'text-purple-600 border-b-2 border-purple-600' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              {tab}
+              {tab === 'tags' ? 'Admin Tags' : tab}
             </button>
           ))}
         </div>
@@ -1218,6 +1224,16 @@ function IngredientModal({
                   placeholder="Notes visible only to admins..."
                 />
               </div>
+            </div>
+          )}
+          
+          {activeTab === 'tags' && (
+            <div className="py-2">
+              <IngredientTagsSection
+                value={formData.adminTags || {}}
+                onChange={(tags) => setFormData(prev => ({ ...prev, adminTags: tags }))}
+                disabled={saving}
+              />
             </div>
           )}
         </div>

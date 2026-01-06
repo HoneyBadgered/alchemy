@@ -11,5 +11,6 @@ export * from './user';
 export * from './product';
 export * from './order';
 export * from './game';
+export * from './admin-tags';
 export * from './blog';
 export * from './api';

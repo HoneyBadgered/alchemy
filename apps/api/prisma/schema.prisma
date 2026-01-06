@@ -164,6 +164,10 @@ model ingredients {
   badges                                                                  String[]              @default([])
   baseAmount                                                              Decimal?              @db.Decimal(10, 2)
   incrementAmount                                                         Decimal?              @db.Decimal(10, 2)
+  
+  // Admin Tag Fields (JSON)
+  adminTags                                                               Json?                 // Structured ingredient tags for admin
+  
   createdAt                                                               DateTime              @default(now())
   updatedAt                                                               DateTime              @updatedAt
   ingredient_pairings_ingredient_pairings_sourceIngredientIdToingredients ingredient_pairings[] @relation("ingredient_pairings_sourceIngredientIdToingredients")
@@ -751,6 +755,10 @@ model blends {
   addIns      Json
   size        Int       @default(2) // Size in ounces: 1, 2, or 4
   productId   String?
+  
+  // Admin Tag Fields (JSON)
+  adminTags   Json?     // Structured blend tags for admin
+  
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   users       users?    @relation(fields: [userId], references: [id], onDelete: Cascade)

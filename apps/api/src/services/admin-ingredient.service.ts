@@ -71,6 +71,9 @@ export interface CreateIngredientInput {
   badges?: string[];
   baseAmount?: number;
   incrementAmount?: number;
+  
+  // Admin tags (JSON)
+  adminTags?: Record<string, any>;
 }
 
 export interface UpdateIngredientInput extends Partial<CreateIngredientInput> {}
@@ -301,6 +304,7 @@ export class AdminIngredientService {
         badges: data.badges || [],
         baseAmount: data.baseAmount,
         incrementAmount: data.incrementAmount,
+        adminTags: data.adminTags as any,
         updatedAt: new Date(),
       },
       include: {

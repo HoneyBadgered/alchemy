@@ -59,27 +59,28 @@ export class CartService {
       throw new BadRequestError('Either userId or sessionId must be provided');
     }
 
-    // Try to find existing cart
-    let cart = await prisma.carts.findFirst({
-      where: userId ? { userId } : { sessionId },
-      include: {
-        cart_items: {
-          include: {
-            products: true,
-            product_variants: true,
-          },
-        },
-      },
-    });
+    // Use upsert to handle race conditions automatically
+    // Construct the unique identifier
+    const where = userId 
+      ? { userId } 
+      : sessionId 
+      ? { sessionId } 
+      : { userId: 'impossible' }; // Fallback that won't match
 
-    // Create cart if it doesn't exist
-    if (!cart) {
-      try {
-        cart = await prisma.carts.create({
-          data: {
+    let cart;
+    
+    try {
+      // For user carts, use upsert
+      if (userId) {
+        cart = await prisma.carts.upsert({
+          where: { userId },
+          update: {
+            updatedAt: new Date(),
+          },
+          create: {
             id: crypto.randomUUID(),
-            userId: userId || null,
-            sessionId: sessionId || null,
+            userId,
+            sessionId: null,
             updatedAt: new Date(),
           },
           include: {
@@ -91,30 +92,51 @@ export class CartService {
             },
           },
         });
-      } catch (error: unknown) {
-        // Handle race condition - cart might have been created by another request
-        if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
-          // Unique constraint violation - try to find the cart again
-          cart = await prisma.carts.findFirst({
-            where: userId ? { userId } : { sessionId },
-            include: {
-              cart_items: {
-                include: {
-                  products: true,
-                  product_variants: true,
-                },
+      } else if (sessionId) {
+        // For session carts, use upsert
+        cart = await prisma.carts.upsert({
+          where: { sessionId },
+          update: {
+            updatedAt: new Date(),
+          },
+          create: {
+            id: crypto.randomUUID(),
+            userId: null,
+            sessionId,
+            updatedAt: new Date(),
+          },
+          include: {
+            cart_items: {
+              include: {
+                products: true,
+                product_variants: true,
               },
             },
-          });
-          
-          if (!cart) {
-            // If still not found, rethrow the error
-            throw error;
-          }
-        } else {
-          throw error;
-        }
+          },
+        });
       }
+    } catch (error: unknown) {
+      const prismaError = error as { code?: string };
+      // If still a race condition somehow, fall back to findFirst
+      if (prismaError?.code === 'P2002') {
+        cart = await prisma.carts.findFirst({
+          where,
+          include: {
+            cart_items: {
+              include: {
+                products: true,
+                product_variants: true,
+              },
+            },
+          },
+        });
+      } else {
+        throw error;
+      }
+    }
+
+    if (!cart) {
+      throw new Error('Failed to create or retrieve cart');
     }
 
     return cart;
