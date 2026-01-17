@@ -45,13 +45,13 @@ export const ZONE_CONFIGS: Record<string, ZoneConfig> = {
     bgGradient: 'from-emerald-950 via-teal-950 to-green-950',
     accentColor: 'emerald',
     defaultFilters: {
-      flavorProfile: ['floral', 'herbal'],
+      flavorProfile: ['floral', 'herbs'],
       caffeineLevel: ['none', 'low'],
     },
     subTabs: [
       { id: 'all', label: 'All', bias: null },
       { id: 'floral', label: 'Floral', bias: ['floral', 'rose', 'jasmine'] },
-      { id: 'herbal', label: 'Herbal', bias: ['herbal', 'mint', 'chamomile'] },
+      { id: 'herbs', label: 'Herbal', bias: ['herbs', 'mint', 'chamomile'] },
       { id: 'calming', label: 'Calming', bias: ['calming', 'soothing'] },
     ],
   },
@@ -106,7 +106,7 @@ export const ZONE_CONFIGS: Record<string, ZoneConfig> = {
       { id: 'all', label: 'All', bias: null },
       { id: 'seasonal', label: 'Seasonal', bias: ['seasonal', 'limited'] },
       { id: 'experimental', label: 'Experimental', bias: ['unique', 'rare'] },
-      { id: 'exclusive', label: 'Exclusive', bias: ['exclusive', 'special'] },
+      { id: 'exclusive', label: 'Exclusive', bias: ['exclusive', 'specialty'] },
     ],
   },
 };

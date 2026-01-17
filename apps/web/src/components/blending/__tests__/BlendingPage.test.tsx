@@ -54,7 +54,7 @@ const mockAddIns = [
   {
     id: 'lavender',
     name: 'Lavender',
-    category: 'floral' as const,
+    category: 'flowers' as const,
     description: 'Fragrant lavender flowers',
     shortTags: ['Floral'],
     emoji: '💜',

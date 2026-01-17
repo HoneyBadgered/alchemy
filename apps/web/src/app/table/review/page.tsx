@@ -186,16 +186,16 @@ export default function BlendReviewPage() {
       'green': '160-180°F',
       'white': '160-175°F',
       'oolong': '185-205°F',
-      'herbal': '212°F',
+      'herbs': '212°F',
     };
     const times: Record<string, string> = {
       'black': '3-5 min',
       'green': '2-3 min',
       'white': '4-5 min',
       'oolong': '3-4 min',
-      'herbal': '5-7 min',
+      'herbs': '5-7 min',
     };
-    const category = baseTea.category?.toLowerCase() || 'herbal';
+    const category = baseTea.category?.toLowerCase() || 'herbs';
     return {
       temp: temps[category] || '200°F',
       time: times[category] || '3-5 min',

@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { catalogApi, CouponValidation } from '@/lib/catalog-api';
+import { catalogApi } from '@/lib/catalog-api';
+import { CouponValidation } from '@alchemy/types';
 import { CouponInput, StockStatusBadge } from '@/components/shop';
 
 export default function CartPage() {

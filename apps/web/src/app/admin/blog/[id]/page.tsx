@@ -59,7 +59,7 @@ export default function EditPostPage() {
         });
         
         setTags(tagsResult.tags);
-        setSelectedTagIds(post.tags?.map((t) => t.id) || []);
+        setSelectedTagIds(post.tags?.map((t: { id: string }) => t.id) || []);
         setError(null);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch post');

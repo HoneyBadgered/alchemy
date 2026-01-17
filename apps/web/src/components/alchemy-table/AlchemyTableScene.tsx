@@ -21,11 +21,11 @@ import { BowlSummary } from './BowlSummary';
 
 const CATEGORIES: IngredientCategory[] = [
   'base',
-  'floral',
+  'flowers',
   'fruit',
-  'herbal',
+  'herbs',
   'spice',
-  'special',
+  'specialty',
 ];
 
 export const AlchemyTableScene: React.FC = () => {

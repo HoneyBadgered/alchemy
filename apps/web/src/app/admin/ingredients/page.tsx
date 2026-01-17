@@ -49,7 +49,7 @@ interface Ingredient {
   pairings?: { id: string; name: string; category: string; emoji?: string }[];
   createdAt?: string;
   updatedAt?: string;
-  adminTags?: IngredientTags;
+  adminTags?: Partial<IngredientTags>;
 }
 
 interface Supplier {
@@ -805,6 +805,7 @@ export default function AdminIngredientsPage() {
           categories={categories}
           suppliers={suppliers}
           accessToken={accessToken!}
+          setError={setError}
         />
       )}
 
@@ -820,6 +821,7 @@ export default function AdminIngredientsPage() {
           categories={categories}
           suppliers={suppliers}
           accessToken={accessToken!}
+          setError={setError}
         />
       )}
 
@@ -846,6 +848,7 @@ function IngredientModal({
   categories,
   suppliers,
   accessToken,
+  setError,
 }: {
   title: string;
   formData: Partial<Ingredient>;
@@ -856,6 +859,7 @@ function IngredientModal({
   categories: string[];
   suppliers: Supplier[];
   accessToken: string;
+  setError: (error: string | null) => void;
 }) {
   const [activeTab, setActiveTab] = useState<'general' | 'flavor' | 'brewing' | 'inventory' | 'safety' | 'tags'>('general');
 
@@ -958,7 +962,7 @@ function IngredientModal({
                   currentImage={formData.image}
                   accessToken={accessToken!}
                   onUploadComplete={(imageUrl) => setFormData(prev => ({ ...prev, image: imageUrl }))}
-                  onUploadError={(error) => setError(`Image upload failed: ${error}`)}
+                  onError={(error) => setError(`Image upload failed: ${error}`)}
                 />
               </div>
             </div>
@@ -1186,7 +1190,7 @@ function IngredientModal({
             <div className="py-2">
               <IngredientTagsSection
                 value={formData.adminTags || {}}
-                onChange={(tags) => setFormData(prev => ({ ...prev, adminTags: tags }))}
+                onChange={(tags) => setFormData(prev => ({ ...prev, adminTags: tags as Partial<IngredientTags> }))}
                 disabled={saving}
               />
             </div>

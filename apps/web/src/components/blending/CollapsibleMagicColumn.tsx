@@ -44,7 +44,7 @@ function getCategoryId(ingredient: BlendingIngredient): IngredientCategory {
   const name = ingredient.name?.toLowerCase() || '';
   
   // Direct mappings for new categories
-  if (cat === 'flowers') return 'flowers';
+  if (cat === 'floral') return 'floral';
   if (cat === 'herbs') return 'herbs';
   if (cat === 'fruit') return 'fruit';
   if (cat === 'spice') return 'spice';
@@ -53,15 +53,15 @@ function getCategoryId(ingredient: BlendingIngredient): IngredientCategory {
   if (cat === 'specialty') return 'specialty';
   
   // Legacy mappings
-  if (cat === 'floral' || cat === 'botanical') return 'flowers';
-  if (cat === 'herbal' || cat === 'herb') return 'herbs';
+  if (cat === 'floral' || cat === 'botanical') return 'floral';
+  if (cat === 'herbs' || cat === 'herb') return 'herbs';
   
   // Premium category - needs smart classification
   if (cat === 'premium') {
     // Flowers
     if (name.includes('jasmine') || name.includes('rose') || name.includes('lavender') || 
         name.includes('chamomile') || name.includes('hibiscus') || name.includes('flower')) {
-      return 'flowers';
+      return 'floral';
     }
     // Spices
     if (name.includes('saffron') || name.includes('cardamom') || name.includes('vanilla bean')) {
@@ -76,7 +76,7 @@ function getCategoryId(ingredient: BlendingIngredient): IngredientCategory {
   }
   
   // Special category - needs smart classification
-  if (cat === 'special') {
+  if (cat === 'specialty') {
     // Sweeteners
     if (name.includes('honey') || name.includes('vanilla') || name.includes('licorice') || 
         name.includes('stevia') || name.includes('agave') || name.includes('sugar')) {
@@ -254,7 +254,7 @@ const INGREDIENT_CATEGORIES: Array<{
   description: string;
   emoji: string;
 }> = [
-  { id: 'flowers', label: 'Flowers', description: 'Petals, blossoms, gentle aromatics', emoji: '🌸' },
+  { id: 'floral', label: 'Flowers', description: 'Petals, blossoms, gentle aromatics', emoji: '🌸' },
   { id: 'herbs', label: 'Herbs', description: 'Leafy, green, restorative', emoji: '🌿' },
   { id: 'fruit', label: 'Fruits & Citrus', description: 'Dried fruit and peel', emoji: '🍊' },
   { id: 'spice', label: 'Spices', description: 'Warm, bold, smoky', emoji: '🔥' },

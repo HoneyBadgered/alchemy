@@ -34,7 +34,7 @@ const INGREDIENT_TYPES = [
 
 export default function PotionMixingGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gameLoopRef = useRef<number>();
+  const gameLoopRef = useRef<number | undefined>(undefined);
   const ingredientsRef = useRef<Ingredient[]>([]);
   const selectedRef = useRef<Ingredient | null>(null);
   const lastSpawnRef = useRef<number>(0);

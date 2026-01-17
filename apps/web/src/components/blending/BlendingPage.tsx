@@ -11,7 +11,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useIngredients, getIngredientById } from '@/hooks/useIngredients';
 import { BRANDING } from '@/config/branding';
-import { BLEND_SIZES, DEFAULT_BLEND_SIZE } from '@alchemy/core';
+import { BLEND_SIZES, DEFAULT_BLEND_SIZE, type BlendSize } from '@alchemy/core';
 import type { ExtendedBlendState } from './types';
 import { useBlendPricing } from './useBlendPricing';
 import { useFlavorProfile, DEFAULT_STATUS } from './useFlavorProfile';

@@ -70,7 +70,7 @@ describe('Mock Data', () => {
       expect(addIns.length).toBeGreaterThan(0);
       // All should be standard tier and fruit/spice/herbal category
       for (const addIn of addIns) {
-        expect(['fruit', 'spice', 'herbal']).toContain(addIn.category);
+        expect(['fruit', 'spice', 'herbs']).toContain(addIn.category);
         expect(addIn.tier).toBe('standard');
       }
     });
@@ -90,7 +90,7 @@ describe('Mock Data', () => {
       // All should be premium tier or special category
       for (const addIn of premium) {
         expect(
-          addIn.tier === 'premium' || addIn.category === 'special'
+          addIn.tier === 'premium' || addIn.category === 'specialty'
         ).toBe(true);
       }
     });

@@ -18,7 +18,7 @@ interface Achievement {
   description: string;
   lore: string;
   icon: string;
-  category: 'purchases' | 'exploration' | 'loyalty' | 'seasonal' | 'special';
+  category: 'purchases' | 'exploration' | 'loyalty' | 'seasonal' | 'specialty';
   progress: number;
   maxProgress: number;
   isEarned: boolean;
@@ -206,7 +206,7 @@ const mockAchievements: Achievement[] = [
     description: 'Joined in the first year',
     lore: 'You were there when the first flames were lit. A founding member.',
     icon: '🌟',
-    category: 'special',
+    category: 'specialty',
     progress: 1,
     maxProgress: 1,
     isEarned: true,
@@ -219,7 +219,7 @@ const mockAchievements: Achievement[] = [
     description: 'Own 25 unique blends',
     lore: 'Your apothecary shelf rivals the ancient libraries.',
     icon: '👑',
-    category: 'special',
+    category: 'specialty',
     progress: 8,
     maxProgress: 25,
     isEarned: false,

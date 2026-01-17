@@ -327,9 +327,9 @@ export const BowlFillVisual: React.FC<BowlFillVisualProps> = ({ blendState, base
                 className="absolute w-2 h-2 rounded-full"
                 style={{
                   left: `${30 + i * 15}%`,
-                  backgroundColor: layer.category === 'floral' ? 'rgba(244, 114, 182, 0.6)' :
+                  backgroundColor: layer.category === 'flowers' ? 'rgba(244, 114, 182, 0.6)' :
                                    layer.category === 'fruit' ? 'rgba(251, 146, 60, 0.6)' :
-                                   layer.category === 'herbal' ? 'rgba(52, 211, 153, 0.6)' :
+                                   layer.category === 'herbs' ? 'rgba(52, 211, 153, 0.6)' :
                                    'rgba(168, 85, 247, 0.6)',
                 }}
                 initial={{ y: 100, opacity: 0 }}

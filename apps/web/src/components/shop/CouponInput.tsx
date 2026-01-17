@@ -6,7 +6,8 @@
  */
 
 import React, { useState } from 'react';
-import { catalogApi, CouponValidation } from '@/lib/catalog-api';
+import { catalogApi } from '@/lib/catalog-api';
+import { CouponValidation } from '@alchemy/types';
 
 interface CouponInputProps {
   subtotal: number;

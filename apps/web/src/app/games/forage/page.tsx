@@ -36,7 +36,7 @@ const INGREDIENT_TYPES = [
 
 export default function ForagePage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gameLoopRef = useRef<number>();
+  const gameLoopRef = useRef<number | undefined>(undefined);
   const ingredientsRef = useRef<Ingredient[]>([]);
   const lastSpawnRef = useRef<number>(0);
   const speedRef = useRef<number>(2);

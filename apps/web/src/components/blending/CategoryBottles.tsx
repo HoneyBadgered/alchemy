@@ -38,7 +38,7 @@ function getCategoryId(ingredient: BlendingIngredient): IngredientCategory {
   const name = ingredient.name?.toLowerCase() || '';
   
   // Direct mappings
-  if (cat === 'flowers') return 'flowers';
+  if (cat === 'floral') return 'floral';
   if (cat === 'herbs') return 'herbs';
   if (cat === 'fruit') return 'fruit';
   if (cat === 'spice') return 'spice';
@@ -47,14 +47,14 @@ function getCategoryId(ingredient: BlendingIngredient): IngredientCategory {
   if (cat === 'specialty') return 'specialty';
   
   // Legacy mappings
-  if (cat === 'floral' || cat === 'botanical') return 'flowers';
-  if (cat === 'herbal' || cat === 'herb') return 'herbs';
+  if (cat === 'floral' || cat === 'botanical') return 'floral';
+  if (cat === 'herbs' || cat === 'herb') return 'herbs';
   if (cat === 'extract') return 'essence';
   if (cat === 'functional') return 'specialty';
   
   // Premium category classification
   if (cat === 'premium') {
-    if (name.includes('jasmine') || name.includes('flower')) return 'flowers';
+    if (name.includes('jasmine') || name.includes('flower')) return 'floral';
     if (name.includes('saffron')) return 'spice';
     return 'specialty';
   }
@@ -75,7 +75,7 @@ const INGREDIENT_CATEGORIES: Array<{
   emoji: string;
   color: string;
 }> = [
-  { id: 'flowers', label: 'Flowers', description: 'Petals & blossoms', emoji: '🌸', color: 'from-pink-400 to-pink-600' },
+  { id: 'floral', label: 'Flowers', description: 'Petals & blossoms', emoji: '🌸', color: 'from-pink-400 to-pink-600' },
   { id: 'herbs', label: 'Herbs', description: 'Leafy & restorative', emoji: '🌿', color: 'from-green-400 to-green-600' },
   { id: 'fruit', label: 'Fruits', description: 'Dried fruit & peel', emoji: '🍊', color: 'from-orange-400 to-orange-600' },
   { id: 'spice', label: 'Spices', description: 'Warm & bold', emoji: '🔥', color: 'from-red-400 to-red-600' },

@@ -354,7 +354,7 @@ export default function AdminOrdersPage() {
                 </label>
                 <select
                   value={refundReason}
-                  onChange={(e) => setRefundReason(e.target.value)}
+                  onChange={(e) => setRefundReason(e.target.value as 'duplicate' | 'fraudulent' | 'requested_by_customer')}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                 >
                   <option value="">Select reason...</option>
@@ -384,7 +384,7 @@ export default function AdminOrdersPage() {
                   setShowRefundModal(false);
                   setSelectedOrder(null);
                   setRefundAmount('');
-                  setRefundReason('');
+                  setRefundReason('requested_by_customer');
                   setRefundNotes('');
                 }}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"

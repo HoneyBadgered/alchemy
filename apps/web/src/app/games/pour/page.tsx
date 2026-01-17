@@ -14,7 +14,7 @@ interface GameStats {
 
 export default function PourTeaGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gameLoopRef = useRef<number>();
+  const gameLoopRef = useRef<number | undefined>(undefined);
   const pouringRef = useRef<boolean>(false);
   const fillLevelRef = useRef<number>(0);
   const pourSpeedRef = useRef<number>(0.5);

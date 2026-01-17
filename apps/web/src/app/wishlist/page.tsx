@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
-import { catalogApi, WishlistResponse } from '@/lib/catalog-api';
+import { catalogApi } from '@/lib/catalog-api';
+import { WishlistResponse } from '@alchemy/types';
 import { getStockStatus, calculateDiscountPercent } from '@/lib/stock-utils';
 import { useCart } from '@/contexts/CartContext';
 import BottomNavigation from '@/components/BottomNavigation';
@@ -115,8 +116,8 @@ export default function WishlistPage() {
 
         {data && data.items.length > 0 && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {data.order_items.map((item) => {
-              const product = item.products;
+            {data.items.map((item) => {
+              const product = item.product;
               const stockStatus = getStockStatus(
                 product.stock,
                 product.lowStockThreshold || 5,

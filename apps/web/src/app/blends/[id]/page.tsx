@@ -43,7 +43,7 @@ interface BlendDetails {
 export default function BlendDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { updateCartItemQuantity, removeFromCart } = useCart();
+  const { updateCartItem, removeFromCart } = useCart();
   const [blend, setBlend] = useState<BlendDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,7 +82,7 @@ export default function BlendDetailPage() {
 
     setUpdating(true);
     try {
-      await updateCartItemQuantity(blend.productId, newQuantity, blend.variantId || undefined);
+      await updateCartItem(blend.productId, newQuantity);
       setBlend({ ...blend, quantity: newQuantity });
     } catch (err) {
       console.error('Failed to update quantity:', err);

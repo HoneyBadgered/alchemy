@@ -40,7 +40,7 @@ const mockAddIns = [
   {
     id: 'rose-petals',
     name: 'Rose Petals',
-    category: 'floral' as const,
+    category: 'flowers' as const,
     costPerOz: 8,
     description: 'Fragrant rose petals',
     shortTags: ['Floral'],

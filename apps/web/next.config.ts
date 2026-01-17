@@ -15,10 +15,6 @@ const nextConfig: NextConfig = {
           },
           forceHTTPSRedirect: [true, securityConfig.hsts],
           referrerPolicy: securityConfig.referrerPolicy,
-          xFrameOptions: securityConfig.xFrameOptions,
-          xContentTypeOptions: securityConfig.xContentTypeOptions,
-          xXSSProtection: securityConfig.xXSSProtection,
-          permissionsPolicy: securityConfig.permissionsPolicy,
         }),
       },
     ];

@@ -143,9 +143,9 @@ function OrderHistoryContent() {
       // If 401, try refreshing token and retry once
       if (response.status === 401) {
         console.log('Receipt fetch unauthorized, refreshing token...');
-        const refreshed = await refreshAuth();
-        if (refreshed) {
-          const newToken = useAuthStore.getState().accessToken;
+        await refreshAuth();
+        const newToken = useAuthStore.getState().accessToken;
+        if (newToken) {
           response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${orderId}/receipt`, {
             headers: {
               'Authorization': `Bearer ${newToken}`,

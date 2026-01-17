@@ -21,7 +21,7 @@ const flavorNotes = [
   { id: 'earthy', label: 'Earthy', icon: '🌿', description: 'Moss, forest, mushroom' },
   { id: 'spicy', label: 'Spicy', icon: '🌶️', description: 'Cinnamon, ginger, pepper' },
   { id: 'nutty', label: 'Nutty', icon: '🥜', description: 'Almond, hazelnut, walnut' },
-  { id: 'herbal', label: 'Herbal', icon: '🌱', description: 'Mint, sage, chamomile' },
+  { id: 'herbs', label: 'Herbal', icon: '🌱', description: 'Mint, sage, chamomile' },
   { id: 'sweet', label: 'Sweet', icon: '🍯', description: 'Honey, caramel, vanilla' },
   { id: 'smoky', label: 'Smoky', icon: '🔥', description: 'Campfire, charred, woody' },
   { id: 'bitter', label: 'Bitter', icon: '🍫', description: 'Dark chocolate, coffee' },

@@ -37,7 +37,7 @@ const getCategoryClasses = (category: IngredientCategory) => {
       description: 'text-emerald-700',
       closeBtn: 'bg-emerald-200 hover:bg-emerald-300 text-emerald-900',
     },
-    floral: {
+    flowers: {
       header: 'bg-gradient-to-r from-pink-100 to-pink-200',
       title: 'text-pink-900',
       description: 'text-pink-700',
@@ -49,13 +49,7 @@ const getCategoryClasses = (category: IngredientCategory) => {
       description: 'text-orange-700',
       closeBtn: 'bg-orange-200 hover:bg-orange-300 text-orange-900',
     },
-    herbal: {
-      header: 'bg-gradient-to-r from-green-100 to-green-200',
-      title: 'text-green-900',
-      description: 'text-green-700',
-      closeBtn: 'bg-green-200 hover:bg-green-300 text-green-900',
-    },
-    herb: {
+    herbs: {
       header: 'bg-gradient-to-r from-green-100 to-green-200',
       title: 'text-green-900',
       description: 'text-green-700',
@@ -67,23 +61,23 @@ const getCategoryClasses = (category: IngredientCategory) => {
       description: 'text-amber-700',
       closeBtn: 'bg-amber-200 hover:bg-amber-300 text-amber-900',
     },
-    special: {
+    sweet: {
+      header: 'bg-gradient-to-r from-yellow-100 to-yellow-200',
+      title: 'text-yellow-900',
+      description: 'text-yellow-700',
+      closeBtn: 'bg-yellow-200 hover:bg-yellow-300 text-yellow-900',
+    },
+    essence: {
       header: 'bg-gradient-to-r from-purple-100 to-purple-200',
       title: 'text-purple-900',
       description: 'text-purple-700',
       closeBtn: 'bg-purple-200 hover:bg-purple-300 text-purple-900',
     },
-    tea: {
-      header: 'bg-gradient-to-r from-emerald-100 to-emerald-200',
-      title: 'text-emerald-900',
-      description: 'text-emerald-700',
-      closeBtn: 'bg-emerald-200 hover:bg-emerald-300 text-emerald-900',
-    },
-    sweetener: {
-      header: 'bg-gradient-to-r from-yellow-100 to-yellow-200',
-      title: 'text-yellow-900',
-      description: 'text-yellow-700',
-      closeBtn: 'bg-yellow-200 hover:bg-yellow-300 text-yellow-900',
+    specialty: {
+      header: 'bg-gradient-to-r from-purple-100 to-purple-200',
+      title: 'text-purple-900',
+      description: 'text-purple-700',
+      closeBtn: 'bg-purple-200 hover:bg-purple-300 text-purple-900',
     },
   };
   return classes[category];

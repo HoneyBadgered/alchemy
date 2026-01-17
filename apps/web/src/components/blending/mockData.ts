@@ -96,7 +96,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
   {
     id: 'rose-petals',
     name: 'Rose Petals',
-    category: 'floral',
+    category: 'flowers',
     description: 'Delicate and romantic floral notes',
     shortTags: ['Floral', 'Sweet'],
     emoji: '🌹',
@@ -109,7 +109,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
   {
     id: 'lavender-buds',
     name: 'Lavender Buds',
-    category: 'floral',
+    category: 'flowers',
     description: 'Calming and aromatic purple flowers',
     shortTags: ['Floral', 'Calming'],
     emoji: '💜',
@@ -122,7 +122,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
   {
     id: 'jasmine-flowers',
     name: 'Jasmine Flowers',
-    category: 'floral',
+    category: 'flowers',
     description: 'Sweet and intensely fragrant',
     shortTags: ['Floral', 'Intense'],
     emoji: '🤍',
@@ -232,7 +232,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
   {
     id: 'peppermint-leaves',
     name: 'Peppermint Leaves',
-    category: 'herbal',
+    category: 'herbs',
     description: 'Cool and refreshing mint',
     shortTags: ['Minty', 'Cool'],
     emoji: '🌿',
@@ -245,7 +245,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
   {
     id: 'chamomile-flowers',
     name: 'Chamomile Flowers',
-    category: 'herbal',
+    category: 'herbs',
     description: 'Soothing and calming',
     shortTags: ['Calming', 'Gentle'],
     emoji: '🌼',
@@ -260,7 +260,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
   {
     id: 'butterfly-pea-flower',
     name: 'Butterfly Pea Flower',
-    category: 'special',
+    category: 'specialty',
     description: 'Color-changing magical flower',
     shortTags: ['Magical', 'Color-Changing'],
     badges: ['Premium'],
@@ -274,7 +274,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
   {
     id: 'matcha-powder',
     name: 'Matcha Powder',
-    category: 'special',
+    category: 'specialty',
     description: 'Concentrated green tea energy',
     shortTags: ['Energizing', 'Earthy'],
     badges: ['Premium'],
@@ -288,7 +288,7 @@ export const MOCK_ADDINS: BlendingIngredient[] = [
   {
     id: 'edible-gold-flakes',
     name: 'Edible Gold Flakes',
-    category: 'special',
+    category: 'specialty',
     description: 'Luxurious golden shimmer',
     shortTags: ['Luxurious', 'Decorative'],
     badges: ['Ultra'],
@@ -322,7 +322,7 @@ export const getAddInsByTab = (tab: 'addIns' | 'botanicals' | 'premium'): Blendi
   switch (tab) {
     case 'addIns':
       return MOCK_ADDINS.filter(ing => 
-        ['fruit', 'spice', 'herbal'].includes(ing.category) && ing.tier === 'standard'
+        ['fruit', 'spice', 'herbs'].includes(ing.category) && ing.tier === 'standard'
       );
     case 'botanicals':
       return MOCK_ADDINS.filter(ing => 
@@ -330,7 +330,7 @@ export const getAddInsByTab = (tab: 'addIns' | 'botanicals' | 'premium'): Blendi
       );
     case 'premium':
       return MOCK_ADDINS.filter(ing => 
-        ing.tier === 'premium' || ing.category === 'special'
+        ing.tier === 'premium' || ing.category === 'specialty'
       );
     default:
       return [];
