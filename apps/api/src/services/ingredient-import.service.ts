@@ -37,8 +37,6 @@ interface IngredientRow {
   emoji?: string;
   tags?: string;
   badges?: string;
-  baseAmount?: string;
-  incrementAmount?: string;
 }
 
 export class IngredientImportService {
@@ -73,8 +71,6 @@ export class IngredientImportService {
       'emoji',
       'tags',
       'badges',
-      'baseAmount',
-      'incrementAmount',
     ];
 
     const exampleRow = [
@@ -104,8 +100,6 @@ export class IngredientImportService {
       '🌼',
       'relaxing,bedtime,caffeine-free',
       'organic,premium',
-      '',
-      '',
     ];
 
     return `${headers.join(',')}\n${exampleRow.join(',')}\n`;
@@ -170,12 +164,6 @@ export class IngredientImportService {
         }
         if (row.minimumStockLevel && isNaN(Number(row.minimumStockLevel))) {
           errors.push(`Row ${rowNum}: minimumStockLevel must be a number`);
-        }
-        if (row.baseAmount && isNaN(Number(row.baseAmount))) {
-          errors.push(`Row ${rowNum}: baseAmount must be a number`);
-        }
-        if (row.incrementAmount && isNaN(Number(row.incrementAmount))) {
-          errors.push(`Row ${rowNum}: incrementAmount must be a number`);
         }
 
         // Validate status
@@ -281,8 +269,6 @@ export class IngredientImportService {
             emoji: row.emoji || null,
             tags,
             badges,
-            baseAmount: row.baseAmount ? Number(row.baseAmount) : null,
-            incrementAmount: row.incrementAmount ? Number(row.incrementAmount) : null,
           };
 
           // Check if ingredient exists by name
