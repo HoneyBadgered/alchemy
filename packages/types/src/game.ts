@@ -100,6 +100,13 @@ export interface PlayerCosmetics {
 export type IngredientCategory = 'base' | 'flowers' | 'herbs' | 'fruit' | 'spice' | 'sweet' | 'essence' | 'specialty';
 
 /**
+ * Tea type classification
+ * Structural classification for filtering and clarity
+ * Distinguishes true teas from herbal infusions (tisanes)
+ */
+export type TeaType = 'black' | 'green' | 'oolong' | 'white' | 'tisane';
+
+/**
  * Ingredient role types
  */
 export type IngredientRole = 'base' | 'addIn' | 'either';

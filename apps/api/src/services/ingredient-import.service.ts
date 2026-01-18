@@ -7,13 +7,34 @@
 import { parse } from 'csv-parse/sync';
 import { prisma } from '../utils/prisma';
 import type { Prisma } from '@prisma/client';
+import type { IngredientCategory, TeaType } from '@alchemy/types';
 
 const GRAMS_PER_OUNCE = 28.3495;
+
+const VALID_CATEGORIES: IngredientCategory[] = [
+  'base',
+  'flowers',
+  'herbs',
+  'fruit',
+  'spice',
+  'sweet',
+  'essence',
+  'specialty',
+];
+
+const VALID_TEA_TYPES: TeaType[] = [
+  'black',
+  'green',
+  'oolong',
+  'white',
+  'tisane',
+];
 
 interface IngredientRow {
   name: string;
   role?: string;
   category: string;
+  teaType?: string;
   descriptionShort?: string;
   descriptionLong?: string;
   image?: string;
@@ -48,6 +69,7 @@ export class IngredientImportService {
       'name',
       'role',
       'category',
+      'teaType',
       'descriptionShort',
       'descriptionLong',
       'image',
@@ -76,7 +98,8 @@ export class IngredientImportService {
     const exampleRow = [
       'Chamomile Flowers',
       'addIn',
-      'Herbal',
+      'flowers',
+      'tisane',
       'Calming floral tea',
       'Premium Egyptian chamomile flowers with sweet apple notes',
       'https://example.com/chamomile.jpg',
@@ -133,6 +156,16 @@ export class IngredientImportService {
         }
         if (!row.category || row.category.trim() === '') {
           errors.push(`Row ${rowNum}: Category is required`);
+        }
+
+        // Validate category
+        if (row.category && !VALID_CATEGORIES.includes(row.category as IngredientCategory)) {
+          errors.push(`Row ${rowNum}: Category must be one of: ${VALID_CATEGORIES.join(', ')}`);
+        }
+
+        // Validate teaType (optional)
+        if (row.teaType && row.teaType.trim() !== '' && !VALID_TEA_TYPES.includes(row.teaType as TeaType)) {
+          errors.push(`Row ${rowNum}: teaType must be one of: ${VALID_TEA_TYPES.join(', ')}`);
         }
 
         // Validate role
@@ -245,6 +278,7 @@ export class IngredientImportService {
             name: row.name,
             role: row.role || 'addIn',
             category: row.category,
+            teaType: row.teaType && row.teaType.trim() !== '' ? row.teaType : null,
             descriptionShort: row.descriptionShort || null,
             descriptionLong: row.descriptionLong || null,
             image: row.image || null,

@@ -5,7 +5,8 @@
  */
 
 import React, { createContext, useContext, useEffect, useCallback } from 'react';
-import { useAuthStore, User } from '@/store/authStore';
+import { useAuthStore } from '@/store/authStore';
+import type { User } from '@alchemy/types';
 import { authApi, ApiError } from '@/lib/auth-api';
 import { useRouter } from 'next/navigation';
 

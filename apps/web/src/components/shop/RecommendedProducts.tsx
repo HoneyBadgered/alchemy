@@ -8,7 +8,8 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
-import { catalogApi, RecommendedProduct } from '@/lib/catalog-api';
+import { catalogApi } from '@/lib/catalog-api';
+import type { RecommendedProduct } from '@alchemy/types';
 import { getStockStatus, calculateDiscountPercent } from '@/lib/stock-utils';
 import { StarRating } from './StarRating';
 import { StockStatusBadge } from './StockStatusBadge';
@@ -77,7 +78,7 @@ export function RecommendedProducts({
       <h2 className="text-2xl font-bold text-gray-900 mb-6">{title}</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {data.products.map((product) => {
-          const stockStatus = getStockStatus(product.stock, product.lowStockThreshold || 5, true);
+          const stockStatus = getStockStatus(product.stock, 5, true);
           const discountPercent = calculateDiscountPercent(
             product.compareAtPrice || 0,
             product.price

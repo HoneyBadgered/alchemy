@@ -22,6 +22,7 @@ interface Ingredient {
   name: string;
   role: string;
   category: string;
+  teaType?: string;
   descriptionShort?: string;
   descriptionLong?: string;
   image?: string;
@@ -927,6 +928,23 @@ function IngredientModal({
                   </select>
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tea Type</label>
+                  <select
+                    value={formData.teaType || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, teaType: e.target.value || undefined }))}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="">None</option>
+                    <option value="black">Black</option>
+                    <option value="green">Green</option>
+                    <option value="oolong">Oolong</option>
+                    <option value="white">White</option>
+                    <option value="tisane">Tisane (Herbal)</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Emoji</label>
                   <input
                     type="text"
@@ -935,6 +953,18 @@ function IngredientModal({
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
                     maxLength={4}
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <select
+                    value={formData.status || 'active'}
+                    onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="active">Active</option>
+                    <option value="archived">Archived</option>
+                    <option value="outOfStock">Out of Stock</option>
+                  </select>
                 </div>
               </div>
               <div>

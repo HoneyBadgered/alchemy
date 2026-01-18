@@ -8,7 +8,8 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
-import { catalogApi, Review, ReviewsResponse } from '@/lib/catalog-api';
+import { catalogApi } from '@/lib/catalog-api';
+import type { Review, ReviewsResponse } from '@alchemy/types';
 import { StarRating } from './StarRating';
 
 interface ProductReviewsProps {

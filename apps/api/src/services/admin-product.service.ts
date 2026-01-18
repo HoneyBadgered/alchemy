@@ -24,6 +24,7 @@ export interface CreateProductInput {
   imageUrl?: string;
   images?: string[];
   category?: string;
+  teaType?: string;
   tags?: string[];
   stock?: number;
   isActive?: boolean;
@@ -36,6 +37,7 @@ export interface UpdateProductInput {
   imageUrl?: string;
   images?: string[];
   category?: string;
+  teaType?: string;
   tags?: string[];
   stock?: number;
   isActive?: boolean;

@@ -15,6 +15,7 @@ export interface ProductImportRow {
   price: string;
   stock?: string;
   category?: string;
+  teaType?: string;
   imageUrl?: string;
   images?: string;
   tags?: string;
@@ -130,6 +131,7 @@ export class ProductImportService {
       price: price,
       stock: stock,
       category: row.category && row.category.trim() !== '' ? row.category.trim() : null,
+      teaType: row.teaType && row.teaType.trim() !== '' ? row.teaType.trim() : null,
       imageUrl: row.imageUrl && row.imageUrl.trim() !== '' ? row.imageUrl.trim() : null,
       images: imagesArray,
       tags: tagsArray,

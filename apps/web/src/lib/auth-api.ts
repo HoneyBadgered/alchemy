@@ -3,7 +3,7 @@
  */
 
 import { apiClient, ApiError } from './api-client';
-import { User } from '@/store/authStore';
+import type { User } from '@alchemy/types';
 
 export interface RegisterInput {
   email: string;

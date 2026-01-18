@@ -17,6 +17,7 @@ interface Product {
   price: number;
   stock: number;
   category: string | null;
+  teaType: string | null;
   tags: string[];
   imageUrl: string | null;
   images: string[];
@@ -47,6 +48,7 @@ export default function EditProductPage({
     price: '',
     stock: '',
     category: '',
+    teaType: '',
     imageUrl: '',
     images: '',
     tags: '',
@@ -82,6 +84,7 @@ export default function EditProductPage({
         price: data.price.toString(),
         stock: data.stock.toString(),
         category: data.category || '',
+        teaType: data.teaType || '',
         imageUrl: data.imageUrl || '',
         images: (data.images || []).join('\n'),
         tags: (data.tags || []).join(', '),
@@ -124,6 +127,7 @@ export default function EditProductPage({
           price: parseFloat(formData.price),
           stock: parseInt(formData.stock),
           category: formData.category || undefined,
+          teaType: formData.teaType || undefined,
           imageUrl: formData.imageUrl || undefined,
           images: imagesArray.length > 0 ? imagesArray : undefined,
           tags: tagsArray.length > 0 ? tagsArray : undefined,
@@ -286,6 +290,29 @@ export default function EditProductPage({
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             placeholder="e.g., Coffee Blends, Tea Blends, Accessories"
           />
+        </div>
+
+        {/* Tea Type */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Tea Type
+          </label>
+          <select
+            name="teaType"
+            value={formData.teaType}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          >
+            <option value="">None</option>
+            <option value="black">Black</option>
+            <option value="green">Green</option>
+            <option value="oolong">Oolong</option>
+            <option value="white">White</option>
+            <option value="tisane">Tisane (Herbal)</option>
+          </select>
+          <p className="text-sm text-gray-500 mt-1">
+            Structural classification for filtering true teas vs herbal infusions
+          </p>
         </div>
 
         {/* Main Image */}
