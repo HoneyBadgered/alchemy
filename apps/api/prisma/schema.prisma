@@ -138,6 +138,7 @@ model ingredients {
   name                                                                    String
   role                                                                    String                @default("addIn")
   category                                                                String
+  teaType                                                                 String?               // 'black' | 'green' | 'oolong' | 'white' | 'tisane'
   descriptionShort                                                        String?
   descriptionLong                                                         String?
   image                                                                   String?
@@ -389,6 +390,7 @@ model products {
   price                                                          Decimal             @db.Decimal(10, 2)
   imageUrl                                                       String?
   category                                                       String?
+  teaType                                                        String?             // 'black' | 'green' | 'oolong' | 'white' | 'tisane'
   zones                                                          String[]            @default([])
   isActive                                                       Boolean             @default(true)
   stock                                                          Int                 @default(0)
