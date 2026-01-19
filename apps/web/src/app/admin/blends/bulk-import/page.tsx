@@ -8,7 +8,8 @@ interface BulkBlendData {
   name: string;
   description: string;
   price: number;
-  baseTea: string;
+  baseTeaName?: string;
+  baseTeaId?: string;
   baseAmount: number;
   additions: Array<{
     ingredientId?: string;
@@ -106,8 +107,28 @@ export default function BulkBlendImportPage() {
     });
   };
 
-  const resolveIngredientIds = (blend: BulkBlendData): { blend: BulkBlendData; errors: string[] } => {
+  const resolveIngredientIds = (blend: BulkBlendData): { blend: any; errors: string[] } => {
     const errors: string[] = [];
+    
+    // Resolve base tea name to ID
+    let baseTeaId = blend.baseTeaId;
+    if (!baseTeaId && blend.baseTeaName) {
+      const baseIngredient = ingredients.find(
+        ing => ing.name.toLowerCase() === blend.baseTeaName!.toLowerCase()
+      );
+      
+      if (baseIngredient) {
+        baseTeaId = baseIngredient.id;
+      } else {
+        errors.push(`Base tea ingredient not found: "${blend.baseTeaName}"`);
+      }
+    }
+    
+    if (!baseTeaId) {
+      errors.push('Base tea missing: provide either baseTeaId or baseTeaName');
+    }
+    
+    // Resolve addition names to IDs
     const resolvedAdditions = blend.additions.map(addition => {
       // If ingredientId is already provided, use it
       if (addition.ingredientId) {
@@ -137,11 +158,19 @@ export default function BulkBlendImportPage() {
 
     return {
       blend: {
-        ...blend,
-        additions: resolvedAdditions.filter(a => a.ingredientId) as Array<{
-          ingredientId: string;
-          amount: number;
-        }>,
+        name: blend.name,
+        description: blend.description,
+        price: blend.price,
+        baseTeaId: baseTeaId,
+        addIns: resolvedAdditions.filter(a => a.ingredientId).map(a => ({
+          ingredientId: a.ingredientId!,
+          quantity: a.amount,
+        })),
+        zones: blend.zones,
+        isActive: blend.isActive,
+        caffeineLevel: blend.caffeineLevel,
+        flavorNotes: blend.flavorNotes,
+        occasion: blend.occasion,
       },
       errors,
     };
@@ -224,7 +253,7 @@ export default function BulkBlendImportPage() {
     "name": "Morning Clarity",
     "description": "A bright green tea blend to start your day",
     "price": 18.99,
-    "baseTea": "green",
+    "baseTeaName": "Sencha",
     "baseAmount": 50,
     "additions": [
       { "ingredientName": "Peppermint", "amount": 10 },
@@ -238,9 +267,9 @@ export default function BulkBlendImportPage() {
   }
 ]`;
 
-  const exampleCSV = `name,description,price,baseTea,baseAmount,additions,zones,isActive,caffeineLevel,flavorNotes,occasion
-Morning Clarity,A bright green tea blend,18.99,green,50,Peppermint:10;Lemon Verbena:5,The East Pavilion,true,medium,bright;refreshing;citrus,morning;energizing
-Evening Calm,Relaxing herbal blend,16.99,tisane,60,Chamomile:15;Lavender:10,The Observatory,true,none,calming;floral;soothing,evening;relaxing`;
+  const exampleCSV = `name,description,price,baseTeaName,baseAmount,additions,zones,isActive,caffeineLevel,flavorNotes,occasion
+Morning Clarity,A bright green tea blend,18.99,Sencha,50,Peppermint:10;Lemon Verbena:5,The East Pavilion,true,medium,bright;refreshing;citrus,morning;energizing
+Evening Calm,Relaxing herbal blend,16.99,Chamomile,60,Lavender:15;Rose petals:10,The Observatory,true,none,calming;floral;soothing,evening;relaxing`;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -387,26 +416,119 @@ Evening Calm,Relaxing herbal blend,16.99,tisane,60,Chamomile:15;Lavender:10,The 
             </div>
           )}
 
-          {/* Format Guide */}
+          {/* Field Reference */}
           <div className="mt-8 p-6 bg-blue-50 rounded-lg">
-            <h3 className="font-semibold text-gray-900 mb-3">Field Guide</h3>
-            <ul className="space-y-2 text-sm text-gray-700">
-              <li><strong>name:</strong> Blend name (required)</li>
-              <li><strong>description:</strong> Blend description (required)</li>
-              <li><strong>price:</strong> Price in dollars (required)</li>
-              <li><strong>baseTea:</strong> Base tea type: black, green, white, oolong, tisane (required)</li>
-              <li><strong>baseAmount:</strong> Base tea amount in grams (required)</li>
-              <li><strong>additions:</strong> Array of ingredient objects with <code>ingredientName</code> (or <code>ingredientId</code>) and <code>amount</code></li>
-              <li><strong>zones:</strong> Array of zone names (optional)</li>
-              <li><strong>isActive:</strong> Published status, true/false (optional, default: false)</li>
-              <li><strong>caffeineLevel:</strong> none, low, medium, or high (optional)</li>
-              <li><strong>flavorNotes:</strong> Array of flavor descriptors (optional)</li>
-              <li><strong>occasion:</strong> Array of occasions/times (optional)</li>
-            </ul>
+            <h3 className="font-semibold text-gray-900 mb-3">Field Reference (CSV & JSON)</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-blue-200">
+                    <th className="text-left py-2 px-3 font-semibold text-gray-900">Field</th>
+                    <th className="text-left py-2 px-3 font-semibold text-gray-900">Required</th>
+                    <th className="text-left py-2 px-3 font-semibold text-gray-900">Type</th>
+                    <th className="text-left py-2 px-3 font-semibold text-gray-900">Description</th>
+                  </tr>
+                </thead>
+                <tbody className="text-gray-700">
+                  <tr className="border-b border-blue-100">
+                    <td className="py-2 px-3 font-mono text-xs">name</td>
+                    <td className="py-2 px-3">✓</td>
+                    <td className="py-2 px-3">string</td>
+                    <td className="py-2 px-3">Blend name</td>
+                  </tr>
+                  <tr className="border-b border-blue-100">
+                    <td className="py-2 px-3 font-mono text-xs">description</td>
+                    <td className="py-2 px-3">✓</td>
+                    <td className="py-2 px-3">string</td>
+                    <td className="py-2 px-3">Blend description</td>
+                  </tr>
+                  <tr className="border-b border-blue-100">
+                    <td className="py-2 px-3 font-mono text-xs">price</td>
+                    <td className="py-2 px-3">✓</td>
+                    <td className="py-2 px-3">number</td>
+                    <td className="py-2 px-3">Price in dollars (e.g., 18.99)</td>
+                  </tr>
+                  <tr className="border-b border-blue-100">
+                    <td className="py-2 px-3 font-mono text-xs">baseTeaName</td>
+                    <td className="py-2 px-3">✓</td>
+                    <td className="py-2 px-3">string</td>
+                    <td className="py-2 px-3">
+                      Name of base ingredient (e.g., <code className="bg-white px-1 rounded">Assam</code>,{' '}
+                      <code className="bg-white px-1 rounded">Sencha</code>,{' '}
+                      <code className="bg-white px-1 rounded">Rooibos</code>,{' '}
+                      <code className="bg-white px-1 rounded">Chamomile</code>)
+                    </td>
+                  </tr>
+                  <tr className="border-b border-blue-100">
+                    <td className="py-2 px-3 font-mono text-xs">baseAmount</td>
+                    <td className="py-2 px-3">✓</td>
+                    <td className="py-2 px-3">number</td>
+                    <td className="py-2 px-3">Base tea amount in grams</td>
+                  </tr>
+                  <tr className="border-b border-blue-100">
+                    <td className="py-2 px-3 font-mono text-xs">additions</td>
+                    <td className="py-2 px-3"></td>
+                    <td className="py-2 px-3">array</td>
+                    <td className="py-2 px-3">
+                      Objects with <code className="bg-white px-1 rounded">ingredientName</code> (or <code className="bg-white px-1 rounded">ingredientId</code>) and <code className="bg-white px-1 rounded">amount</code>
+                      <br />
+                      <span className="text-xs text-gray-600">CSV: name:amount;name:amount</span>
+                    </td>
+                  </tr>
+                  <tr className="border-b border-blue-100">
+                    <td className="py-2 px-3 font-mono text-xs">zones</td>
+                    <td className="py-2 px-3"></td>
+                    <td className="py-2 px-3">array</td>
+                    <td className="py-2 px-3">
+                      Zone names
+                      <br />
+                      <span className="text-xs text-gray-600">CSV: zone1;zone2</span>
+                    </td>
+                  </tr>
+                  <tr className="border-b border-blue-100">
+                    <td className="py-2 px-3 font-mono text-xs">isActive</td>
+                    <td className="py-2 px-3"></td>
+                    <td className="py-2 px-3">boolean</td>
+                    <td className="py-2 px-3">Published status (default: false)</td>
+                  </tr>
+                  <tr className="border-b border-blue-100 bg-blue-50">
+                    <td className="py-2 px-3 font-mono text-xs">caffeineLevel</td>
+                    <td className="py-2 px-3"></td>
+                    <td className="py-2 px-3">enum</td>
+                    <td className="py-2 px-3">
+                      <code className="bg-white px-1 rounded">none</code>,{' '}
+                      <code className="bg-white px-1 rounded">low</code>,{' '}
+                      <code className="bg-white px-1 rounded">medium</code>,{' '}
+                      <code className="bg-white px-1 rounded">high</code>
+                    </td>
+                  </tr>
+                  <tr className="border-b border-blue-100">
+                    <td className="py-2 px-3 font-mono text-xs">flavorNotes</td>
+                    <td className="py-2 px-3"></td>
+                    <td className="py-2 px-3">array</td>
+                    <td className="py-2 px-3">
+                      Flavor descriptors
+                      <br />
+                      <span className="text-xs text-gray-600">CSV: bright;refreshing;citrus</span>
+                    </td>
+                  </tr>
+                  <tr className="border-b border-blue-100">
+                    <td className="py-2 px-3 font-mono text-xs">occasion</td>
+                    <td className="py-2 px-3"></td>
+                    <td className="py-2 px-3">array</td>
+                    <td className="py-2 px-3">
+                      Occasions/times
+                      <br />
+                      <span className="text-xs text-gray-600">CSV: morning;energizing</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
             <div className="mt-4 p-3 bg-blue-100 rounded">
               <p className="text-sm text-blue-900">
-                <strong>💡 Tip:</strong> You can use ingredient names (e.g., "Peppermint") instead of IDs. 
-                The system will automatically look up and match them. Names are case-insensitive.
+                <strong>💡 Tip:</strong> You can use ingredient names for both <code className="bg-white px-1 rounded">baseTeaName</code> and additions 
+                (e.g., "Assam", "Peppermint") instead of IDs. The system will automatically look up and match them. Names are case-insensitive.
               </p>
             </div>
           </div>

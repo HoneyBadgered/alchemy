@@ -10,6 +10,7 @@ import { FileUploadService } from '../services/file-upload.service';
 export async function fileUploadRoutes(fastify: FastifyInstance) {
   const productUploadService = new FileUploadService('products');
   const ingredientUploadService = new FileUploadService('ingredients');
+  const zoneUploadService = new FileUploadService('zones');
 
   // ===== PRODUCT IMAGE UPLOADS =====
   
@@ -121,6 +122,57 @@ export async function fileUploadRoutes(fastify: FastifyInstance) {
     try {
       const { filename } = request.params as { filename: string };
       await ingredientUploadService.deleteFile(filename);
+      return reply.send({ success: true });
+    } catch (error) {
+      return reply.status(500).send({ message: (error as Error).message });
+    }
+  });
+
+  // ===== ZONE IMAGE UPLOADS =====
+  
+  // POST /upload/zone-hero-image - Upload a zone hero image
+  fastify.post('/upload/zone-hero-image', {
+    preHandler: adminMiddleware,
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const data = await request.file();
+      
+      if (!data) {
+        return reply.status(400).send({ message: 'No file uploaded' });
+      }
+
+      const result = await zoneUploadService.uploadFile(data);
+      return reply.send(result);
+    } catch (error) {
+      return reply.status(400).send({ message: (error as Error).message });
+    }
+  });
+
+  // POST /upload/zone-button-image - Upload a zone button image
+  fastify.post('/upload/zone-button-image', {
+    preHandler: adminMiddleware,
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const data = await request.file();
+      
+      if (!data) {
+        return reply.status(400).send({ message: 'No file uploaded' });
+      }
+
+      const result = await zoneUploadService.uploadFile(data);
+      return reply.send(result);
+    } catch (error) {
+      return reply.status(400).send({ message: (error as Error).message });
+    }
+  });
+
+  // DELETE /upload/zone-image/:filename - Delete a zone image
+  fastify.delete('/upload/zone-image/:filename', {
+    preHandler: adminMiddleware,
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const { filename } = request.params as { filename: string };
+      await zoneUploadService.deleteFile(filename);
       return reply.send({ success: true });
     } catch (error) {
       return reply.status(500).send({ message: (error as Error).message });

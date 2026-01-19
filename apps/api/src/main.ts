@@ -51,6 +51,7 @@ import { fileUploadRoutes } from './routes/file-upload.routes';
 import { errorHandlerPlugin } from './plugins/error-handler';
 import { WebhookRetryWorker } from './services/webhook-retry.service';
 import { adminWebhookRoutes } from './routes/admin-webhook.routes';
+import { zoneRoutes } from './routes/zone.routes';
 
 const fastify = Fastify({
   logger: config.isDevelopment,
@@ -146,6 +147,7 @@ fastify.register(purchaseHistoryRoutes);
 fastify.register(adminBlogRoutes);
 fastify.register(blogRoutes);
 fastify.register(searchRoutes);
+fastify.register(zoneRoutes);
 fastify.register((instance) => adminWebhookRoutes(instance, webhookRetryWorker));
 
 // Health check endpoint

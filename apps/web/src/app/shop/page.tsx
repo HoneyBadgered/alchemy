@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { Header } from '@/components/layout';
@@ -52,43 +52,33 @@ interface ProductsResponse {
   };
 }
 
-type Zone = 'The Hearthhouse' | 'The Conservatory' | 'The East Pavilion' | 'The Observatory' | 'The Liminal Tent';
-
-const ZONES: { name: Zone; description: string; theme: string; gradient: string }[] = [
-  {
-    name: 'The Hearthhouse',
-    description: 'Dark and smoky',
-    theme: 'Warmth and comfort',
-    gradient: 'from-amber-900 via-orange-800 to-red-900',
-  },
-  {
-    name: 'The Conservatory',
-    description: 'Light, floral, restorative',
-    theme: 'Renewal and vitality',
-    gradient: 'from-emerald-600 via-green-500 to-teal-600',
-  },
-  {
-    name: 'The East Pavilion',
-    description: 'Mornings, greens, clarity',
-    theme: 'Focus and awakening',
-    gradient: 'from-cyan-600 via-blue-500 to-indigo-600',
-  },
-  {
-    name: 'The Observatory',
-    description: 'Night, quiet, contemplation',
-    theme: 'Rest and reflection',
-    gradient: 'from-indigo-900 via-purple-800 to-violet-900',
-  },
-  {
-    name: 'The Liminal Tent',
-    description: 'Seasonal and limited finds',
-    theme: 'Rare and ephemeral',
-    gradient: 'from-pink-600 via-rose-500 to-fuchsia-600',
-  },
-];
+interface Zone {
+  id: string;
+  name: string;
+  slug: string;
+  tagline: string;
+  theme: string;
+  gradient: string;
+  bgGradient: string;
+  accentColor: string;
+  heroImageUrl: string | null;
+  buttonImageUrl: string | null;
+  defaultFilters: {
+    flavorProfile: string[];
+    caffeineLevel: string[];
+  };
+  subTabs: Array<{
+    id: string;
+    label: string;
+    bias: string[] | null;
+  }>;
+  sortOrder: number;
+  isActive: boolean;
+}
 
 export default function ShopPage() {
-  const [selectedZone, setSelectedZone] = useState<Zone>('The Conservatory');
+  const [zones, setZones] = useState<Zone[]>([]);
+  const [selectedZone, setSelectedZone] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const { addToCart, itemCount } = useCart();
   const [addingToCart, setAddingToCart] = useState<Set<string>>(new Set());
@@ -99,6 +89,26 @@ export default function ShopPage() {
     price: number;
     quantity: number;
   } | null>(null);
+
+  // Fetch zones from API
+  useEffect(() => {
+    const fetchZones = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/zones');
+        if (response.ok) {
+          const data = await response.json();
+          setZones(data.zones);
+          // Set default zone to first one (Hearthhouse by sortOrder)
+          if (data.zones.length > 0 && !selectedZone) {
+            setSelectedZone(data.zones[0].name);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch zones:', error);
+      }
+    };
+    fetchZones();
+  }, []);
 
   const { data, isLoading, error } = useQuery<ProductsResponse>({
     queryKey: ['products', page, selectedZone],
@@ -146,7 +156,19 @@ export default function ShopPage() {
     }
   };
 
-  const currentZone = ZONES.find(z => z.name === selectedZone);
+  const currentZone = zones.find(z => z.name === selectedZone);
+
+  // Show loading state while zones are being fetched
+  if (zones.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading zones...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-20" style={{ backgroundImage: 'url(/images/background-products-page.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }}>
@@ -159,7 +181,7 @@ export default function ShopPage() {
             {selectedZone}
           </h1>
           <p className="text-white/90 text-lg italic mb-1">
-            {currentZone?.description}
+            {currentZone?.tagline}
           </p>
           <p className="text-white/70 text-sm">
             {currentZone?.theme}
@@ -171,36 +193,19 @@ export default function ShopPage() {
       <div className="bg-black/20 backdrop-blur-md border-b border-white/10 sticky top-16 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            <Link
-              href="/shop/hearthhouse"
-              className="px-6 py-3 rounded-lg font-semibold whitespace-nowrap bg-white/80 text-gray-700 hover:bg-white hover:shadow-md transition-all"
-            >
-              The Hearthhouse
-            </Link>
-            <Link
-              href="/shop/conservatory"
-              className="px-6 py-3 rounded-lg font-semibold whitespace-nowrap bg-white/80 text-gray-700 hover:bg-white hover:shadow-md transition-all"
-            >
-              The Conservatory
-            </Link>
-            <Link
-              href="/shop/east-pavilion"
-              className="px-6 py-3 rounded-lg font-semibold whitespace-nowrap bg-white/80 text-gray-700 hover:bg-white hover:shadow-md transition-all"
-            >
-              The East Pavilion
-            </Link>
-            <Link
-              href="/shop/observatory"
-              className="px-6 py-3 rounded-lg font-semibold whitespace-nowrap bg-white/80 text-gray-700 hover:bg-white hover:shadow-md transition-all"
-            >
-              The Observatory
-            </Link>
-            <Link
-              href="/shop/liminal-tent"
-              className="px-6 py-3 rounded-lg font-semibold whitespace-nowrap bg-white/80 text-gray-700 hover:bg-white hover:shadow-md transition-all"
-            >
-              The Liminal Tent
-            </Link>
+            {zones.map((zone) => (
+              <Link
+                key={zone.id}
+                href={`/shop/${zone.slug}`}
+                className={`px-6 py-3 rounded-lg font-semibold whitespace-nowrap transition-all ${
+                  selectedZone === zone.name
+                    ? 'bg-white text-gray-900 shadow-lg'
+                    : 'bg-white/80 text-gray-700 hover:bg-white hover:shadow-md'
+                }`}
+              >
+                {zone.name}
+              </Link>
+            ))}
           </div>
         </div>
       </div>

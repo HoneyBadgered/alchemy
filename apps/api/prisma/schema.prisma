@@ -822,3 +822,26 @@ model blog_post_tags {
   @@index([postId])
   @@index([tagId])
 }
+
+model zones {
+  id              String   @id @default(uuid())
+  name            String   @unique
+  slug            String   @unique
+  tagline         String
+  theme           String
+  gradient        String   // Tailwind gradient classes for zone header
+  bgGradient      String   // Tailwind gradient classes for background
+  accentColor     String   // Tailwind color name (e.g., 'amber', 'cyan')
+  heroImageUrl    String?  // Background image for zone page
+  buttonImageUrl  String?  // Image for zone button on shop page
+  defaultFilters  Json     // { flavorProfile: string[], caffeineLevel: string[] }
+  subTabs         Json     // Array of { id: string, label: string, bias: string[] | null }
+  sortOrder       Int      @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([slug])
+  @@index([sortOrder])
+  @@index([isActive])
+}
