@@ -32,6 +32,7 @@ export interface IngredientFilters {
 }
 
 export interface CreateIngredientInput {
+  ingredientKey: string;
   name: string;
   role?: string;
   category: string;
@@ -296,6 +297,7 @@ export class AdminIngredientService {
     const ingredient = await prisma.ingredients.create({
       data: {
         id: crypto.randomUUID(),
+        ingredientKey: data.ingredientKey,
         name: data.name,
         role,
         category: data.category,

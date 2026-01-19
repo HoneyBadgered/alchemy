@@ -6,6 +6,8 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const prisma = new PrismaClient();
 const SALT_ROUNDS = 10;
@@ -21,14 +23,14 @@ async function main() {
   console.log('👤 Seeding admin user...');
   
   const adminEmail = 'admin@alchemy.dev';
-  const existingAdmin = await prisma.user.findUnique({
+  const existingAdmin = await prisma.users.findUnique({
     where: { email: adminEmail },
   });
 
   if (!existingAdmin) {
     const hashedPassword = await hashPassword('Admin123!');
     const userId = randomUUID();
-    await prisma.user.create({
+    await prisma.users.create({
       data: {
         id: userId,
         email: adminEmail,
@@ -298,12 +300,12 @@ async function main() {
 
   let createdCount = 0;
   for (const productData of products) {
-    const existing = await prisma.product.findFirst({
+    const existing = await prisma.products.findFirst({
       where: { name: productData.name },
     });
 
     if (!existing) {
-      await prisma.product.create({ 
+      await prisma.products.create({ 
         data: {
           id: randomUUID(),
           ...productData,
@@ -322,342 +324,37 @@ async function main() {
   // Seed Ingredients
   console.log('🍃 Seeding ingredients...');
 
-  const ingredients = [
-    // Base Teas
-    {
-      name: 'Black Tea',
-      role: 'base',
-      category: 'tea',
-      descriptionShort: 'Classic bold black tea with rich, malty flavor',
-      descriptionLong: 'A robust black tea with deep amber color and full-bodied character. Offers bold, malty notes with hints of caramel and a smooth finish. Perfect as a base for complex blends.',
-      flavorNotes: ['malty', 'bold', 'caramel', 'smooth'],
-      caffeineLevel: 'high',
-      steepTemperature: 212,
-      steepTimeMin: 3,
-      steepTimeMax: 5,
-      baseAmount: 2.0,
-      incrementAmount: 0.5,
-      costPerOunce: 0.50,
-      inventoryAmount: 100,
-      minimumStockLevel: 20,
-      status: 'active',
-      
-      tags: ['black-tea', 'caffeinated', 'base'],
-    },
-    {
-      name: 'Green Tea',
-      role: 'base',
-      category: 'tea',
-      descriptionShort: 'Delicate green tea with grassy, vegetal notes',
-      descriptionLong: 'Light and refreshing green tea with a vibrant emerald color. Features delicate grassy and vegetal notes with a subtle sweetness and clean finish.',
-      flavorNotes: ['grassy', 'vegetal', 'sweet', 'clean'],
-      caffeineLevel: 'medium',
-      steepTemperature: 175,
-      steepTimeMin: 2,
-      steepTimeMax: 3,
-      baseAmount: 2.0,
-      incrementAmount: 0.5,
-      costPerOunce: 0.60,
-      inventoryAmount: 80,
-      minimumStockLevel: 15,
-      status: 'active',
-      
-      tags: ['green-tea', 'caffeinated', 'base'],
-    },
-    {
-      name: 'White Tea',
-      role: 'base',
-      category: 'tea',
-      descriptionShort: 'Subtle and delicate with floral sweetness',
-      descriptionLong: 'The most delicate of teas, white tea offers a subtle, naturally sweet flavor with floral and honey notes. Minimally processed for maximum antioxidants.',
-      flavorNotes: ['delicate', 'floral', 'honey', 'sweet'],
-      caffeineLevel: 'low',
-      steepTemperature: 170,
-      steepTimeMin: 4,
-      steepTimeMax: 6,
-      baseAmount: 2.0,
-      incrementAmount: 0.5,
-      costPerOunce: 1.20,
-      inventoryAmount: 50,
-      minimumStockLevel: 10,
-      status: 'active',
-      
-      tags: ['white-tea', 'low-caffeine', 'premium', 'base'],
-    },
-    {
-      name: 'Oolong Tea',
-      role: 'base',
-      category: 'tea',
-      descriptionShort: 'Semi-oxidized tea with complex fruity notes',
-      descriptionLong: 'A partially oxidized tea that bridges green and black varieties. Offers complex flavor profiles ranging from floral and fruity to toasty and creamy.',
-      flavorNotes: ['fruity', 'floral', 'toasty', 'creamy'],
-      caffeineLevel: 'medium',
-      steepTemperature: 195,
-      steepTimeMin: 3,
-      steepTimeMax: 5,
-      baseAmount: 2.0,
-      incrementAmount: 0.5,
-      costPerOunce: 0.80,
-      inventoryAmount: 60,
-      minimumStockLevel: 12,
-      status: 'active',
-      
-      tags: ['oolong-tea', 'caffeinated', 'base'],
-    },
-    {
-      name: 'Rooibos',
-      role: 'base',
-      category: 'herbs',
-      descriptionShort: 'Naturally sweet, caffeine-free red bush tea',
-      descriptionLong: 'South African red bush tea with a naturally sweet, nutty flavor. Completely caffeine-free and rich in antioxidants. Perfect for evening blends.',
-      flavorNotes: ['sweet', 'nutty', 'vanilla', 'smooth'],
-      caffeineLevel: 'none',
-      steepTemperature: 212,
-      steepTimeMin: 5,
-      steepTimeMax: 7,
-      baseAmount: 2.0,
-      incrementAmount: 0.5,
-      costPerOunce: 0.40,
-      inventoryAmount: 90,
-      minimumStockLevel: 18,
-      status: 'active',
-      
-      tags: ['rooibos', 'caffeine-free', 'herbal', 'base'],
-    },
-
-    // Add-ins - Flowers
-    {
-      name: 'Lavender Buds',
-      role: 'addIn',
-      category: 'flowers',
-      descriptionShort: 'Calming floral notes with aromatic sweetness',
-      descriptionLong: 'Premium dried lavender buds that add a soothing floral aroma and gentle sweetness. Perfect for relaxation blends.',
-      flavorNotes: ['floral', 'sweet', 'calming', 'aromatic'],
-      caffeineLevel: 'none',
-      baseAmount: 0.25,
-      incrementAmount: 0.25,
-      costPerOunce: 1.50,
-      inventoryAmount: 40,
-      minimumStockLevel: 8,
-      status: 'active',
-      
-      tags: ['botanical', 'floral', 'calming'],
-    },
-    {
-      name: 'Rose Petals',
-      role: 'addIn',
-      category: 'flowers',
-      descriptionShort: 'Delicate rose fragrance with subtle sweetness',
-      descriptionLong: 'Hand-picked rose petals that infuse blends with a romantic floral essence and visual beauty. Adds elegance to any tea.',
-      flavorNotes: ['floral', 'sweet', 'delicate', 'romantic'],
-      caffeineLevel: 'none',
-      baseAmount: 0.25,
-      incrementAmount: 0.25,
-      costPerOunce: 2.00,
-      inventoryAmount: 35,
-      minimumStockLevel: 7,
-      status: 'active',
-      
-      tags: ['botanical', 'floral', 'premium'],
-    },
-    {
-      name: 'Chamomile Flowers',
-      role: 'addIn',
-      category: 'flowers',
-      descriptionShort: 'Soothing apple-like flavor for relaxation',
-      descriptionLong: 'Whole chamomile flowers with a gentle apple-like sweetness. Known for calming properties and perfect for bedtime blends.',
-      flavorNotes: ['apple', 'sweet', 'soothing', 'honey'],
-      caffeineLevel: 'none',
-      baseAmount: 0.5,
-      incrementAmount: 0.25,
-      costPerOunce: 1.00,
-      inventoryAmount: 60,
-      minimumStockLevel: 12,
-      status: 'active',
-      
-      tags: ['botanical', 'calming', 'bedtime'],
-    },
-    {
-      name: 'Hibiscus Petals',
-      role: 'addIn',
-      category: 'flowers',
-      descriptionShort: 'Tart, cranberry-like flavor with vibrant color',
-      descriptionLong: 'Brilliant red hibiscus petals that add a tart, fruity flavor and stunning crimson color to any blend. Rich in vitamin C.',
-      flavorNotes: ['tart', 'cranberry', 'fruity', 'tangy'],
-      caffeineLevel: 'none',
-      baseAmount: 0.25,
-      incrementAmount: 0.25,
-      costPerOunce: 0.80,
-      inventoryAmount: 50,
-      minimumStockLevel: 10,
-      status: 'active',
-      
-      tags: ['botanical', 'tart', 'colorful'],
-    },
-
-    // Add-ins - Fruits & Spices
-    {
-      name: 'Dried Lemon Peel',
-      role: 'addIn',
-      category: 'fruit',
-      descriptionShort: 'Bright citrus zest with refreshing tang',
-      descriptionLong: 'Organic lemon peel that adds a bright, zesty citrus note and refreshing aroma to blends. Perfect for morning teas.',
-      flavorNotes: ['citrus', 'zesty', 'bright', 'refreshing'],
-      caffeineLevel: 'none',
-      baseAmount: 0.25,
-      incrementAmount: 0.25,
-      costPerOunce: 0.60,
-      inventoryAmount: 45,
-      minimumStockLevel: 9,
-      status: 'active',
-      
-      tags: ['fruit', 'citrus', 'refreshing'],
-    },
-    {
-      name: 'Orange Peel',
-      role: 'addIn',
-      category: 'fruit',
-      descriptionShort: 'Sweet citrus with warm, sunny notes',
-      descriptionLong: 'Dried orange peel with a sweet, aromatic citrus flavor. Adds warmth and brightness to any blend.',
-      flavorNotes: ['citrus', 'sweet', 'warm', 'sunny'],
-      caffeineLevel: 'none',
-      baseAmount: 0.25,
-      incrementAmount: 0.25,
-      costPerOunce: 0.60,
-      inventoryAmount: 45,
-      minimumStockLevel: 9,
-      status: 'active',
-      
-      tags: ['fruit', 'citrus', 'sweet'],
-    },
-    {
-      name: 'Ginger Root',
-      role: 'addIn',
-      category: 'spice',
-      descriptionShort: 'Warming spice with zesty kick',
-      descriptionLong: 'Dried ginger root pieces that add a warming, spicy heat and digestive benefits. Perfect for chai-style blends.',
-      flavorNotes: ['spicy', 'warming', 'zesty', 'pungent'],
-      caffeineLevel: 'none',
-      baseAmount: 0.25,
-      incrementAmount: 0.25,
-      costPerOunce: 0.70,
-      inventoryAmount: 55,
-      minimumStockLevel: 11,
-      status: 'active',
-      
-      tags: ['spice', 'warming', 'digestive'],
-    },
-    {
-      name: 'Cinnamon Chips',
-      role: 'addIn',
-      category: 'spice',
-      descriptionShort: 'Sweet and spicy with comforting warmth',
-      descriptionLong: 'Ceylon cinnamon chips with a naturally sweet, warm spice flavor. Adds depth and complexity to any blend.',
-      flavorNotes: ['sweet', 'spicy', 'warm', 'comforting'],
-      caffeineLevel: 'none',
-      baseAmount: 0.25,
-      incrementAmount: 0.25,
-      costPerOunce: 0.80,
-      inventoryAmount: 50,
-      minimumStockLevel: 10,
-      status: 'active',
-      
-      tags: ['spice', 'sweet', 'warming'],
-    },
-    {
-      name: 'Vanilla Bean',
-      role: 'addIn',
-      category: 'spice',
-      descriptionShort: 'Rich, creamy vanilla sweetness',
-      descriptionLong: 'Premium vanilla bean pieces that infuse blends with a rich, creamy sweetness and luxurious aroma.',
-      flavorNotes: ['sweet', 'creamy', 'rich', 'luxurious'],
-      caffeineLevel: 'none',
-      baseAmount: 0.25,
-      incrementAmount: 0.25,
-      costPerOunce: 3.50,
-      inventoryAmount: 20,
-      minimumStockLevel: 5,
-      status: 'active',
-      
-      tags: ['spice', 'premium', 'sweet', 'luxury'],
-    },
-
-    // Add-ins - Premium
-    {
-      name: 'Jasmine Pearls',
-      role: 'addIn',
-      category: 'premium',
-      descriptionShort: 'Hand-rolled green tea with jasmine blossoms',
-      descriptionLong: 'Artisanal hand-rolled green tea pearls scented with fresh jasmine blossoms. Each pearl unfurls into a fragrant, floral infusion.',
-      flavorNotes: ['floral', 'jasmine', 'sweet', 'elegant'],
-      caffeineLevel: 'medium',
-      baseAmount: 0.5,
-      incrementAmount: 0.25,
-      costPerOunce: 4.00,
-      inventoryAmount: 15,
-      minimumStockLevel: 3,
-      status: 'active',
-      
-      tags: ['premium', 'jasmine', 'artisanal', 'floral'],
-    },
-    {
-      name: 'Butterfly Pea Flower',
-      role: 'addIn',
-      category: 'premium',
-      descriptionShort: 'Color-changing flowers with earthy notes',
-      descriptionLong: 'Magical blue flowers that create stunning color-changing effects. Turns blue, then purple or pink with citrus. Earthy, slightly sweet flavor.',
-      flavorNotes: ['earthy', 'sweet', 'mild', 'magical'],
-      caffeineLevel: 'none',
-      baseAmount: 0.25,
-      incrementAmount: 0.25,
-      costPerOunce: 2.50,
-      inventoryAmount: 25,
-      minimumStockLevel: 5,
-      status: 'active',
-      
-      tags: ['premium', 'color-changing', 'visual', 'unique'],
-    },
-    {
-      name: 'Saffron Threads',
-      role: 'addIn',
-      category: 'premium',
-      descriptionShort: 'Luxurious golden threads with honey notes',
-      descriptionLong: 'The world\'s most precious spice. Adds a subtle honey-like sweetness, golden color, and sophisticated depth to premium blends.',
-      flavorNotes: ['honey', 'floral', 'luxurious', 'subtle'],
-      caffeineLevel: 'none',
-      baseAmount: 0.1,
-      incrementAmount: 0.1,
-      costPerOunce: 15.00,
-      inventoryAmount: 5,
-      minimumStockLevel: 1,
-      status: 'active',
-      
-      tags: ['premium', 'luxury', 'rare', 'exotic'],
-    },
-  ];
+  // Load ingredients from JSON file
+  const ingredientsPath = path.join(__dirname, 'ingredients-seed-data.json');
+  const ingredientsData = JSON.parse(fs.readFileSync(ingredientsPath, 'utf8'));
 
   let ingredientCount = 0;
-  for (const ingredientData of ingredients) {
-    const existing = await prisma.ingredient.findFirst({
-      where: { name: ingredientData.name },
+  for (const ingredientData of ingredientsData) {
+    const { id, createdAt, updatedAt, suppliers, ...cleanData } = ingredientData;
+    
+    const existing = await prisma.ingredients.findFirst({
+      where: { 
+        ingredientKey: cleanData.ingredientKey,
+        role: cleanData.role
+      },
     });
 
     if (!existing) {
-      await prisma.ingredient.create({ 
+      await prisma.ingredients.create({ 
         data: {
           id: randomUUID(),
-          ...ingredientData,
+          ...cleanData,
           updatedAt: new Date(),
         }
       });
       ingredientCount++;
-      console.log(`  ✓ Created: ${ingredientData.name} (${ingredientData.role})`);
+      console.log(`  ✓ Created: ${cleanData.name} (${cleanData.role})`);
     } else {
-      console.log(`  ⊘ Skipped (exists): ${ingredientData.name}`);
+      console.log(`  ⊘ Skipped (exists): ${cleanData.name} (${cleanData.role})`);
     }
   }
 
-  console.log(`\n✅ Seeded ${ingredientCount} ingredients (${ingredients.length - ingredientCount} already existed)\n`);
+  console.log(`\n✅ Seeded ${ingredientCount} ingredients (${ingredientsData.length - ingredientCount} already existed)\n`);
   console.log('🌱 Database seed completed successfully!');
 }
 

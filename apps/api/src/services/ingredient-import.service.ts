@@ -1,7 +1,7 @@
 /**
  * Ingredient Import Service
  * 
- * Handles CSV import and validation for bulk ingredient uploads
+ * Handles CSV and JSON import for bulk ingredient uploads
  */
 
 import { parse } from 'csv-parse/sync';
@@ -31,6 +31,7 @@ const VALID_TEA_TYPES: TeaType[] = [
 ];
 
 interface IngredientRow {
+  ingredientKey: string;
   name: string;
   role?: string;
   category: string;
@@ -66,6 +67,7 @@ export class IngredientImportService {
    */
   generateTemplate(): string {
     const headers = [
+      'ingredientKey',
       'name',
       'role',
       'category',
@@ -96,6 +98,7 @@ export class IngredientImportService {
     ];
 
     const exampleRow = [
+      'chamomile',
       'Chamomile Flowers',
       'addIn',
       'flowers',
@@ -275,6 +278,7 @@ export class IngredientImportService {
 
           // Prepare ingredient data
           const ingredientData: Prisma.ingredientsCreateInput = {
+            ingredientKey: row.ingredientKey,
             name: row.name,
             role: row.role || 'addIn',
             category: row.category,
@@ -305,9 +309,12 @@ export class IngredientImportService {
             badges,
           };
 
-          // Check if ingredient exists by name
+          // Check if ingredient exists by ingredientKey + role
           const existing = await prisma.ingredients.findFirst({
-            where: { name: row.name },
+            where: { 
+              ingredientKey: row.ingredientKey,
+              role: row.role || 'addIn'
+            },
           });
 
           if (existing) {
@@ -326,6 +333,186 @@ export class IngredientImportService {
           }
         } catch (error) {
           errors.push(`Failed to import "${row.name}": ${(error as Error).message}`);
+        }
+      }
+
+      return {
+        success: errors.length === 0,
+        imported,
+        updated,
+        errors,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        imported: 0,
+        updated: 0,
+        errors: [`Import failed: ${(error as Error).message}`],
+      };
+    }
+  }
+
+  /**
+   * Validate JSON ingredient data
+   */
+  validateJSONIngredient(ingredient: any, index: number): { valid: boolean; error?: string } {
+    // Required fields
+    if (!ingredient.ingredientKey || typeof ingredient.ingredientKey !== 'string' || ingredient.ingredientKey.trim() === '') {
+      return { valid: false, error: `Ingredient ${index}: ingredientKey is required` };
+    }
+    if (!ingredient.name || typeof ingredient.name !== 'string' || ingredient.name.trim() === '') {
+      return { valid: false, error: `Ingredient ${index}: Name is required` };
+    }
+    if (!ingredient.category || typeof ingredient.category !== 'string') {
+      return { valid: false, error: `Ingredient ${index}: Category is required` };
+    }
+
+    // Validate category
+    if (!VALID_CATEGORIES.includes(ingredient.category as IngredientCategory)) {
+      return { valid: false, error: `Ingredient ${index}: Category must be one of: ${VALID_CATEGORIES.join(', ')}` };
+    }
+
+    // Validate teaType if provided
+    if (ingredient.teaType && !VALID_TEA_TYPES.includes(ingredient.teaType as TeaType)) {
+      return { valid: false, error: `Ingredient ${index}: teaType must be one of: ${VALID_TEA_TYPES.join(', ')}` };
+    }
+
+    // Validate role
+    if (ingredient.role && !['base', 'addIn', 'either'].includes(ingredient.role)) {
+      return { valid: false, error: `Ingredient ${index}: Role must be 'base', 'addIn', or 'either'` };
+    }
+
+    // Validate numbers
+    const numberFields = ['recommendedUsageMin', 'recommendedUsageMax', 'steepTemperature', 
+                          'steepTimeMin', 'steepTimeMax', 'costPerOunce', 'inventoryAmount', 'minimumStockLevel'];
+    for (const field of numberFields) {
+      if (ingredient[field] !== undefined && ingredient[field] !== null && isNaN(Number(ingredient[field]))) {
+        return { valid: false, error: `Ingredient ${index}: ${field} must be a number` };
+      }
+    }
+
+    // Validate status
+    if (ingredient.status && !['active', 'archived', 'outOfStock'].includes(ingredient.status)) {
+      return { valid: false, error: `Ingredient ${index}: status must be 'active', 'archived', or 'outOfStock'` };
+    }
+
+    // Validate caffeine level
+    if (ingredient.caffeineLevel && !['none', 'low', 'medium', 'high'].includes(ingredient.caffeineLevel)) {
+      return { valid: false, error: `Ingredient ${index}: caffeineLevel must be 'none', 'low', 'medium', or 'high'` };
+    }
+
+    // Validate arrays
+    const arrayFields = ['flavorNotes', 'allergens', 'tags', 'badges'];
+    for (const field of arrayFields) {
+      if (ingredient[field] !== undefined && !Array.isArray(ingredient[field])) {
+        return { valid: false, error: `Ingredient ${index}: ${field} must be an array` };
+      }
+    }
+
+    return { valid: true };
+  }
+
+  /**
+   * Import ingredients from JSON array
+   */
+  async importFromJSON(ingredients: any[]): Promise<{
+    success: boolean;
+    imported: number;
+    updated: number;
+    errors: string[];
+  }> {
+    const errors: string[] = [];
+    let imported = 0;
+    let updated = 0;
+
+    try {
+      // Validate input
+      if (!Array.isArray(ingredients)) {
+        return {
+          success: false,
+          imported: 0,
+          updated: 0,
+          errors: ['Invalid input: expected an array of ingredients'],
+        };
+      }
+
+      // Validate all ingredients first
+      for (let i = 0; i < ingredients.length; i++) {
+        const validation = this.validateJSONIngredient(ingredients[i], i + 1);
+        if (!validation.valid) {
+          errors.push(validation.error!);
+        }
+      }
+
+      if (errors.length > 0) {
+        return { success: false, imported: 0, updated: 0, errors };
+      }
+
+      // Process each ingredient
+      for (const ingredient of ingredients) {
+        try {
+          // Calculate cost per gram
+          const costPerOunce = ingredient.costPerOunce ? Number(ingredient.costPerOunce) : null;
+          const costPerGram = costPerOunce ? Number((costPerOunce / GRAMS_PER_OUNCE).toFixed(4)) : null;
+
+          // Prepare ingredient data
+          const ingredientData: Prisma.ingredientsCreateInput = {
+            ingredientKey: ingredient.ingredientKey,
+            name: ingredient.name,
+            role: ingredient.role || 'addIn',
+            category: ingredient.category,
+            teaType: ingredient.teaType || null,
+            descriptionShort: ingredient.descriptionShort || null,
+            descriptionLong: ingredient.descriptionLong || null,
+            image: ingredient.image || null,
+            latinName: ingredient.latinName || null,
+            flavorNotes: ingredient.flavorNotes || [],
+            cutOrGrade: ingredient.cutOrGrade || null,
+            recommendedUsageMin: ingredient.recommendedUsageMin ? Number(ingredient.recommendedUsageMin) : null,
+            recommendedUsageMax: ingredient.recommendedUsageMax ? Number(ingredient.recommendedUsageMax) : null,
+            steepTemperature: ingredient.steepTemperature ? Number(ingredient.steepTemperature) : null,
+            steepTimeMin: ingredient.steepTimeMin ? Number(ingredient.steepTimeMin) : null,
+            steepTimeMax: ingredient.steepTimeMax ? Number(ingredient.steepTimeMax) : null,
+            brewNotes: ingredient.brewNotes || null,
+            supplierId: ingredient.supplierId || null,
+            costPerOunce,
+            costPerGram,
+            inventoryAmount: ingredient.inventoryAmount ? Number(ingredient.inventoryAmount) : 0,
+            minimumStockLevel: ingredient.minimumStockLevel ? Number(ingredient.minimumStockLevel) : 0,
+            status: ingredient.status || 'active',
+            caffeineLevel: ingredient.caffeineLevel || 'none',
+            allergens: ingredient.allergens || [],
+            internalNotes: ingredient.internalNotes || null,
+            emoji: ingredient.emoji || null,
+            tags: ingredient.tags || [],
+            badges: ingredient.badges || [],
+            adminTags: ingredient.adminTags || null,
+          };
+
+          // Check if ingredient exists by ingredientKey + role
+          const existing = await prisma.ingredients.findFirst({
+            where: { 
+              ingredientKey: ingredient.ingredientKey,
+              role: ingredient.role || 'addIn'
+            },
+          });
+
+          if (existing) {
+            // Update existing ingredient
+            await prisma.ingredients.update({
+              where: { id: existing.id },
+              data: ingredientData,
+            });
+            updated++;
+          } else {
+            // Create new ingredient
+            await prisma.ingredients.create({
+              data: ingredientData,
+            });
+            imported++;
+          }
+        } catch (error) {
+          errors.push(`Failed to import "${ingredient.name}": ${(error as Error).message}`);
         }
       }
 

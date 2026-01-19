@@ -29,6 +29,7 @@ const ingredientFiltersSchema = z.object({
 });
 
 const createIngredientSchema = z.object({
+  ingredientKey: z.string().min(1, 'Ingredient key is required').regex(/^[a-z0-9_-]+$/, 'Ingredient key must be lowercase alphanumeric with hyphens or underscores'),
   name: z.string().min(1, 'Name is required'),
   role: z.enum(['base', 'addIn', 'either']).optional().default('addIn'),
   category: z.string().min(1, 'Category is required'),
@@ -349,6 +350,25 @@ export async function adminIngredientRoutes(fastify: FastifyInstance) {
 
       const csvContent = await data.toBuffer();
       const result = await importService.importFromCSV(csvContent.toString('utf-8'));
+      
+      return reply.send(result);
+    } catch (error) {
+      return reply.status(400).send({ message: (error as Error).message });
+    }
+  });
+
+  // POST /admin/ingredients/import/json - Import ingredients from JSON
+  fastify.post('/admin/ingredients/import/json', {
+    preHandler: adminMiddleware,
+  }, async (request: FastifyRequest<{ Body: any[] }>, reply) => {
+    try {
+      const ingredients = request.body;
+      
+      if (!ingredients) {
+        return reply.status(400).send({ message: 'No data provided' });
+      }
+
+      const result = await importService.importFromJSON(ingredients);
       
       return reply.send(result);
     } catch (error) {

@@ -19,6 +19,7 @@ const GRAMS_PER_OUNCE = 28.3495;
 
 interface Ingredient {
   id: string;
+  ingredientKey?: string;
   name: string;
   role: string;
   category: string;
@@ -900,6 +901,26 @@ function IngredientModal({
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Ingredient Key *
+                    <span className="text-xs text-gray-500 ml-2">(lowercase, hyphens/underscores only)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.ingredientKey || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, ingredientKey: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '') }))}
+                    placeholder="e.g., chamomile, earl_grey"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    required
+                    readOnly={!!formData.id}
+                  />
+                  {formData.id && (
+                    <p className="text-xs text-gray-500 mt-1">Ingredient key cannot be changed after creation</p>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
                   <select
                     value={formData.role || 'addIn'}
@@ -911,8 +932,6 @@ function IngredientModal({
                     <option value="either">Either</option>
                   </select>
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
                   <select
@@ -927,6 +946,8 @@ function IngredientModal({
                     ))}
                   </select>
                 </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Tea Type</label>
                   <select
@@ -942,8 +963,6 @@ function IngredientModal({
                     <option value="tisane">Tisane (Herbal)</option>
                   </select>
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Emoji</label>
                   <input

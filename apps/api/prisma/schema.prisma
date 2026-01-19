@@ -136,6 +136,7 @@ model ingredient_pairings {
 model ingredients {
   id                                                                      String                @id @default(cuid())
   name                                                                    String
+  ingredientKey                                                           String                // Stable internal identifier (kebab-case)
   role                                                                    String                @default("addIn")
   category                                                                String
   teaType                                                                 String?               // 'black' | 'green' | 'oolong' | 'white' | 'tisane'
@@ -173,6 +174,7 @@ model ingredients {
   ingredient_pairings_ingredient_pairings_targetIngredientIdToingredients ingredient_pairings[] @relation("ingredient_pairings_targetIngredientIdToingredients")
   suppliers                                                               suppliers?            @relation(fields: [supplierId], references: [id])
 
+  @@unique([ingredientKey, role])
   @@index([category])
   @@index([status])
   @@index([supplierId])

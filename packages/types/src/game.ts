@@ -131,6 +131,7 @@ export type CutOrGrade = 'whole leaf' | 'pieces' | 'powder' | 'crystals' | 'cut 
  */
 export interface Ingredient {
   id: string;
+  ingredientKey?: string; // Stable internal identifier (kebab-case)
   name: string;
   category: IngredientCategory;
   
