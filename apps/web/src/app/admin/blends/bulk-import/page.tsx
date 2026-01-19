@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 
@@ -43,7 +43,7 @@ export default function BulkBlendImportPage() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
 
   // Fetch ingredients on mount
-  useState(() => {
+  useEffect(() => {
     const fetchIngredients = async () => {
       try {
         const response = await fetch('http://localhost:3000/ingredients', {
@@ -53,14 +53,19 @@ export default function BulkBlendImportPage() {
         });
         if (response.ok) {
           const data = await response.json();
-          setIngredients(data);
+          setIngredients(data.ingredients || []);
+          console.log(`Loaded ${data.ingredients?.length || 0} ingredients for blend import`);
+          
+          // Debug: log all ingredient names
+          const ingredientNames = (data.ingredients || []).map((i: Ingredient) => i.name).sort();
+          console.log('Available ingredients:', ingredientNames);
         }
       } catch (error) {
         console.error('Failed to fetch ingredients:', error);
       }
     };
     fetchIngredients();
-  });
+  }, [accessToken]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -210,7 +215,9 @@ export default function BulkBlendImportPage() {
             continue;
           }
 
-          const response = await fetch('http://localhost:3000/admin/blends', {
+          console.log(`Importing blend ${i + 1}: ${blend.name}`, resolvedBlend);
+
+          const response = await fetch('http://localhost:3000/admin/blends/products', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -221,12 +228,15 @@ export default function BulkBlendImportPage() {
 
           if (!response.ok) {
             const error = await response.json();
+            console.error(`Failed to import ${blend.name}:`, error);
             errors.push(`Blend ${i + 1} (${blend.name}): ${error.message || 'Failed to create'}`);
             failedCount++;
           } else {
+            console.log(`Successfully imported: ${blend.name}`);
             successCount++;
           }
         } catch (error) {
+          console.error(`Error importing ${blend.name}:`, error);
           errors.push(`Blend ${i + 1} (${blend.name}): ${error instanceof Error ? error.message : 'Unknown error'}`);
           failedCount++;
         }

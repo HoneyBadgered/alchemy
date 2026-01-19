@@ -67,8 +67,8 @@ export default function HeathhousePage() {
   
   // Filter states
   const [selectedTeaTypes, setSelectedTeaTypes] = useState<string[]>([]);
-  const [selectedFlavors, setSelectedFlavors] = useState<string[]>(ZONE.defaultFilters.flavorProfile);
-  const [selectedCaffeine, setSelectedCaffeine] = useState<string[]>(ZONE.defaultFilters.caffeineLevel);
+  const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
+  const [selectedCaffeine, setSelectedCaffeine] = useState<string[]>([]);
   const [selectedOccasions, setSelectedOccasions] = useState<string[]>([]);
   const [specialConstraints, setSpecialConstraints] = useState<string[]>([]);
 
@@ -78,11 +78,18 @@ export default function HeathhousePage() {
       const params = new URLSearchParams();
       params.set('page', '1');
       params.set('perPage', '50');
-      params.set('category', ZONE.name);
+      params.set('zone', 'The Hearthhouse');
       
-      return apiClient.get<ProductsResponse>(
+      console.log('Fetching products with params:', params.toString());
+      
+      const response = await apiClient.get<ProductsResponse>(
         `/catalog/products?${params.toString()}`
       );
+      
+      console.log('Products response:', response);
+      console.log('Products count:', response.products?.length);
+      
+      return response;
     },
   });
 
@@ -120,27 +127,39 @@ export default function HeathhousePage() {
   const filteredProducts = useMemo(() => {
     if (!data?.products) return [];
 
+    console.log('Filtering products. Initial count:', data.products.length);
+    console.log('First product stock:', data.products[0]?.stock);
+    console.log('All product stocks:', data.products.map(p => ({name: p.name, stock: p.stock})));
+    
     let filtered = data.products.filter(p => p.stock > 0);
+    console.log('After stock filter (stock > 0):', filtered.length);
 
     // Apply tea type filter
     if (selectedTeaTypes.length > 0) {
       filtered = filtered.filter(p => 
         p.teaType && selectedTeaTypes.includes(p.teaType)
       );
+      console.log('After tea type filter:', filtered.length);
     }
 
     // Apply flavor profile filter
     if (selectedFlavors.length > 0) {
+      console.log('Selected flavors:', selectedFlavors);
+      console.log('Products before flavor filter:', filtered.length);
       filtered = filtered.filter(p =>
         p.flavorNotes?.some(note => selectedFlavors.includes(note))
       );
+      console.log('After flavor filter:', filtered.length);
     }
 
     // Apply caffeine level filter
     if (selectedCaffeine.length > 0) {
+      console.log('Selected caffeine:', selectedCaffeine);
+      console.log('Products before caffeine filter:', filtered.length);
       filtered = filtered.filter(p =>
         p.caffeineLevel && selectedCaffeine.includes(p.caffeineLevel)
       );
+      console.log('After caffeine filter:', filtered.length);
     }
 
     // Apply occasion filter

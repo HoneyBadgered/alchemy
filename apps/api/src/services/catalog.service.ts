@@ -8,6 +8,7 @@ export interface GetProductsParams {
   page?: number;
   perPage?: number;
   category?: string;
+  zone?: string;
   onSale?: boolean;
 }
 
@@ -19,18 +20,25 @@ export interface StockStatus {
 
 export class CatalogService {
   async getProducts(params: GetProductsParams = {}) {
-    const { page = 1, perPage = 20, category, onSale } = params;
+    const { page = 1, perPage = 20, category, zone, onSale } = params;
     const skip = (page - 1) * perPage;
 
-    const where: {
-      isActive: boolean;
-      category?: string | { not: string };
-      compareAtPrice?: { not: null };
-    } = {
+    const where: any = {
       isActive: true,
-      // Exclude custom blends from public catalog
-      category: category || { not: 'custom-blend' },
     };
+
+    // Filter by zone if provided (checks zones JSON array)
+    if (zone && zone !== 'null' && zone !== 'undefined') {
+      where.zones = {
+        has: zone,
+      };
+    } else if (category) {
+      // Filter by category if zone not provided
+      where.category = category;
+    } else {
+      // Exclude custom blends from public catalog by default
+      where.category = { not: 'custom-blend' };
+    }
 
     if (onSale) {
       where.compareAtPrice = { not: null };

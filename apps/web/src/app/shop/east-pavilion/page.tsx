@@ -41,8 +41,8 @@ export default function EastPavilionPage() {
   const [showFilters, setShowFilters] = useState(false);
   
   const [selectedTeaTypes, setSelectedTeaTypes] = useState<string[]>([]);
-  const [selectedFlavors, setSelectedFlavors] = useState<string[]>(ZONE.defaultFilters.flavorProfile);
-  const [selectedCaffeine, setSelectedCaffeine] = useState<string[]>(ZONE.defaultFilters.caffeineLevel);
+  const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
+  const [selectedCaffeine, setSelectedCaffeine] = useState<string[]>([]);
   const [selectedOccasions, setSelectedOccasions] = useState<string[]>([]);
   const [specialConstraints, setSpecialConstraints] = useState<string[]>([]);
 
@@ -52,7 +52,7 @@ export default function EastPavilionPage() {
       const params = new URLSearchParams();
       params.set('page', '1');
       params.set('perPage', '50');
-      params.set('category', ZONE.name);
+      params.set('zone', 'The East Pavilion');
       
       return apiClient.get<ProductsResponse>(
         `/catalog/products?${params.toString()}`

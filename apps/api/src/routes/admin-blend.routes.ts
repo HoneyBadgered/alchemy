@@ -21,9 +21,13 @@ const createBlendProductSchema = z.object({
   imageUrl: z.string().url().optional(),
   images: z.array(z.string().url()).optional(),
   category: z.string().optional(),
+  zones: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
   stock: z.number().int().nonnegative().optional(),
   isActive: z.boolean().optional(),
+  caffeineLevel: z.string().optional(),
+  flavorNotes: z.array(z.string()).optional(),
+  occasion: z.array(z.string()).optional(),
 });
 
 const convertBlendToProductSchema = z.object({

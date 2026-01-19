@@ -98,10 +98,7 @@ export default function ShopPage() {
         if (response.ok) {
           const data = await response.json();
           setZones(data.zones);
-          // Set default zone to first one (Hearthhouse by sortOrder)
-          if (data.zones.length > 0 && !selectedZone) {
-            setSelectedZone(data.zones[0].name);
-          }
+          // Don't set a default zone - user must click a zone to see products
         }
       } catch (error) {
         console.error('Failed to fetch zones:', error);
@@ -116,12 +113,15 @@ export default function ShopPage() {
       const params = new URLSearchParams();
       params.set('page', page.toString());
       params.set('perPage', '12');
-      params.set('category', selectedZone);
+      if (selectedZone) {
+        params.set('zone', selectedZone);
+      }
       
       return apiClient.get<ProductsResponse>(
         `/catalog/products?${params.toString()}`
       );
     },
+    enabled: !!selectedZone,
   });
 
   const handleAddToCart = async (productId: string, e: React.MouseEvent) => {
@@ -174,20 +174,36 @@ export default function ShopPage() {
     <div className="min-h-screen pb-20" style={{ backgroundImage: 'url(/images/background-products-page.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }}>
       <Header />
       
-      {/* Zone Header */}
-      <div className={`bg-gradient-to-r ${currentZone?.gradient} mt-16 shadow-lg`}>
-        <div className="max-w-7xl mx-auto px-4 py-8 text-center">
-          <h1 className="text-4xl font-bold font-serif text-white mb-2">
-            {selectedZone}
-          </h1>
-          <p className="text-white/90 text-lg italic mb-1">
-            {currentZone?.tagline}
-          </p>
-          <p className="text-white/70 text-sm">
-            {currentZone?.theme}
-          </p>
+      {/* Zone Header - Only show if zone is selected */}
+      {selectedZone && currentZone && (
+        <div className={`bg-gradient-to-r ${currentZone.gradient} mt-16 shadow-lg`}>
+          <div className="max-w-7xl mx-auto px-4 py-8 text-center">
+            <h1 className="text-4xl font-bold font-serif text-white mb-2">
+              {selectedZone}
+            </h1>
+            <p className="text-white/90 text-lg italic mb-1">
+              {currentZone.tagline}
+            </p>
+            <p className="text-white/70 text-sm">
+              {currentZone.theme}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Welcome Header - Show when no zone selected */}
+      {!selectedZone && (
+        <div className="bg-gradient-to-r from-purple-900 to-purple-700 mt-16 shadow-lg">
+          <div className="max-w-7xl mx-auto px-4 py-12 text-center">
+            <h1 className="text-4xl font-bold font-serif text-white mb-3">
+              Explore Our Tea Collections
+            </h1>
+            <p className="text-white/90 text-lg">
+              Select a zone below to discover our curated blends
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Zone Navigation */}
       <div className="bg-black/20 backdrop-blur-md border-b border-white/10 sticky top-16 z-40">
@@ -210,21 +226,22 @@ export default function ShopPage() {
         </div>
       </div>
 
-      {/* Products Grid */}
-      <div className="max-w-7xl mx-auto px-4 py-2">
-        {isLoading && (
-          <div className="flex justify-center items-center py-20">
-            <div className="text-purple-900 text-lg">Loading products...</div>
-          </div>
-        )}
+      {/* Products Grid - Only show if zone is selected */}
+      {selectedZone && (
+        <div className="max-w-7xl mx-auto px-4 py-2">
+          {isLoading && (
+            <div className="flex justify-center items-center py-20">
+              <div className="text-purple-900 text-lg">Loading products...</div>
+            </div>
+          )}
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
-            Failed to load products. Please try again later.
-          </div>
-        )}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+              Failed to load products. Please try again later.
+            </div>
+          )}
 
-        {data && (
+          {data && (
           <>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {data.products.map((product) => {
@@ -342,7 +359,8 @@ export default function ShopPage() {
             )}
           </>
         )}
-      </div>
+        </div>
+      )}
 
       {addedProduct && (
         <AddedToCartModal

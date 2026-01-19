@@ -394,6 +394,8 @@ model products {
   category                                                       String?
   teaType                                                        String?             // 'black' | 'green' | 'oolong' | 'white' | 'tisane'
   zones                                                          String[]            @default([])
+  flavorNotes                                                    String[]            @default([])
+  caffeineLevel                                                  String?
   isActive                                                       Boolean             @default(true)
   stock                                                          Int                 @default(0)
   createdAt                                                      DateTime            @default(now())

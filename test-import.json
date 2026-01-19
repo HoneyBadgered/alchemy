@@ -1,0 +1,19 @@
+[
+  {
+    "name": "Ember Library",
+    "description": "A smoky black tea for slow evenings and deep chairs.",
+    "price": 19.99,
+    "baseTeaName": "Ceylon",
+    "baseAmount": 70,
+    "additions": [
+      { "ingredientName": "Lapsang Souchong", "amount": 8 },
+      { "ingredientName": "Cocoa nibs", "amount": 5 },
+      { "ingredientName": "Cinnamon", "amount": 3 }
+    ],
+    "zones": ["The Hearthhouse"],
+    "isActive": true,
+    "caffeineLevel": "high",
+    "flavorNotes": ["smoky", "dark", "warming"],
+    "occasion": ["evening", "grounding"]
+  }
+]

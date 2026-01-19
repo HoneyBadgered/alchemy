@@ -10,6 +10,7 @@ const getProductsSchema = z.object({
   page: z.coerce.number().int().min(1).optional(),
   perPage: z.coerce.number().int().min(1).max(100).optional(),
   category: z.string().optional(),
+  zone: z.string().optional(),
 });
 
 export async function catalogRoutes(fastify: FastifyInstance) {

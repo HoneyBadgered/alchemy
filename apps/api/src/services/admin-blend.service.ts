@@ -25,6 +25,9 @@ interface CreateBlendProductInput {
   tags?: string[];
   stock?: number;
   isActive?: boolean;
+  caffeineLevel?: string;
+  flavorNotes?: string[];
+  occasion?: string[];
 }
 
 interface ConvertBlendInput {
@@ -49,9 +52,16 @@ interface GetBlendsFilter {
 
 export class AdminBlendService {
   /**
-   * Create a new product from a blend recipe
+   * Create a new product from a blend recipe (or update if exists)
    */
   async createProductFromBlend(data: CreateBlendProductInput) {
+    console.log('createProductFromBlend received data:', JSON.stringify({
+      name: data.name,
+      flavorNotes: data.flavorNotes,
+      caffeineLevel: data.caffeineLevel,
+      zones: data.zones,
+    }, null, 2));
+    
     // Validate that base tea and add-ins exist
     const baseTea = await prisma.ingredients.findUnique({
       where: { id: data.baseTeaId },
@@ -71,30 +81,77 @@ export class AdminBlendService {
       throw new Error('One or more add-in ingredients not found');
     }
 
+    // Check if product already exists
+    const existingProduct = await prisma.products.findFirst({
+      where: {
+        name: data.name,
+        category: data.category || 'Custom Blends',
+      },
+      include: {
+        product_variants: true,
+        blends: true,
+      },
+    });
+
     // Create product and blend in a transaction
     const result = await prisma.$transaction(async (tx) => {
       // Determine if we're creating variants
       const sizes = data.sizes && data.sizes.length > 0 ? data.sizes : [2]; // Default to 2oz if no sizes specified
       const hasVariants = sizes.length > 1;
 
-      // Create the product (parent)
-      const product = await tx.products.create({
-        data: {
-          id: cuid(),
-          name: data.name,
-          description: data.description || `Custom blend with ${baseTea.name}`,
-          price: data.price, // Base price (will be overridden by variants if applicable)
-          imageUrl: data.imageUrl || null,
-          images: data.images || [],
-          category: data.category || 'Custom Blends',
-          zones: data.zones || [],
-          tags: data.tags || ['custom', 'blend'],
-          stock: hasVariants ? 0 : (data.stock ?? 0), // If variants, stock is per-variant
-          isActive: data.isActive ?? true,
-          hasVariants,
-          updatedAt: new Date(),
-        },
-      });
+      let product;
+      
+      if (existingProduct) {
+        // Update existing product
+        product = await tx.products.update({
+          where: { id: existingProduct.id },
+          data: {
+            description: data.description || `Custom blend with ${baseTea.name}`,
+            price: data.price,
+            imageUrl: data.imageUrl || null,
+            images: data.images || [],
+            zones: data.zones || [],
+            tags: data.tags || ['custom', 'blend'],
+            flavorNotes: data.flavorNotes || [],
+            caffeineLevel: data.caffeineLevel || null,
+            teaType: data.teaType || null,
+            stock: hasVariants ? 0 : (data.stock ?? 0),
+            isActive: data.isActive ?? true,
+            hasVariants,
+            updatedAt: new Date(),
+          },
+        });
+        
+        // Delete old variants and blend
+        await tx.product_variants.deleteMany({
+          where: { productId: existingProduct.id },
+        });
+        await tx.blends.deleteMany({
+          where: { productId: existingProduct.id },
+        });
+      } else {
+        // Create new product
+        product = await tx.products.create({
+          data: {
+            id: cuid(),
+            name: data.name,
+            description: data.description || `Custom blend with ${baseTea.name}`,
+            price: data.price,
+            imageUrl: data.imageUrl || null,
+            images: data.images || [],
+            category: data.category || 'Custom Blends',
+            zones: data.zones || [],
+            tags: data.tags || ['custom', 'blend'],
+            flavorNotes: data.flavorNotes || [],
+            caffeineLevel: data.caffeineLevel || null,
+            teaType: data.teaType || null,
+            stock: hasVariants ? 0 : (data.stock ?? 0),
+            isActive: data.isActive ?? true,
+            hasVariants,
+            updatedAt: new Date(),
+          },
+        });
+      }
 
       // Create variants for each size
       const variants = [];
