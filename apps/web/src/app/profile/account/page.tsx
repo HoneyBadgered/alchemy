@@ -148,16 +148,16 @@ function AccountContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-950 to-slate-900 pb-20">
+    <div className="min-h-screen bg-[var(--background)] pb-20">
       {/* Atmospheric overlay */}
       <div className="fixed inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMtOS45NCAwLTE4IDguMDYtMTggMThzOC4wNiAxOCAxOCAxOCAxOC04LjA2IDE4LTE4LTguMDYtMTgtMTgtMTh6bTAgMzJjLTcuNzMyIDAtMTQtNi4yNjgtMTQtMTRzNi4yNjgtMTQgMTQtMTQgMTQgNi4yNjggMTQgMTQtNi4yNjggMTQtMTQgMTR6IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9Ii4wMiIvPjwvZz48L3N2Zz4=')] opacity-30 pointer-events-none" />
       
       {/* Header */}
-      <div className="relative bg-gradient-to-r from-purple-900/80 via-violet-800/80 to-purple-900/80 border-b border-purple-500/30">
+      <div className="relative bg-[var(--surface)]/80 border-b border-[var(--primary)]/30">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <Link 
             href="/profile" 
-            className="inline-flex items-center gap-2 text-purple-300 hover:text-purple-100 transition-colors mb-4"
+            className="inline-flex items-center gap-2 text-[var(--accent)] hover:text-[var(--text-base)] transition-colors mb-4"
           >
             <span>←</span>
             <span>Back to Profile</span>
@@ -166,17 +166,17 @@ function AccountContent() {
             <span className="text-3xl">📜</span>
             Account Information
           </h1>
-          <p className="text-purple-200/70 mt-1">Manage your arcane credentials</p>
+          <p className="text-[var(--text-muted)] mt-1">Manage your arcane credentials</p>
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 relative z-10 space-y-6">
         {/* Avatar Section */}
-        <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20">
+        <div className="bg-[var(--surface)]/60 backdrop-blur-sm rounded-xl p-6 border border-[var(--primary)]/20">
           <h2 className="text-lg font-semibold text-white mb-4">Profile Avatar</h2>
           <div className="flex items-center gap-6">
             <div className="relative">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-600 to-violet-800 flex items-center justify-center text-5xl shadow-lg shadow-purple-500/30 border-2 border-purple-400/50">
+              <div className="w-24 h-24 rounded-full bg-[var(--primary)] flex items-center justify-center text-5xl shadow-lg shadow-[var(--primary)]/30 border-2 border-[var(--primary)]/50">
                 {user?.profile?.avatarUrl ? (
                   <img 
                     src={user.profile.avatarUrl} 
@@ -189,14 +189,14 @@ function AccountContent() {
               </div>
             </div>
             <div className="flex-1">
-              <p className="text-purple-200/70 text-sm mb-3">
+              <p className="text-[var(--text-muted)] text-sm mb-3">
                 Your avatar represents your identity in the realm of alchemy.
               </p>
               <div className="flex gap-3">
-                <button className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-medium transition-colors">
+                <button className="px-4 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-lg font-medium transition-colors">
                   Upload Image
                 </button>
-                <button className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-purple-200 rounded-lg font-medium transition-colors">
+                <button className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-[var(--text-base)] rounded-lg font-medium transition-colors">
                   Choose Avatar
                 </button>
               </div>
@@ -205,24 +205,24 @@ function AccountContent() {
         </div>
 
         {/* Theme Preferences Section */}
-        <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20">
+        <div className="bg-[var(--surface)]/60 backdrop-blur-sm rounded-xl p-6 border border-[var(--primary)]/20">
           <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
             <span>🎨</span>
             Theme Preferences
           </h2>
-          <p className="text-purple-200/70 text-sm mb-4">
+          <p className="text-[var(--text-muted)] text-sm mb-4">
             Customize the visual aesthetic of your alchemical workspace.
           </p>
           <div className="space-y-4">
             <div>
-              <label htmlFor="theme-select" className="block text-purple-200 text-sm font-medium mb-2">
+              <label htmlFor="theme-select" className="block text-[var(--text-base)] text-sm font-medium mb-2">
                 Select Theme
               </label>
               <select
                 id="theme-select"
                 value={theme}
                 onChange={(e) => setTheme(e.target.value as any)}
-                className="w-full md:w-auto px-4 py-2.5 bg-slate-700/80 border border-purple-500/30 text-white rounded-lg hover:border-purple-400/50 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-colors cursor-pointer"
+                className="w-full md:w-auto px-4 py-2.5 bg-slate-700/80 border border-[var(--primary)]/30 text-white rounded-lg hover:border-[var(--primary)]/50 focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 transition-colors cursor-pointer"
               >
                 {THEMES.map((t) => (
                   <option key={t.id} value={t.id}>
@@ -238,8 +238,8 @@ function AccountContent() {
                   onClick={() => setTheme(t.id as any)}
                   className={`px-4 py-2 rounded-lg font-medium transition-all ${
                     theme === t.id
-                      ? 'bg-purple-600 text-white ring-2 ring-purple-400'
-                      : 'bg-slate-700 text-purple-200 hover:bg-slate-600'
+                      ? 'bg-[var(--primary)] text-white ring-2 ring-[var(--primary)]'
+                      : 'bg-slate-700 text-[var(--text-base)] hover:bg-slate-600'
                   }`}
                   title={t.description}
                 >
@@ -252,13 +252,13 @@ function AccountContent() {
         </div>
 
         {/* Profile Information */}
-        <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20">
+        <div className="bg-[var(--surface)]/60 backdrop-blur-sm rounded-xl p-6 border border-[var(--primary)]/20">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-white">Personal Details</h2>
             {!isEditingProfile && (
               <button 
                 onClick={() => setIsEditingProfile(true)}
-                className="text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors"
+                className="text-[var(--primary)] hover:text-[var(--accent)] text-sm font-medium transition-colors"
               >
                 Edit
               </button>
@@ -279,39 +279,39 @@ function AccountContent() {
             <form onSubmit={handleProfileSave} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-purple-200 text-sm font-medium mb-2">
+                  <label className="block text-[var(--text-base)] text-sm font-medium mb-2">
                     First Name
                   </label>
                   <input
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-700/50 border border-purple-500/30 rounded-lg text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-400 transition-colors"
+                    className="w-full px-4 py-3 bg-slate-700/50 border border-[var(--primary)]/30 rounded-lg text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)] transition-colors"
                     placeholder="Enter your first name"
                   />
                 </div>
                 <div>
-                  <label className="block text-purple-200 text-sm font-medium mb-2">
+                  <label className="block text-[var(--text-base)] text-sm font-medium mb-2">
                     Last Name
                   </label>
                   <input
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-700/50 border border-purple-500/30 rounded-lg text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-400 transition-colors"
+                    className="w-full px-4 py-3 bg-slate-700/50 border border-[var(--primary)]/30 rounded-lg text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)] transition-colors"
                     placeholder="Enter your last name"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-purple-200 text-sm font-medium mb-2">
+                <label className="block text-[var(--text-base)] text-sm font-medium mb-2">
                   Email Address
                 </label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-700/50 border border-purple-500/30 rounded-lg text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-400 transition-colors"
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-[var(--primary)]/30 rounded-lg text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)] transition-colors"
                   placeholder="your@email.com"
                 />
               </div>
@@ -319,7 +319,7 @@ function AccountContent() {
                 <button
                   type="submit"
                   disabled={profileSaving}
-                  className="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                  className="px-6 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                 >
                   {profileSaving ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -331,7 +331,7 @@ function AccountContent() {
                     setLastName(user?.profile?.lastName || '');
                     setEmail(user?.email || '');
                   }}
-                  className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-purple-200 rounded-lg font-medium transition-colors"
+                  className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-[var(--text-base)] rounded-lg font-medium transition-colors"
                 >
                   Cancel
                 </button>
@@ -341,16 +341,16 @@ function AccountContent() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-purple-300/60 text-sm">First Name</p>
+                  <p className="text-[var(--text-muted)] text-sm">First Name</p>
                   <p className="text-white font-medium">{user?.profile?.firstName || 'Not set'}</p>
                 </div>
                 <div>
-                  <p className="text-purple-300/60 text-sm">Last Name</p>
+                  <p className="text-[var(--text-muted)] text-sm">Last Name</p>
                   <p className="text-white font-medium">{user?.profile?.lastName || 'Not set'}</p>
                 </div>
               </div>
               <div>
-                <p className="text-purple-300/60 text-sm">Email Address</p>
+                <p className="text-[var(--text-muted)] text-sm">Email Address</p>
                 <div className="flex items-center gap-2">
                   <p className="text-white font-medium">{user?.email}</p>
                   {user?.emailVerified ? (
@@ -361,11 +361,11 @@ function AccountContent() {
                 </div>
               </div>
               <div>
-                <p className="text-purple-300/60 text-sm">Username</p>
+                <p className="text-[var(--text-muted)] text-sm">Username</p>
                 <p className="text-white font-medium">{user?.username}</p>
               </div>
               <div>
-                <p className="text-purple-300/60 text-sm">Member Since</p>
+                <p className="text-[var(--text-muted)] text-sm">Member Since</p>
                 <p className="text-white font-medium">
                   {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', {
                     year: 'numeric',
@@ -379,13 +379,13 @@ function AccountContent() {
         </div>
 
         {/* Password Section */}
-        <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20">
+        <div className="bg-[var(--surface)]/60 backdrop-blur-sm rounded-xl p-6 border border-[var(--primary)]/20">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-white">Password</h2>
             {!isChangingPassword && (
               <button 
                 onClick={() => setIsChangingPassword(true)}
-                className="text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors"
+                className="text-[var(--primary)] hover:text-[var(--accent)] text-sm font-medium transition-colors"
               >
                 Change Password
               </button>
@@ -405,41 +405,41 @@ function AccountContent() {
           {isChangingPassword ? (
             <form onSubmit={handlePasswordChange} className="space-y-4">
               <div>
-                <label className="block text-purple-200 text-sm font-medium mb-2">
+                <label className="block text-[var(--text-base)] text-sm font-medium mb-2">
                   Current Password
                 </label>
                 <input
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-700/50 border border-purple-500/30 rounded-lg text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-400 transition-colors"
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-[var(--primary)]/30 rounded-lg text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)] transition-colors"
                   placeholder="Enter current password"
                   required
                 />
               </div>
               <div>
-                <label className="block text-purple-200 text-sm font-medium mb-2">
+                <label className="block text-[var(--text-base)] text-sm font-medium mb-2">
                   New Password
                 </label>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-700/50 border border-purple-500/30 rounded-lg text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-400 transition-colors"
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-[var(--primary)]/30 rounded-lg text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)] transition-colors"
                   placeholder="Enter new password"
                   required
                   minLength={8}
                 />
               </div>
               <div>
-                <label className="block text-purple-200 text-sm font-medium mb-2">
+                <label className="block text-[var(--text-base)] text-sm font-medium mb-2">
                   Confirm New Password
                 </label>
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-700/50 border border-purple-500/30 rounded-lg text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-400 transition-colors"
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-[var(--primary)]/30 rounded-lg text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)] transition-colors"
                   placeholder="Confirm new password"
                   required
                 />
@@ -448,7 +448,7 @@ function AccountContent() {
                 <button
                   type="submit"
                   disabled={passwordSaving}
-                  className="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                  className="px-6 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                 >
                   {passwordSaving ? 'Updating...' : 'Update Password'}
                 </button>
@@ -460,14 +460,14 @@ function AccountContent() {
                     setNewPassword('');
                     setConfirmPassword('');
                   }}
-                  className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-purple-200 rounded-lg font-medium transition-colors"
+                  className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-[var(--text-base)] rounded-lg font-medium transition-colors"
                 >
                   Cancel
                 </button>
               </div>
             </form>
           ) : (
-            <p className="text-purple-300/60 text-sm">
+            <p className="text-[var(--text-muted)] text-sm">
               Your password was last changed... well, we don&apos;t actually track that. It&apos;s a secret!
             </p>
           )}
@@ -516,7 +516,7 @@ function AccountContent() {
                     setDeletePassword('');
                     setDeleteMessage(null);
                   }}
-                  className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-purple-200 rounded-lg font-medium transition-colors"
+                  className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-[var(--text-base)] rounded-lg font-medium transition-colors"
                 >
                   Cancel
                 </button>

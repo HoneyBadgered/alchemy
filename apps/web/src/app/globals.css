@@ -6,10 +6,10 @@
    ======================================== */
 .ornate-button {
   position: relative;
-  background: linear-gradient(135deg, #D4AF37 0%, #C89F3C 50%, #B8860B 100%);
-  border: 2px solid #8B6914;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 50%, var(--accent-hover) 100%);
+  border: 2px solid var(--accent-hover);
   box-shadow: 
-    0 4px 15px rgba(212, 175, 55, 0.4),
+    0 4px 15px rgba(243, 184, 74, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.3),
     inset 0 -1px 0 rgba(0, 0, 0, 0.3);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
@@ -22,7 +22,7 @@
   position: absolute;
   width: 12px;
   height: 12px;
-  border: 2px solid #8B6914;
+  border: 2px solid var(--accent-hover);
   transition: all 0.3s ease;
 }
 
@@ -41,9 +41,9 @@
 }
 
 .ornate-button:hover {
-  background: linear-gradient(135deg, #E5C158 0%, #D4AF37 50%, #C89F3C 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent) 50%, var(--accent-hover) 100%);
   box-shadow: 
-    0 6px 20px rgba(212, 175, 55, 0.6),
+    0 6px 20px rgba(243, 184, 74, 0.6),
     inset 0 1px 0 rgba(255, 255, 255, 0.4),
     inset 0 -1px 0 rgba(0, 0, 0, 0.3);
   transform: translateY(-2px);
@@ -52,10 +52,10 @@
 .ornate-button-outline {
   position: relative;
   background: transparent;
-  border: 2px solid #D4AF37;
+  border: 2px solid var(--accent);
   box-shadow: 
-    0 4px 15px rgba(212, 175, 55, 0.3),
-    inset 0 0 20px rgba(212, 175, 55, 0.1);
+    0 4px 15px rgba(243, 184, 74, 0.3),
+    inset 0 0 20px rgba(243, 184, 74, 0.1);
   transition: all 0.3s ease;
 }
 
@@ -65,7 +65,7 @@
   position: absolute;
   width: 12px;
   height: 12px;
-  border: 2px solid #D4AF37;
+  border: 2px solid var(--accent);
   transition: all 0.3s ease;
 }
 
@@ -84,11 +84,128 @@
 }
 
 .ornate-button-outline:hover {
-  background: rgba(212, 175, 55, 0.15);
+  background: rgba(243, 184, 74, 0.15);
   box-shadow: 
-    0 6px 20px rgba(212, 175, 55, 0.5),
-    inset 0 0 30px rgba(212, 175, 55, 0.2);
+    0 6px 20px rgba(243, 184, 74, 0.5),
+    inset 0 0 30px rgba(243, 184, 74, 0.2);
   transform: translateY(-2px);
+}
+
+/* ========================================
+   THEME-AWARE UTILITY CLASSES
+   ======================================== */
+
+/* Primary Buttons */
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Secondary Buttons */
+.btn-secondary {
+  background-color: var(--secondary);
+  color: var(--text-base);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background-color: var(--surface);
+  transform: translateY(-1px);
+}
+
+/* Outline Buttons */
+.btn-outline {
+  background-color: transparent;
+  color: var(--primary);
+  padding: 0.75rem 1.5rem;
+  border: 2px solid var(--primary);
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+  background-color: var(--primary);
+  color: white;
+}
+
+/* Elevated Cards */
+.card-elevated {
+  background-color: var(--surface);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.card-elevated:hover {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Input Fields */
+.input-themed {
+  background-color: var(--background);
+  color: var(--text-base);
+  border: 1px solid var(--surface);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.input-themed:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(20, 81, 58, 0.1);
+}
+
+/* Badge Styles */
+.badge-primary {
+  background-color: var(--primary);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.badge-accent {
+  background-color: var(--accent);
+  color: var(--background);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* Link Styles */
+.link-primary {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.link-primary:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
 }
 
 /* ========================================

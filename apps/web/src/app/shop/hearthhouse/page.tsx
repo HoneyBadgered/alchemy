@@ -33,15 +33,40 @@ interface ProductsResponse {
   };
 }
 
+interface Zone {
+  id: string;
+  name: string;
+  slug: string;
+  tagline: string;
+  theme: string;
+  gradient: string;
+  bgGradient: string;
+  accentColor: string;
+  heroImageUrl?: string;
+  buttonImageUrl?: string;
+  defaultFilters: {
+    flavorProfile: string[];
+    caffeineLevel: string[];
+  };
+  subTabs: Array<{
+    id: string;
+    label: string;
+    bias: string[] | null;
+  }>;
+  sortOrder: number;
+  isActive: boolean;
+}
+
 type SubTab = 'all' | 'deep' | 'spiced' | 'mellow';
 
-const ZONE = {
+const ZONE_FALLBACK = {
   name: 'The Hearthhouse',
   tagline: 'Dark, smoky, grounding',
   theme: 'Where warmth gathers and stories linger',
   gradient: 'from-amber-900 via-orange-800 to-red-900',
   bgColor: 'bg-gradient-to-br from-orange-950/40 via-red-950/30 to-amber-950/40',
   accentColor: 'amber-600',
+  heroImageUrl: undefined,
   defaultFilters: {
     flavorProfile: ['smoky', 'roasted'],
     caffeineLevel: ['medium', 'high'],
@@ -71,6 +96,17 @@ export default function HeathhousePage() {
   const [selectedCaffeine, setSelectedCaffeine] = useState<string[]>([]);
   const [selectedOccasions, setSelectedOccasions] = useState<string[]>([]);
   const [specialConstraints, setSpecialConstraints] = useState<string[]>([]);
+
+  // Fetch zone data
+  const { data: zoneData } = useQuery<Zone>({
+    queryKey: ['zone', 'hearthhouse'],
+    queryFn: async () => {
+      const response = await apiClient.get<{ zones: Zone[] }>('/zones');
+      return response.zones.find(z => z.slug === 'hearthhouse') || ZONE_FALLBACK as any;
+    },
+  });
+
+  const ZONE = zoneData || ZONE_FALLBACK;
 
   const { data, isLoading } = useQuery<ProductsResponse>({
     queryKey: ['products', ZONE.name],
@@ -218,22 +254,24 @@ export default function HeathhousePage() {
     <div className="min-h-screen bg-gradient-to-b from-stone-950 via-stone-900 to-stone-950">
       <Header />
       
-      {/* Zone Hero */}
+      {/* Zone Hero - Compact */}
       <div className={`relative mt-16 overflow-hidden bg-gradient-to-r ${ZONE.gradient}`}>
         {/* Atmospheric background effect */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(255,200,100,0.3),transparent_50%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,150,50,0.2),transparent_40%)]" />
-        </div>
+        {!ZONE.heroImageUrl && (
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(255,200,100,0.3),transparent_50%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,150,50,0.2),transparent_40%)]" />
+          </div>
+        )}
         
-        <div className="relative max-w-7xl mx-auto px-6 py-20 text-center">
-          <h1 className="text-6xl md:text-7xl font-serif font-bold text-white mb-4 tracking-tight">
+        <div className="relative max-w-7xl mx-auto px-6 py-12 text-center">
+          <h1 className="text-5xl md:text-6xl font-serif font-bold text-white mb-3 tracking-tight">
             {ZONE.name}
           </h1>
-          <p className="text-2xl text-amber-100 italic font-light mb-2">
+          <p className="text-xl text-amber-100 italic font-light mb-1">
             {ZONE.tagline}
           </p>
-          <p className="text-lg text-white/70 max-w-2xl mx-auto">
+          <p className="text-base text-white/70 max-w-2xl mx-auto">
             {ZONE.theme}
           </p>
         </div>
@@ -277,9 +315,22 @@ export default function HeathhousePage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Sub-tabs */}
-        <div className="flex gap-2 mb-6">
+      {/* Main Content Area with Background */}
+      <div className="relative min-h-screen">
+        {/* Background Image */}
+        {ZONE.heroImageUrl && (
+          <div className="fixed inset-0 z-0 mt-16">
+            <img 
+              src={ZONE.heroImageUrl} 
+              alt={`${ZONE.name} background`}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
+          {/* Sub-tabs */}
+          <div className="flex gap-2 mb-6">
           {ZONE.subTabs.map(tab => (
             <button
               key={tab.id}
@@ -549,6 +600,7 @@ export default function HeathhousePage() {
           >
             Create Your Own Blend
           </Link>
+        </div>
         </div>
       </div>
     </div>

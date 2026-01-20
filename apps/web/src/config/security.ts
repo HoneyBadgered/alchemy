@@ -21,7 +21,7 @@ export const securityConfig = {
       "http://localhost:3001",
       "https://api.stripe.com",
     ],
-    imgSrc: ["'self'", "data:", "https:", "blob:"],
+    imgSrc: ["'self'", "data:", "https:", "http://localhost:3000", "blob:"],
     fontSrc: ["'self'", "data:"],
     objectSrc: ["'none'"],
     baseUri: ["'self'"],

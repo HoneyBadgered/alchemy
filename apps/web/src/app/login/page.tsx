@@ -73,7 +73,7 @@ function LoginForm() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent transition text-black"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition text-[var(--text-base)] bg-[var(--background)]"
             placeholder="you@example.com"
             required
           />
@@ -88,7 +88,7 @@ function LoginForm() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent transition text-black"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition text-[var(--text-base)] bg-[var(--background)]"
             placeholder="••••••••"
             required
           />
@@ -97,7 +97,7 @@ function LoginForm() {
         <div className="flex items-center justify-between">
           <Link
             href="/forgot-password"
-            className="text-sm text-purple-600 hover:text-purple-800 transition"
+            className="text-sm text-[var(--primary)] hover:text-[var(--primary-hover)] transition"
           >
             Forgot password?
           </Link>
@@ -106,18 +106,18 @@ function LoginForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-[var(--primary)] text-white py-3 rounded-lg font-semibold hover:bg-[var(--primary-hover)] transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
 
       <div className="mt-6 text-center">
-        <p className="text-gray-600">
+        <p className="text-[var(--text-muted)]">
           Don't have an account?{' '}
           <Link
             href={redirectTo ? `/signup?redirect=${encodeURIComponent(redirectTo)}` : '/signup'}
-            className="text-purple-600 font-semibold hover:text-purple-800 transition"
+            className="text-[var(--primary)] font-semibold hover:text-[var(--primary-hover)] transition"
           >
             Sign up
           </Link>
@@ -129,15 +129,15 @@ function LoginForm() {
 
 function LoginFormFallback() {
   return (
-    <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8">
+    <div className="max-w-md w-full bg-[var(--surface)] rounded-2xl shadow-2xl p-8">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-purple-900 mb-2">
+        <h1 className="text-4xl font-bold text-[var(--text-base)] mb-2">
           🧪 The Alchemy Table
         </h1>
-        <p className="text-gray-600">Sign in to your account</p>
+        <p className="text-[var(--text-muted)]">Sign in to your account</p>
       </div>
       <div className="text-center py-8">
-        <p className="text-gray-600">Loading...</p>
+        <p className="text-[var(--text-muted)]">Loading...</p>
       </div>
     </div>
   );
@@ -145,7 +145,7 @@ function LoginFormFallback() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-purple-700 to-pink-600 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--background)] p-4">
       <Suspense fallback={<LoginFormFallback />}>
         <LoginForm />
       </Suspense>

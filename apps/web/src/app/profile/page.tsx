@@ -150,18 +150,18 @@ function ProfileDashboardContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-950 to-slate-900 pb-20">
+    <div className="min-h-screen bg-[var(--background)] pb-20">
       {/* Atmospheric overlay with subtle pattern */}
       <div className="fixed inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMtOS45NCAwLTE4IDguMDYtMTggMThzOC4wNiAxOCAxOCAxOCAxOC04LjA2IDE4LTE4LTguMDYtMTgtMTgtMTh6bTAgMzJjLTcuNzMyIDAtMTQtNi4yNjgtMTQtMTRzNi4yNjgtMTQgMTQtMTQgMTQgNi4yNjggMTQgMTQtNi4yNjggMTQtMTQgMTR6IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9Ii4wMiIvPjwvZz48L3N2Zz4=')] opacity-30 pointer-events-none" />
       
       {/* Header with mystical gradient */}
-      <div className="relative bg-gradient-to-r from-purple-900/80 via-violet-800/80 to-purple-900/80 border-b border-purple-500/30 shadow-lg shadow-purple-900/50">
+      <div className="relative bg-[var(--surface)]/80 border-b border-[var(--primary)]/30 shadow-lg shadow-[var(--primary)]/20">
         <div className="max-w-5xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {/* Avatar with mystical glow */}
               <div className="relative">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-violet-800 flex items-center justify-center text-3xl shadow-lg shadow-purple-500/50 border-2 border-purple-400/50">
+                <div className="w-16 h-16 rounded-full bg-[var(--primary)] flex items-center justify-center text-3xl shadow-lg shadow-[var(--primary)]/50 border-2 border-[var(--primary)]/50">
                   {user?.profile?.avatarUrl ? (
                     <img 
                       src={user.profile.avatarUrl} 
@@ -178,11 +178,11 @@ function ProfileDashboardContent() {
                 </div>
               </div>
               <div>
-                <p className="text-purple-300 text-sm font-medium">{getGreeting()}</p>
-                <h1 className="text-2xl font-bold text-white">
+                <p className="text-[var(--accent)] text-sm font-medium">{getGreeting()}</p>
+                <h1 className="text-2xl font-bold text-[var(--text-base)]">
                   {user?.profile?.firstName || user?.username}
                 </h1>
-                <p className="text-purple-200/70 text-sm">{currentTier.name} Alchemist</p>
+                <p className="text-[var(--text-muted)] text-sm">{currentTier.name} Alchemist</p>
               </div>
             </div>
             <button
@@ -201,32 +201,32 @@ function ProfileDashboardContent() {
           {/* Recent Order Card */}
           <Link 
             href="/profile/orders"
-            className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-5 border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group"
+            className="bg-[var(--surface)]/60 backdrop-blur-sm rounded-xl p-5 border border-[var(--primary)]/20 hover:border-[var(--primary)]/40 transition-all duration-300 group"
           >
             <div className="flex items-center gap-3 mb-3">
               <span className="text-2xl">📦</span>
-              <h3 className="text-purple-200 font-semibold">Recent Order</h3>
+              <h3 className="text-[var(--text-base)] font-semibold">Recent Order</h3>
             </div>
             {recentOrder ? (
               <div className="space-y-2">
-                <p className="text-white font-medium text-lg">
+                <p className="text-[var(--text-base)] font-medium text-lg">
                   ${Number(recentOrder.totalAmount).toFixed(2)}
                 </p>
-                <p className="text-purple-300/70 text-sm">
+                <p className="text-[var(--text-muted)] text-sm">
                   {new Date(recentOrder.createdAt).toLocaleDateString()}
                 </p>
                 <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
                   recentOrder.status === 'completed' ? 'bg-green-900/50 text-green-300' :
-                  recentOrder.status === 'shipped' ? 'bg-purple-900/50 text-purple-300' :
+                  recentOrder.status === 'shipped' ? 'bg-[var(--primary)]/50 text-[var(--accent)]' :
                   'bg-amber-900/50 text-amber-300'
                 }`}>
                   {recentOrder.status.charAt(0).toUpperCase() + recentOrder.status.slice(1)}
                 </span>
               </div>
             ) : (
-              <p className="text-purple-300/50 text-sm italic">No orders yet</p>
+              <p className="text-[var(--text-muted)] text-sm italic">No orders yet</p>
             )}
-            <p className="text-purple-400 text-sm mt-3 group-hover:text-purple-300 transition-colors">
+            <p className="text-[var(--primary)] text-sm mt-3 group-hover:text-[var(--accent)] transition-colors">
               View all orders →
             </p>
           </Link>
@@ -234,18 +234,18 @@ function ProfileDashboardContent() {
           {/* Points Balance Card */}
           <Link 
             href="/profile/rewards"
-            className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-5 border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group"
+            className="bg-[var(--surface)]/60 backdrop-blur-sm rounded-xl p-5 border border-[var(--primary)]/20 hover:border-[var(--primary)]/40 transition-all duration-300 group"
           >
             <div className="flex items-center gap-3 mb-3">
               <span className="text-2xl">💎</span>
-              <h3 className="text-purple-200 font-semibold">Points Balance</h3>
+              <h3 className="text-[var(--text-base)] font-semibold">Points Balance</h3>
             </div>
-            <p className="text-white font-bold text-2xl mb-2">
-              {pointsBalance.toLocaleString()} <span className="text-sm font-normal text-purple-300">pts</span>
+            <p className="text-[var(--text-base)] font-bold text-2xl mb-2">
+              {pointsBalance.toLocaleString()} <span className="text-sm font-normal text-[var(--accent)]">pts</span>
             </p>
             {nextTier && (
               <div className="space-y-2">
-                <div className="flex justify-between text-xs text-purple-300/70">
+                <div className="flex justify-between text-xs text-[var(--text-muted)]">
                   <span>{currentTier.icon} {currentTier.name}</span>
                   <span>{nextTier.icon} {nextTier.name}</span>
                 </div>

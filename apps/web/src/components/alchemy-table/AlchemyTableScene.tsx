@@ -107,14 +107,14 @@ export const AlchemyTableScene: React.FC = () => {
     : [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 pb-20">
+    <div className="min-h-screen bg-[var(--background)] pb-20">
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur shadow-sm sticky top-0 z-30">
+      <div className="bg-[var(--surface)]/80 backdrop-blur shadow-sm sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <h1 className="text-2xl md:text-3xl font-bold text-purple-900">
+          <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-base)]">
             The Alchemy Table ✨
           </h1>
-          <p className="text-sm md:text-base text-gray-600 mt-1">
+          <p className="text-sm md:text-base text-[var(--text-muted)] mt-1">
             Craft your perfect blend
           </p>
         </div>

@@ -102,6 +102,11 @@ fastify.register(multipart, {
 fastify.register(fastifyStatic, {
   root: path.join(__dirname, '..', 'uploads'),
   prefix: '/uploads/',
+  decorateReply: false,
+  setHeaders: (res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  },
 });
 
 // Register rate limiting

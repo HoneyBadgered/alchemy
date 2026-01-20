@@ -21,12 +21,14 @@ export interface UploadResult {
 export class FileUploadService {
   private uploadDir: string;
   private subdirectory: string;
+  private baseUrl: string;
   private allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
   private maxFileSize = 5 * 1024 * 1024; // 5MB
 
-  constructor(subdirectory: 'products' | 'ingredients' = 'products') {
+  constructor(subdirectory: 'products' | 'ingredients' | 'zones' = 'products') {
     this.subdirectory = subdirectory;
     this.uploadDir = path.resolve('./uploads', subdirectory);
+    this.baseUrl = process.env.API_BASE_URL || 'http://localhost:3000';
     this.ensureUploadDir();
   }
 
@@ -53,10 +55,15 @@ export class FileUploadService {
    * Generate unique filename
    */
   private generateFilename(originalName: string): string {
+    // Sanitize the original filename
     const ext = path.extname(originalName);
-    const timestamp = Date.now();
-    const random = crypto.randomBytes(8).toString('hex');
-    return `${timestamp}-${random}${ext}`;
+    const baseName = path.basename(originalName, ext)
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '-')
+      .replace(/-+/g, '-')
+      .substring(0, 100); // Limit length
+    
+    return `${baseName}${ext}`;
   }
 
   /**
@@ -87,7 +94,7 @@ export class FileUploadService {
       originalName: file.filename,
       mimetype: file.mimetype,
       size: stats.size,
-      url: `/uploads/${this.subdirectory}/${filename}`,
+      url: `${this.baseUrl}/uploads/${this.subdirectory}/${filename}`,
       path: filepath,
     };
   }

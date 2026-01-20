@@ -1,7 +1,26 @@
 /**
  * Design Tokens for The Alchemy Table
  * 
- * Cozy fantasy/alchemy aesthetic theme
+ * @deprecated These design tokens are deprecated in favor of CSS variables defined in apps/web/src/app/globals.css
+ * 
+ * The application now uses CSS custom properties for theming to enable:
+ * - Dynamic theme switching (verdant, purple, crimson, admin)
+ * - Better performance (no JavaScript required for theming)
+ * - Easier maintenance (single source of truth)
+ * 
+ * Migration guide:
+ * - Instead of importing these tokens, use CSS variables:
+ *   - colors.primary.500 → var(--primary)
+ *   - colors.secondary.500 → var(--secondary)
+ *   - colors.background → var(--background)
+ *   - colors.surface → var(--surface)
+ *   - For buttons, use .btn-primary, .btn-secondary, .btn-outline classes
+ *   - For cards, use .card-elevated class
+ *   - For inputs, use .input-themed class
+ * 
+ * See apps/web/src/app/globals.css for the complete list of available CSS variables and utility classes.
+ * 
+ * This file is kept for backwards compatibility only and may be removed in a future version.
  */
 
 export const colors = {

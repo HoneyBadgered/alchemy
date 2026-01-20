@@ -68,16 +68,16 @@ const getCategoryClasses = (category: IngredientCategory) => {
       closeBtn: 'bg-yellow-200 hover:bg-yellow-300 text-yellow-900',
     },
     essence: {
-      header: 'bg-gradient-to-r from-purple-100 to-purple-200',
-      title: 'text-purple-900',
-      description: 'text-purple-700',
-      closeBtn: 'bg-purple-200 hover:bg-purple-300 text-purple-900',
+      header: 'bg-gradient-to-r from-[var(--surface)] to-[var(--primary)]/20',
+      title: 'text-[var(--text-base)]',
+      description: 'text-[var(--text-muted)]',
+      closeBtn: 'bg-[var(--surface)] hover:bg-[var(--primary)]/30 text-[var(--text-base)]',
     },
     specialty: {
-      header: 'bg-gradient-to-r from-purple-100 to-purple-200',
-      title: 'text-purple-900',
-      description: 'text-purple-700',
-      closeBtn: 'bg-purple-200 hover:bg-purple-300 text-purple-900',
+      header: 'bg-gradient-to-r from-[var(--surface)] to-[var(--primary)]/20',
+      title: 'text-[var(--text-base)]',
+      description: 'text-[var(--text-muted)]',
+      closeBtn: 'bg-[var(--surface)] hover:bg-[var(--primary)]/30 text-[var(--text-base)]',
     },
   };
   return classes[category];

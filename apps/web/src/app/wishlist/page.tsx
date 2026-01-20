@@ -64,20 +64,20 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-100 to-blue-100 pb-20">
+    <div className="min-h-screen bg-[var(--background)] pb-20">
       {/* Header */}
-      <div className="bg-white shadow-sm">
+      <div className="bg-[var(--surface)] shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-purple-900">My Wishlist</h1>
-              <p className="text-sm text-gray-600 mt-1">
+              <h1 className="text-2xl font-bold text-[var(--text-base)]">My Wishlist</h1>
+              <p className="text-sm text-[var(--text-muted)] mt-1">
                 {data?.items.length || 0} item{data?.items.length !== 1 ? 's' : ''} saved
               </p>
             </div>
             <Link
               href="/shop"
-              className="text-purple-600 hover:text-purple-700 font-semibold"
+              className="text-[var(--primary)] hover:text-[var(--primary-hover)] font-semibold"
             >
               Continue Shopping
             </Link>
@@ -88,7 +88,7 @@ export default function WishlistPage() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         {isLoading && (
           <div className="flex justify-center items-center py-20">
-            <div className="text-purple-900 text-lg">Loading wishlist...</div>
+            <div className="text-[var(--text-base)] text-lg">Loading wishlist...</div>
           </div>
         )}
 
@@ -107,9 +107,9 @@ export default function WishlistPage() {
             </p>
             <Link
               href="/shop"
-              className="inline-block bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-full font-semibold transition-colors"
+              className="inline-block bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white px-6 py-3 rounded-full font-semibold transition-colors"
             >
-              Browse Products
+              Explore Products
             </Link>
           </div>
         )}
@@ -169,13 +169,13 @@ export default function WishlistPage() {
 
                   <div className="p-4">
                     {product.category && (
-                      <div className="text-xs text-purple-600 font-semibold mb-1">
+                      <div className="text-xs text-[var(--primary)] font-semibold mb-1">
                         {product.category}
                       </div>
                     )}
                     
                     <Link href={`/shop/${product.id}`}>
-                      <h3 className="font-bold text-lg mb-1 line-clamp-2 hover:text-purple-600">
+                      <h3 className="font-bold text-lg mb-1 line-clamp-2 hover:text-[var(--primary)]">
                         {product.name}
                       </h3>
                     </Link>
@@ -195,7 +195,7 @@ export default function WishlistPage() {
 
                     {/* Price */}
                     <div className="flex items-center gap-2 mb-4">
-                      <span className="text-xl font-bold text-purple-600">
+                      <span className="text-xl font-bold text-[var(--primary)]">
                         ${Number(product.price).toFixed(2)}
                       </span>
                       {isOnSale && product.compareAtPrice && (
@@ -209,7 +209,7 @@ export default function WishlistPage() {
                     <button
                       onClick={() => handleMoveToCart(product.id)}
                       disabled={isOutOfStock || movingToCart.has(product.id)}
-                      className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-full font-semibold transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      className="w-full bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white py-2 rounded-full font-semibold transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                     >
                       {movingToCart.has(product.id)
                         ? 'Moving...'

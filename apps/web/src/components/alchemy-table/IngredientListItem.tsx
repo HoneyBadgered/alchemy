@@ -59,7 +59,7 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({
       className={`
         rounded-lg transition-all border-2
         ${isSelected 
-          ? 'bg-purple-50 border-purple-400' 
+          ? 'bg-[var(--surface)] border-[var(--primary)]' 
           : 'bg-white border-gray-200 hover:border-gray-300'
         }
       `}
@@ -75,7 +75,7 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({
               className={`
                 w-5 h-5 rounded-full border-2 flex items-center justify-center
                 ${isSelected
-                  ? 'border-purple-600 bg-purple-600'
+                  ? 'border-[var(--primary)] bg-[var(--primary)]'
                   : 'border-gray-300'
                 }
               `}
@@ -89,7 +89,7 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({
               className={`
                 w-5 h-5 rounded border-2 flex items-center justify-center
                 ${isSelected
-                  ? 'border-purple-600 bg-purple-600'
+                  ? 'border-[var(--primary)] bg-[var(--primary)]'
                   : 'border-gray-300'
                 }
               `}
@@ -119,7 +119,7 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({
             {ingredient.badges?.map(badge => (
               <span
                 key={badge}
-                className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full font-medium"
+                className="text-xs px-2 py-0.5 bg-[var(--surface)] text-[var(--primary)] rounded-full font-medium"
               >
                 {badge}
               </span>
@@ -148,10 +148,10 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({
       {/* Quantity Controls (Multi-select only) */}
       {mode === 'multi' && isSelected && (
         <div className="px-4 pb-4 pt-0">
-          <div className="bg-white rounded-lg border border-purple-200 p-3">
+          <div className="bg-white rounded-lg border border-[var(--primary)] p-3">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-700">Quantity:</span>
-              <span className="font-bold text-purple-900">
+              <span className="font-bold text-[var(--text-base)]">
                 {formatQuantity(localQuantity)}g
               </span>
             </div>
@@ -163,7 +163,7 @@ export const IngredientListItem: React.FC<IngredientListItemProps> = ({
               value={localQuantity}
               onChange={handleSliderChange}
               onClick={(e) => e.stopPropagation()}
-              className="w-full h-2 bg-purple-100 rounded-lg appearance-none cursor-pointer accent-purple-600"
+              className="w-full h-2 bg-[var(--surface)] rounded-lg appearance-none cursor-pointer accent-[var(--primary)]"
               aria-label={`Adjust quantity for ${ingredient.name}`}
             />
           </div>
